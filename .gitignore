@@ -4,3 +4,4 @@ desktop-app/release/
 .qa-artifacts/
 rison-dsh-endfield-ui-*.tgz
 endfield-ui-plugin/rison-dsh-endfield-ui-*.tgz
+.workbuddy/
