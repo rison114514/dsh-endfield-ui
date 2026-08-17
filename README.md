@@ -28,16 +28,16 @@ dsh web
 cd desktop-app
 npm install
 npm run pack:mac        # 构建 darwin-arm64 .app
-npm run dist:mac:local  # 检查语法 + 打包 + ad-hoc 签名 + 校验
+npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签名 + 校验
 ```
 
-> 注意：当前桌面壳 `app.config.json` 仍写死开发者本机路径，且启动依赖 `--patch`。
-> 阶段 2 会改为自动发现 `dsh` 可执行文件、增加首次配置页、改用标准 bundle 启动并移除 `--patch`。
+桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**），含单实例锁、30s 启动超时与「复制诊断信息」、退出/崩溃可靠回收子进程。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`。
+打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（ad-hoc 签名，仅本机自用）。
 
 ## 开发状态
 
-- **阶段 1（标准插件）**：`dsh.bundle.patch` 已声明，0.5.0 发布准备中。✅
-- **阶段 2（桌面壳消费标准插件）**：待开始。
+- **阶段 1（标准插件）**：`dsh.bundle.patch` 已声明，0.5.0 发布准备完成，冒烟测试 8/8 通过。✅
+- **阶段 2（桌面壳消费标准插件）**：移除 `--patch`、dsh 自动发现、首次引导页、单实例锁、启动超时/诊断、dist 脚本，`dist:mac:local` 5/5 通过。✅
+- 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。

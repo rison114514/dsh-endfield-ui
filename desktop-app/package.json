@@ -8,7 +8,10 @@
   "scripts": {
     "start": "electron .",
     "install-plugin": "node scripts/install-plugin.mjs",
-    "pack:mac": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=arm64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin"
+    "pack:mac": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=arm64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin",
+    "pack:mac:x64": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=x64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin",
+    "sign:mac:local": "codesign --force --deep --sign - \"release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app\" && codesign --verify --deep --strict \"release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app\"",
+    "dist:mac:local": "node scripts/dist-mac-local.mjs"
   },
   "devDependencies": {
     "@electron/packager": "20.0.4",
