@@ -1,0 +1,1129 @@
+@font-face {
+  font-family: "EF Harmony";
+  src: url("/endfield-ui/assets/harmony-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "EF Harmony";
+  src: url("/endfield-ui/assets/harmony-bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "EF Wide";
+  src: url("/endfield-ui/assets/novecento.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "EF Numeric";
+  src: url("/endfield-ui/assets/space-grotesk.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  --ef-yellow: #fff44f;
+  --ef-yellow-dim: #d9cd00;
+  --ef-black: #090b0d;
+  --ef-panel: #171b1f;
+  --ef-line: rgba(255, 244, 79, 0.28);
+  --ef-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 5px 6px 0 rgba(0,0,0,.55), 7px 8px 0 rgba(255,244,79,.12), 0 18px 36px rgba(0,0,0,.3);
+}
+
+html,
+body,
+#root {
+  background: var(--ef-black) !important;
+}
+
+body {
+  color: #f5f6f2;
+  font-family: "EF Harmony", "PingFang SC", sans-serif !important;
+  letter-spacing: .005em;
+}
+
+body:has(.ef-overlay) #root {
+  box-sizing: border-box;
+  height: 100%;
+  padding-top: 30px;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 30px 0 0;
+  z-index: 19;
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 0 72%, rgba(255,244,79,.025) 72% 72.2%, transparent 72.2%),
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(255,255,255,.018) 5px 6px),
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: auto, auto, 64px 64px, 64px 64px;
+  opacity: .42;
+  mix-blend-mode: screen;
+}
+
+button,
+input,
+textarea,
+select,
+[role="button"] {
+  border-radius: 1px !important;
+}
+
+button:not([disabled]),
+[role="button"] {
+  transition: color .16s ease, border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease !important;
+}
+
+button:not([disabled]):hover,
+[role="button"]:hover {
+  border-color: var(--ef-yellow) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ef-yellow) !important;
+  box-shadow: 0 0 0 1px var(--ef-yellow), 0 0 18px rgba(255,244,79,.08) !important;
+}
+
+pre,
+code {
+  font-family: "EF Numeric", "SFMono-Regular", monospace !important;
+}
+
+::selection {
+  color: #090b0d;
+  background: var(--ef-yellow);
+}
+
+/* Expanded sidebar: the original workbench's white paper column, with the
+   downloaded contour-map plate kept deliberately faint behind live controls. */
+[data-slot="sidebar"] > div {
+  position: relative;
+  color: #111417 !important;
+  background: #f3f3ef !important;
+  border-right: 4px solid var(--ef-yellow);
+  box-shadow: 1px 0 0 #111417, 9px 0 22px rgba(0,0,0,.24);
+  --dsw-alias-label-primary: #111417;
+  --dsw-alias-label-primary-bluish: #111417;
+  --dsw-alias-label-primary-dimmed: #33383c;
+  --dsw-alias-label-secondary: #555d62;
+  --dsw-alias-label-tertiary: #737b80;
+  --dsw-alias-label-caption: #8a9195;
+  --dsw-alias-border-l1: rgba(17,20,23,.13);
+  --dsw-alias-border-l2: rgba(17,20,23,.28);
+  --dsw-alias-button-elevated-fill: rgba(255,255,255,.68);
+  --dsw-alias-button-floating-hover: rgba(255,244,79,.45);
+  --dsw-alias-interactive-bg-hover: rgba(17,20,23,.07);
+  --dsw-specific-sidebar-nav-item-active: rgba(255,244,79,.58);
+  --dsw-specific-sidebar-nav-item-hover: rgba(17,20,23,.06);
+  --dsw-specific-sidebar-fill: #f3f3ef;
+  --dsh-scrollbar-thumb: rgba(17,20,23,.3);
+  --dsh-scrollbar-thumb-hover: #111417;
+}
+
+[data-slot="sidebar"] > div::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: url("/endfield-ui/assets/deco-right.jpg") center / 100% 100%;
+  filter: grayscale(1) contrast(.78) brightness(1.1);
+  mix-blend-mode: multiply;
+  opacity: .26;
+}
+
+[data-slot="sidebar"] > div::after {
+  content: "// FIELD TERMINAL  ·  DSH-01";
+  position: absolute;
+  left: 3px;
+  bottom: 52px;
+  z-index: -1;
+  color: rgba(17,20,23,.32);
+  font: 600 5px/1 "EF Wide", sans-serif;
+  letter-spacing: .2em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* Illustrated Deepseek Harness identity plate. */
+[data-slot="sidebar"] > div > div:first-child:has(> button[aria-label="新建会话"]) {
+  position: relative;
+  height: 116px !important;
+  min-height: 116px !important;
+  align-items: stretch !important;
+  margin: 0 0 10px !important;
+  padding: 7px 6px 8px !important;
+  border-bottom: 1px solid rgba(17,20,23,.18);
+}
+
+[data-slot="sidebar"] > div > div:first-child > button[aria-label="新建会话"] {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 !important;
+  color: transparent !important;
+  background: #111417 url("/endfield-ui/assets/deepseek-harness-brand.png") center / cover no-repeat !important;
+  border: 1px solid rgba(17,20,23,.68) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 rgba(17,20,23,.16), inset 0 0 0 1px rgba(255,255,255,.06) !important;
+  overflow: hidden;
+}
+
+[data-slot="sidebar"] > div > div:first-child > button[aria-label="新建会话"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255,222,0,.9) 0 3px, transparent 3px),
+    linear-gradient(135deg, rgba(255,255,255,.08), transparent 28%);
+}
+
+[data-slot="sidebar"] > div > div:first-child > button[aria-label="新建会话"]::after {
+  content: "";
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  width: 18px;
+  height: 2px;
+  background: #ffde00;
+  box-shadow: -5px 0 0 rgba(255,222,0,.28);
+}
+
+[data-slot="sidebar"] > div > div:first-child > button[aria-label="新建会话"] > svg {
+  display: none !important;
+}
+
+[data-slot="sidebar"] > div > div:first-child > button:not([aria-label="新建会话"]) {
+  position: absolute;
+  z-index: 2;
+  top: 13px;
+  right: 12px;
+  width: 25px !important;
+  height: 25px !important;
+  color: #e8e9e7 !important;
+  border: 1px solid rgba(255,255,255,.34) !important;
+  background: rgba(17,20,23,.72) !important;
+  backdrop-filter: blur(5px);
+}
+
+[data-slot="sidebar"] [role="treeitem"][aria-selected="true"] {
+  color: #111417 !important;
+  background: linear-gradient(90deg, rgba(255,244,79,.72), rgba(255,244,79,.22)) !important;
+  border-left: 3px solid #111417;
+  box-shadow: 3px 3px 0 rgba(17,20,23,.13);
+}
+
+/* The current Workspace borrows the protocol-card treatment: a charcoal
+   texture plate with a yellow locator rail and a neutral folder glyph. */
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) {
+  position: relative;
+  height: 50px !important;
+  margin: 3px 0 7px;
+  padding: 5px 7px 5px 6px !important;
+  border: 1px solid rgba(255,244,79,.24) !important;
+  border-left: 4px solid var(--ef-yellow) !important;
+  border-radius: 1px !important;
+  color: #d9dddc !important;
+  background:
+    linear-gradient(105deg, rgba(27,31,34,.96), rgba(55,59,60,.88)),
+    url("/endfield-ui/assets/operator-card.jpg") center / cover !important;
+  box-shadow: 5px 5px 0 rgba(17,20,23,.18), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"])::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 7px;
+  width: 3px;
+  height: 28px;
+  background: rgba(205,210,208,.58);
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) > [class*="_folder"] {
+  display: inline-flex !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin-right: 3px;
+  border-radius: 50%;
+  color: #c8cecc !important;
+  background: rgba(224,228,226,.14);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) > [class*="_folder"] svg {
+  width: 18px;
+  height: 18px;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) > [class*="_chevron"] {
+  display: none !important;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) > [class*="_projectText"] {
+  gap: 3px;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) > [class*="_projectText"]::before {
+  content: "ACTIVE WORKSPACE / 01";
+  color: #858e91;
+  font: 600 5px/1 "EF Wide", sans-serif;
+  letter-spacing: .16em;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) [class*="_title"] {
+  color: #d9dddc !important;
+  font-weight: 700;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]):hover {
+  border-color: rgba(255,244,79,.48) !important;
+  background:
+    linear-gradient(105deg, rgba(34,38,41,.98), rgba(65,69,69,.9)),
+    url("/endfield-ui/assets/operator-card.jpg") center / cover !important;
+}
+
+[data-slot="sidebar"] [role="treeitem"][class*="_projectRow"]:has(> [class*="_folderActive"]) [class*="_rowActions"] {
+  margin-right: 7px;
+  color: #d9dddc;
+}
+
+[data-slot="sidebar"] button[aria-label="设置"] {
+  color: #111417 !important;
+  border-top: 1px solid rgba(17,20,23,.16) !important;
+}
+
+/* Settings is a dark industrial module regardless of the host appearance
+   preference. This also closes the white-active-cell token gap. */
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) {
+  border: 1px solid rgba(255,244,79,.48) !important;
+  border-radius: 2px !important;
+  color: #f3f4ef !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(125deg, #181c20, #0d1013) !important;
+  background-size: 44px 44px, 44px 44px, auto !important;
+  box-shadow: 10px 12px 0 rgba(0,0,0,.44), 12px 14px 0 rgba(255,244,79,.12), 0 28px 72px rgba(0,0,0,.6) !important;
+  --dsw-alias-label-primary: #f3f4ef;
+  --dsw-alias-label-primary-dimmed: #c1c7c5;
+  --dsw-alias-label-secondary: #99a1a6;
+  --dsw-alias-label-tertiary: #747d82;
+  --dsw-alias-border-l1: rgba(255,244,79,.12);
+  --dsw-alias-border-l2: rgba(255,244,79,.24);
+  --dsw-alias-bg-layer-1: #15191d;
+  --dsw-alias-bg-layer-2: #181c20;
+  --dsw-alias-bg-layer-3: #20252a;
+  --dsw-alias-bg-module-platform: #20252a;
+  --dsw-alias-button-elevated-fill: #24292e;
+  --dsw-alias-interactive-bg-hover: rgba(255,244,79,.08);
+  --dsw-specific-sidebar-nav-item-active: rgba(255,244,79,.16);
+  --dsw-specific-sidebar-nav-item-hover: rgba(255,244,79,.07);
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"])::before {
+  content: "SYSTEM CONFIGURATION / DSH-04";
+  position: absolute;
+  left: 19px;
+  bottom: 14px;
+  color: rgba(255,244,79,.4);
+  font: 600 5px/1 "EF Wide", sans-serif;
+  letter-spacing: .2em;
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"])::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ef-yellow) 0 26%, #43d9e7 26% 32%, #f46a8c 32% 35%, transparent 35%);
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) nav {
+  border-right: 1px solid rgba(255,244,79,.15);
+  background:
+    linear-gradient(rgba(10,12,14,.78), rgba(10,12,14,.78)),
+    url("/endfield-ui/assets/operator-card.jpg") center / cover;
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) nav button[aria-current="true"] {
+  color: #111417 !important;
+  background: var(--ef-yellow) !important;
+  box-shadow: 4px 4px 0 rgba(255,244,79,.13);
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) button {
+  color: inherit;
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) button[aria-pressed="true"] {
+  border-color: var(--ef-yellow) !important;
+  background: rgba(255,244,79,.12) !important;
+}
+
+textarea[placeholder="描述你想要构建的内容"] {
+  color: #1b1e21 !important;
+  caret-color: #111417 !important;
+  -webkit-text-fill-color: #1b1e21 !important;
+}
+
+textarea[placeholder="描述你想要构建的内容"]::placeholder {
+  color: #737b80 !important;
+  opacity: 1;
+  -webkit-text-fill-color: #737b80 !important;
+}
+
+textarea[placeholder="描述你想要构建的内容"]:focus {
+  box-shadow: none !important;
+}
+
+body:has(textarea[placeholder="描述你想要构建的内容"]) textarea[placeholder="描述你想要构建的内容"] {
+  background: linear-gradient(110deg, rgba(255,255,255,.98), rgba(247,247,242,.92)) !important;
+}
+
+div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
+  border: 1px solid rgba(17,20,23,.72) !important;
+  border-radius: 2px !important;
+  box-shadow: 7px 8px 0 rgba(255,244,79,.16), 9px 10px 0 rgba(0,0,0,.22), 0 22px 46px rgba(0,0,0,.28) !important;
+}
+
+/* Sent user prompts and command-input projections keep the same paper-white
+   surface as the composer, so they need a local dark text palette instead of
+   inheriting the shell's light-on-dark global labels. */
+[data-time-hover-root] > [class*="_userStack"] > [class*="_bubble"],
+[data-command-input] [class*="_bubble"] {
+  color: #111417 !important;
+  background: #f5f6f2 !important;
+  border: 1px solid rgba(17,20,23,.22);
+  --dsw-alias-label-primary: #111417;
+  --dsw-alias-label-secondary: #33383c;
+  --dsw-alias-label-tertiary: #5d656a;
+  --dsw-alias-markdown-inline-code: rgba(17,20,23,.08);
+}
+
+.ef-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none !important;
+  color: #f5f6f2;
+  font-family: "EF Wide", "Arial Narrow", sans-serif;
+}
+
+.ef-atmosphere {
+  position: absolute;
+  inset: 30px 0 0;
+  overflow: hidden;
+  opacity: 0;
+  animation: ef-atmosphere-enter 1.3s 3.2s ease-out forwards;
+}
+
+.ef-atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0 64%, rgba(72,221,235,.022) 64% 64.2%, transparent 64.2%),
+    repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.012) 4px 5px);
+}
+
+.ef-atmosphere-ring {
+  position: absolute;
+  right: -25vw;
+  bottom: -68vw;
+  width: min(112vw, 1380px);
+  opacity: .045;
+  filter: grayscale(1) brightness(2.4);
+  animation: ef-ring-drift 32s linear infinite;
+}
+
+.ef-atmosphere-operator {
+  position: absolute;
+  right: -8vw;
+  bottom: -11vw;
+  width: min(69vw, 860px);
+  opacity: .075;
+  filter: saturate(.74) contrast(1.12);
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 30%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 30%, #000 78%, transparent 100%);
+  animation: ef-operator-breathe 9s ease-in-out infinite;
+}
+
+.ef-atmosphere-triangles {
+  position: absolute;
+  left: 25%;
+  top: 13%;
+  width: min(28vw, 360px);
+  opacity: .035;
+  filter: invert(88%) sepia(99%) saturate(1282%) hue-rotate(3deg) brightness(109%);
+}
+
+.ef-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 15px 0 86px;
+  border-bottom: 1px solid rgba(255,244,79,.34);
+  background: rgba(8,10,12,.97);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+  color: #777f85;
+  font-size: 7px;
+  letter-spacing: .15em;
+  -webkit-app-region: drag;
+}
+
+.ef-titlebar::after {
+  content: "";
+  position: absolute;
+  left: 43%;
+  bottom: -1px;
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, #40dbe9 0 29%, #fff44f 29% 61%, #f4668a 61% 78%, transparent 78%);
+}
+
+.ef-titlebar .ef-product {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  margin-left: -4px;
+  color: #090b0d;
+  background: var(--ef-yellow);
+  font-family: "EF Numeric", sans-serif;
+  font-weight: 800;
+  letter-spacing: .08em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+
+.ef-titlebar .ef-track {
+  flex: 1;
+  height: 5px;
+  max-width: 520px;
+  background: repeating-linear-gradient(90deg, #454b50 0 1px, transparent 1px 11px);
+}
+
+.ef-titlebar .ef-track i {
+  display: block;
+  width: 34%;
+  height: 2px;
+  margin-top: 2px;
+  background: var(--ef-yellow);
+  box-shadow: 0 0 10px rgba(255,244,79,.55);
+  animation: ef-signal-track 4.5s ease-in-out infinite;
+}
+
+.ef-titlebar-copy {
+  white-space: nowrap;
+}
+
+.ef-titlebar b {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  color: var(--ef-yellow);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ef-titlebar b i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #8eef5b;
+  box-shadow: 0 0 8px rgba(142,239,91,.7);
+  animation: ef-online-pulse 1.7s ease-in-out infinite;
+}
+
+.ef-attribute-rail {
+  position: fixed;
+  right: 7px;
+  top: 86px;
+  display: grid;
+  gap: 6px;
+}
+
+.ef-attribute-rail span {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  height: 26px;
+  color: rgba(192,200,205,.48);
+  font: 600 6px/1 "EF Wide", sans-serif;
+  letter-spacing: .16em;
+}
+
+.ef-attribute-rail img {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255,244,79,.26);
+  filter: grayscale(.68) contrast(1.16);
+  opacity: .72;
+  box-shadow: -9px 0 18px rgba(0,0,0,.26);
+}
+
+.ef-attribute-rail small {
+  opacity: .34;
+}
+
+.ef-core-signal {
+  position: fixed;
+  right: 22px;
+  bottom: 27px;
+  display: flex;
+  align-items: center;
+  width: 184px;
+  height: 53px;
+  padding: 6px 9px 6px 7px;
+  border: 1px solid rgba(255,244,79,.2);
+  border-left: 3px solid var(--ef-yellow);
+  background:
+    linear-gradient(104deg, rgba(15,18,21,.86), rgba(15,18,21,.46)),
+    url("/endfield-ui/assets/operator-card.jpg") center / cover;
+  box-shadow: 8px 8px 0 rgba(0,0,0,.18);
+  opacity: .62;
+}
+
+.ef-core-signal > img {
+  width: 36px;
+  height: 36px;
+  margin-right: 8px;
+  filter: grayscale(.6);
+}
+
+.ef-core-signal div {
+  display: grid;
+  gap: 5px;
+}
+
+.ef-core-signal small {
+  color: #8d959a;
+  font-size: 5px;
+  letter-spacing: .16em;
+}
+
+.ef-core-signal strong {
+  color: #eef0ed;
+  font: 700 10px/1 "EF Harmony", sans-serif;
+  letter-spacing: .08em;
+}
+
+.ef-core-signal > i {
+  align-self: stretch;
+  width: 3px;
+  margin-left: auto;
+  background: url("/endfield-ui/assets/color-bar.png") center / cover;
+}
+
+.ef-watermark {
+  position: fixed;
+  right: 222px;
+  bottom: 28px;
+  width: min(17vw, 210px);
+  opacity: .038;
+  filter: grayscale(1) contrast(1.4);
+  mix-blend-mode: screen;
+}
+
+.ef-watermark img {
+  display: block;
+  width: 100%;
+}
+
+.ef-left-index {
+  position: fixed;
+  left: 7px;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 78px;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255,244,79,.35);
+  border-left: 3px solid var(--ef-yellow);
+  background: rgba(9,11,13,.78);
+  color: var(--ef-yellow);
+  font: 700 15px/1 "EF Numeric", sans-serif;
+}
+
+.ef-left-index small {
+  display: flex;
+  flex-direction: column;
+  color: #697177;
+  font-size: 6px;
+  line-height: 1.6;
+}
+
+.ef-side-copy {
+  position: fixed;
+  right: -39px;
+  top: 57%;
+  transform: rotate(90deg);
+  color: #4d555b;
+  font-size: 6px;
+  line-height: 1.7;
+  letter-spacing: .22em;
+  text-align: right;
+}
+
+.ef-bottom-status {
+  position: fixed;
+  left: 12px;
+  right: 15px;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #555d63;
+  font: 600 6px/1 "EF Wide", sans-serif;
+  letter-spacing: .14em;
+}
+
+.ef-bottom-status > i {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,244,79,.55), rgba(64,219,233,.13) 70%, rgba(244,102,138,.17));
+}
+
+.ef-bottom-status b {
+  width: 20px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--ef-yellow) 0 2px, transparent 2px 5px);
+}
+
+.ef-bottom-status span:last-child {
+  color: rgba(255,244,79,.7);
+  font-family: "EF Harmony", sans-serif;
+}
+
+.ef-corner {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  border-color: rgba(255,244,79,.52);
+  border-style: solid;
+}
+
+.ef-corner::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--ef-yellow);
+}
+
+.ef-corner-tl { left: 5px; top: 36px; border-width: 1px 0 0 1px; }
+.ef-corner-tr { right: 5px; top: 36px; border-width: 1px 1px 0 0; }
+.ef-corner-bl { left: 5px; bottom: 20px; border-width: 0 0 1px 1px; }
+.ef-corner-br { right: 5px; bottom: 20px; border-width: 0 1px 1px 0; }
+.ef-corner-tl::after { left: -2px; top: -2px; }
+.ef-corner-tr::after { right: -2px; top: -2px; }
+.ef-corner-bl::after { left: -2px; bottom: -2px; }
+.ef-corner-br::after { right: -2px; bottom: -2px; }
+
+.ef-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  pointer-events: none !important;
+  background: #060708;
+  color: #f5f6f2;
+  animation: ef-boot-dismiss 3.5s cubic-bezier(.5,0,.18,1) forwards;
+}
+
+.ef-boot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 71% 52%, rgba(80,215,227,.09), transparent 28%),
+    linear-gradient(90deg, rgba(18,20,22,.32), rgba(0,0,0,.46) 55%, rgba(0,0,0,.86));
+  opacity: 1;
+}
+
+.ef-boot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #080a0b;
+  transform: translateX(-101%);
+  animation: ef-black-wipe .76s 2.72s cubic-bezier(.75,0,.18,1) forwards;
+}
+
+.ef-boot-grid {
+  position: absolute;
+  inset: 0;
+  opacity: .16;
+  background-image:
+    linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.ef-boot-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.025) 3px 4px);
+  animation: ef-scan 7s linear infinite;
+}
+
+.ef-boot-rings {
+  position: absolute;
+  left: 8%;
+  top: 50%;
+  width: min(74vw, 820px);
+  transform: translateY(-50%);
+  opacity: .19;
+}
+
+.ef-boot-rings img {
+  display: block;
+  width: 100%;
+  filter: grayscale(1) brightness(1.28);
+  animation: ef-boot-ring 22s linear infinite;
+}
+
+.ef-boot-rings::before,
+.ef-boot-rings::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 50%;
+}
+
+.ef-boot-rings::before { inset: 19%; }
+.ef-boot-rings::after { inset: 35%; border-color: rgba(255,244,79,.31); }
+
+.ef-boot-character {
+  position: absolute;
+  right: -5%;
+  bottom: -23%;
+  width: min(71vw, 900px);
+  opacity: .5;
+  filter: saturate(.72) contrast(1.15) brightness(.72);
+  mix-blend-mode: screen;
+  animation: ef-character-reveal 1.45s .28s cubic-bezier(.18,.8,.2,1) both;
+}
+
+.ef-boot-character::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #060708 0, transparent 35% 78%, #060708 100%);
+}
+
+.ef-boot-character img {
+  display: block;
+  width: 100%;
+}
+
+.ef-boot-index {
+  position: absolute;
+  left: 30px;
+  top: 27px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #747c82;
+  font: 600 7px/1.55 "EF Wide", sans-serif;
+  letter-spacing: .18em;
+}
+
+.ef-boot-index i {
+  width: 22px;
+  height: 4px;
+  margin-top: 4px;
+  background: var(--ef-yellow);
+}
+
+.ef-boot-count {
+  position: absolute;
+  left: 30px;
+  top: 69px;
+  color: #f3f4ef;
+  font: 700 26px/1 "EF Numeric", sans-serif;
+}
+
+.ef-boot-count::after {
+  content: "000";
+  animation: ef-boot-numbers 2.38s steps(1, end) forwards;
+}
+
+.ef-boot-count::before {
+  content: "%";
+  position: absolute;
+  left: 52px;
+  top: 4px;
+  color: var(--ef-yellow);
+  font: 700 8px/1 "EF Numeric", sans-serif;
+}
+
+.ef-boot-diagnostic {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  grid-template-columns: 28px auto;
+  column-gap: 8px;
+  width: 160px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.16);
+  color: #747c82;
+  font: 600 6px/1 "EF Wide", sans-serif;
+  letter-spacing: .13em;
+  opacity: 0;
+  animation: ef-diagnostic-in .48s .82s ease-out forwards;
+}
+
+.ef-boot-diagnostic-left { left: 5%; }
+.ef-boot-diagnostic-right { right: 5%; }
+
+.ef-boot-diagnostic b {
+  grid-row: 1 / 3;
+  color: #f0f2ee;
+  font: 700 18px/1 "EF Numeric", sans-serif;
+}
+
+.ef-boot-diagnostic em {
+  margin-top: 5px;
+  color: var(--ef-yellow);
+  font-style: normal;
+}
+
+.ef-boot-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(62vw, 610px);
+  animation: ef-boot-center-in .66s .16s cubic-bezier(.18,.8,.2,1) both;
+}
+
+.ef-boot-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 21px;
+  width: 100%;
+}
+
+.ef-boot-brand img:first-child {
+  width: min(24vw, 250px);
+  filter: grayscale(1) brightness(3.5);
+  opacity: .9;
+}
+
+.ef-boot-brand img:last-child {
+  width: min(27vw, 280px);
+  filter: none;
+  opacity: .92;
+}
+
+.ef-boot-brand i {
+  width: 1px;
+  height: 43px;
+  background: linear-gradient(transparent, rgba(255,244,79,.76), transparent);
+}
+
+.ef-boot-center strong {
+  margin-top: 24px;
+  color: var(--ef-yellow);
+  font: 700 clamp(24px, 4.4vw, 56px)/.9 "EF Wide", sans-serif;
+  letter-spacing: -.035em;
+  text-shadow: 0 0 26px rgba(255,244,79,.09);
+}
+
+.ef-boot-center > span {
+  margin-top: 13px;
+  color: #7b8389;
+  font: 600 7px/1 "EF Wide", sans-serif;
+  letter-spacing: .27em;
+}
+
+.ef-boot-progress {
+  position: absolute;
+  left: 50%;
+  bottom: 49px;
+  width: min(76vw, 760px);
+  transform: translateX(-50%);
+}
+
+.ef-boot-progress > div {
+  height: 5px;
+  overflow: hidden;
+  background: #25292d;
+}
+
+.ef-boot-progress i {
+  display: block;
+  width: 100%;
+  height: 5px;
+  transform-origin: left;
+  background: linear-gradient(90deg, var(--ef-yellow) 0 70%, #45d9e8 88%, #f56d8f 100%);
+  box-shadow: 0 0 14px rgba(255,244,79,.38);
+  animation: ef-progress 2.35s cubic-bezier(.16,.82,.2,1) both;
+}
+
+.ef-boot-progress b,
+.ef-boot-progress em {
+  display: inline-block;
+  margin-top: 11px;
+  color: #6d757b;
+  font: 600 6px/1 "EF Wide", sans-serif;
+  letter-spacing: .2em;
+}
+
+.ef-boot-progress em {
+  float: right;
+  color: rgba(255,244,79,.68);
+  font-style: normal;
+}
+
+.ef-boot-wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background:
+    linear-gradient(90deg, var(--ef-yellow) 0 7%, #f5ed2d 7% 100%);
+  transform: translateX(-101%);
+  animation: ef-yellow-wipe .7s 2.48s cubic-bezier(.75,0,.18,1) forwards;
+}
+
+@keyframes ef-progress {
+  from { transform: scaleX(0); }
+  32% { transform: scaleX(.18); }
+  58% { transform: scaleX(.53); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes ef-boot-numbers {
+  0% { content: "000"; }
+  12% { content: "011"; }
+  27% { content: "029"; }
+  43% { content: "047"; }
+  59% { content: "068"; }
+  77% { content: "087"; }
+  100% { content: "100"; }
+}
+
+@keyframes ef-boot-center-in {
+  from { opacity: 0; transform: translateY(18px); clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; transform: translateY(0); clip-path: inset(0); }
+}
+
+@keyframes ef-character-reveal {
+  from { opacity: 0; transform: translate(30px, 16px) scale(1.025); clip-path: inset(0 0 100% 0); }
+  to { opacity: .5; transform: translate(0) scale(1); clip-path: inset(0); }
+}
+
+@keyframes ef-diagnostic-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ef-boot-ring {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ef-yellow-wipe {
+  0% { transform: translateX(-101%); }
+  52% { transform: translateX(0); }
+  100% { transform: translateX(101%); }
+}
+
+@keyframes ef-black-wipe {
+  0% { transform: translateX(-101%); }
+  58% { transform: translateX(0); }
+  100% { transform: translateX(101%); }
+}
+
+@keyframes ef-boot-dismiss {
+  0%, 91% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes ef-scan {
+  from { transform: translateY(-20%); }
+  to { transform: translateY(20%); }
+}
+
+@keyframes ef-atmosphere-enter {
+  to { opacity: 1; }
+}
+
+@keyframes ef-ring-drift {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ef-operator-breathe {
+  0%, 100% { transform: translateY(0) scale(1); opacity: .068; }
+  50% { transform: translateY(-7px) scale(1.006); opacity: .086; }
+}
+
+@keyframes ef-signal-track {
+  0%, 100% { width: 22%; }
+  50% { width: 68%; }
+}
+
+@keyframes ef-online-pulse {
+  0%, 100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-boot { animation-duration: .01s; }
+  .ef-atmosphere { animation-delay: 0s; animation-duration: .01s; }
+  .ef-atmosphere-ring,
+  .ef-atmosphere-operator,
+  .ef-titlebar .ef-track i,
+  .ef-titlebar b i { animation: none; }
+}
+
+@media (max-width: 1024px) {
+  .ef-core-signal,
+  .ef-watermark,
+  .ef-boot-diagnostic { display: none; }
+  .ef-atmosphere-operator { right: -20vw; width: 83vw; opacity: .052; }
+}
+
+@media (max-width: 720px) {
+  .ef-titlebar { padding-left: 70px; gap: 8px; }
+  .ef-titlebar-copy,
+  .ef-attribute-rail,
+  .ef-side-copy,
+  .ef-left-index { display: none; }
+  .ef-watermark { width: 42vw; }
+  .ef-boot-character { right: -40%; width: 130vw; opacity: .28; }
+  .ef-boot-center { width: 88vw; }
+  .ef-boot-brand img:first-child { width: 42vw; }
+  .ef-boot-brand img:last-child { width: 39vw; }
+  .ef-boot-center > span { letter-spacing: .14em; }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@rison/dsh-endfield-ui",
+  "version": "0.4.3",
+  "description": "Endfield-inspired industrial UI shell for DeepSeek Harness",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-theme",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  },
+  "files": [
+    "assets",
+    "client.js",
+    "cordis.patch.yml",
+    "index.js",
+    "theme.css"
+  ],
+  "license": "MIT"
+}

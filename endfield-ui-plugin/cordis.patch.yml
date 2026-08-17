@@ -1,0 +1,4 @@
+# Endfield visual shell for the dsh web profile.
+- insert:
+    - id: endfield-ui
+      name: '@rison/dsh-endfield-ui'

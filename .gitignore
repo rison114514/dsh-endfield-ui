@@ -1,0 +1,4 @@
+desktop-app/node_modules/
+desktop-app/release/
+.DS_Store
+.qa-artifacts/

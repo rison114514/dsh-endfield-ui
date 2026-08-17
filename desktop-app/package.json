@@ -1,0 +1,17 @@
+{
+  "name": "dsh-endfield-workbench",
+  "productName": "DSH 终末地工作台",
+  "version": "0.1.4",
+  "description": "Endfield-inspired desktop shell for DeepSeek Harness",
+  "main": "main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "install-plugin": "node scripts/install-plugin.mjs",
+    "pack:mac": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=arm64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.0.4",
+    "electron": "43.2.0"
+  }
+}
