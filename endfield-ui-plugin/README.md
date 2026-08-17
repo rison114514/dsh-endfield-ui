@@ -27,7 +27,7 @@ dsh web
 **3. 从 GitHub 仓库固定 tag**
 
 ```bash
-dsh plugin --profile web add github:rison/dsh-endfield-ui#v0.5.0
+dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.5.0
 dsh web
 ```
 
