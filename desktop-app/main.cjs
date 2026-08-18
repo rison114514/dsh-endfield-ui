@@ -228,6 +228,9 @@ function loadOnboarding() {
 }
 
 function startDsh(executable) {
+  // 若上一次实例仍在运行（如用户多次点“重新检测”），先回收，避免进程泄漏与计时器串扰。
+  stopDsh()
+
   const workspace = (appConfig.workspace && existsSync(appConfig.workspace))
     ? appConfig.workspace
     : os.homedir()
@@ -249,42 +252,57 @@ function startDsh(executable) {
   }
 
   // 不再附加 --patch；bundle 已在安装时自动进入启动层。
-  dshProcess = spawn(executable, ['--profile', 'web', '--port', '0'], {
+  const proc = spawn(executable, ['--profile', 'web', '--port', '0'], {
     cwd: workspace,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
+  dshProcess = proc
 
   let output = ''
   let loaded = false
-  const consume = (chunk) => {
-    const text = chunk.toString()
-    output = `${output}${text}`.slice(-12000)
-    const match = text.match(/http:\/\/127\.0\.0\.1:\d+/)
-    if (match && !loaded && mainWindow) {
-      loaded = true
-      if (startupTimer) clearTimeout(startupTimer)
-      mainWindow.loadURL(match[1])
-    }
-  }
-  dshProcess.stdout.on('data', consume)
-  dshProcess.stderr.on('data', consume)
-  dshProcess.on('error', (error) => loadDiagnostic('dsh 启动异常', `${error.message}\n\n${output}`))
-  dshProcess.on('exit', (code, signal) => {
-    dshProcess = undefined
-    if (startupTimer) clearTimeout(startupTimer)
-    if (!quitting && !loaded) {
-      loadDiagnostic('dsh 提前退出', `dsh 在加载前退出（code=${code}, signal=${signal}）\n\n${output}`)
-    }
-  })
-
-  // 启动超时：30 秒未输出本地 URL 时显示诊断页。
-  startupTimer = setTimeout(() => {
+  // 启动超时：30 秒未输出本地 URL 时显示诊断页。计时器绑定本实例，避免与上一次实例串扰。
+  const timer = setTimeout(() => {
     if (!loaded) {
       loadDiagnostic('dsh 启动超时',
         '30 秒内未检测到本地 dsh 服务地址。\n常见原因：dsh 版本不兼容、端口被占用或依赖缺失。\n\n最近输出：\n' + (output || '（无输出）'))
     }
   }, 30000)
+  startupTimer = timer
+  const settle = () => {
+    if (startupTimer === timer) {
+      clearTimeout(timer)
+      startupTimer = undefined
+    }
+  }
+
+  const consume = (chunk) => {
+    const text = chunk.toString()
+    output = `${output}${text}`.slice(-12000)
+    // 从累积输出里提取本地 URL（抗 stdout 分块），捕获组取完整地址。
+    if (!loaded && mainWindow) {
+      const match = output.match(/(https?:\/\/127\.0\.0\.1:\d+)/)
+      if (match) {
+        loaded = true
+        settle()
+        mainWindow.loadURL(match[1])
+      }
+    }
+  }
+  dshProcess.stdout.on('data', consume)
+  dshProcess.stderr.on('data', consume)
+  dshProcess.on('error', (error) => {
+    settle()
+    loadDiagnostic('dsh 启动异常', `${error.message}\n\n${output}`)
+  })
+  dshProcess.on('exit', (code, signal) => {
+    // 只清理本实例的引用：若已被重新启动的新实例覆盖，则不动，避免误清新进程句柄。
+    if (dshProcess === proc) dshProcess = undefined
+    settle()
+    if (!quitting && !loaded) {
+      loadDiagnostic('dsh 提前退出', `dsh 在加载前退出（code=${code}, signal=${signal}）\n\n${output}`)
+    }
+  })
 }
 
 function stopDsh() {
