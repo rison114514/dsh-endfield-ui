@@ -27,6 +27,8 @@ const ASSETS = new Map([
   ['/endfield-ui/assets/prof-support.jpg', asset('./assets/prof-support.jpg', 'image/jpeg')],
   ['/endfield-ui/assets/ele-electric.jpg', asset('./assets/ele-electric.jpg', 'image/jpeg')],
   ['/endfield-ui/assets/ele-ice.jpg', asset('./assets/ele-ice.jpg', 'image/jpeg')],
+  ['/endfield-ui/assets/chat-grid-bg.jpg', asset('./assets/chat-grid-bg.jpg', 'image/jpeg')],
+  ['/endfield-ui/assets/contour-texture.png', asset('./assets/contour-texture.png', 'image/png')],
   ['/endfield-ui/assets/harmony-regular.woff2', asset('./assets/harmony-regular.woff2', 'font/woff2')],
   ['/endfield-ui/assets/harmony-bold.woff2', asset('./assets/harmony-bold.woff2', 'font/woff2')],
   ['/endfield-ui/assets/novecento.woff2', asset('./assets/novecento.woff2', 'font/woff2')],

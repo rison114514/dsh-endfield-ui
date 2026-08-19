@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = ../rison-dsh-endfield-ui-0.5.0.tgz
+ *   默认 plugin-tgz-or-dir = ../rison-dsh-endfield-ui-0.6.0.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -26,7 +26,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET = process.argv[2] || join(ROOT, 'rison-dsh-endfield-ui-0.5.0.tgz')
+const TARGET = process.argv[2] || join(ROOT, 'rison-dsh-endfield-ui-0.6.0.tgz')
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
 const PORT_TIMEOUT_MS = 30000
@@ -123,6 +123,12 @@ async function main() {
     ok('theme.css 含终末地标记（#fff44f / .ef-overlay / --ef-yellow）',
       css.ok && css.body.includes('#fff44f') && css.body.includes('.ef-overlay') && css.body.includes('--ef-yellow'),
       `len=${css.body.length}`)
+    ok('theme.css 含新网格背景 + 等高线纹理 + 圆形进度环样式',
+      css.ok && css.body.includes('chat-grid-bg.jpg') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
+      `len=${css.body.length}`)
+    ok('theme.css 含命令按钮（aria-label=命令）柠檬黄覆盖',
+      css.ok && css.body.includes('aria-label="命令"') && css.body.includes('var(--ef-yellow)'),
+      `len=${css.body.length}`)
 
     // 8. 插件 client 入口经包名路由暴露
     const clientRoute = await get(`${url}/@rison/dsh-endfield-ui/client.js`)
@@ -134,10 +140,11 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css'")
+        && c.includes('ContextRing') && c.includes('ef-context-ring') && c.includes('JObwrW_root')
     }
-    ok('已安装 client.js 含注入逻辑（plugin id + overrideTokens + theme.css 链接）', clientOk, clientFile)
+    ok('已安装 client.js 含注入逻辑 + ContextRing 圆形进度环', clientOk, clientFile)
 
-    // 10. 全部素材可达（10 图 + 4 字体）
+    // 10. 全部素材可达（12 图 + 4 字体）
     const assets = [
       '/endfield-ui/assets/ring.png',
       '/endfield-ui/assets/operator-xaihi.png',
@@ -149,6 +156,8 @@ async function main() {
       '/endfield-ui/assets/ele-electric.jpg',
       '/endfield-ui/assets/ele-ice.jpg',
       '/endfield-ui/assets/operator-icon.png',
+      '/endfield-ui/assets/chat-grid-bg.jpg',
+      '/endfield-ui/assets/contour-texture.png',
       '/endfield-ui/assets/harmony-regular.woff2',
       '/endfield-ui/assets/harmony-bold.woff2',
       '/endfield-ui/assets/novecento.woff2',

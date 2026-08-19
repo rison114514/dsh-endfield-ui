@@ -122,6 +122,46 @@ window.__ModuleLoader__.load({
       return React.createElement('i', { className: `ef-corner ef-corner-${position}` })
     }
 
+    // Circular context-usage ring (bottom-right). It mirrors dsh's native
+    // ContextMeter: the meter root carries a hashed `JObwrW_root` class and its
+    // trigger button's aria-label embeds the live occupancy like "上下文已用 45%".
+    // We poll that every 700ms; if no provider reports context pressure yet, the
+    // ring falls back to a slow lemon-yellow breathing sweep so it still reads alive.
+    const RING_R = 40
+    const RING_C = 2 * Math.PI * RING_R
+    function ContextRing() {
+      const [pct, setPct] = React.useState(0)
+      const [live, setLive] = React.useState(false)
+      React.useEffect(() => {
+        let timer
+        const tick = () => {
+          const root = document.querySelector('[class*="JObwrW_root"]')
+          const label = root && root.getAttribute('aria-label')
+          const m = label && label.match(/(\d+)\s*%/)
+          if (m) {
+            const v = Math.max(0, Math.min(100, parseInt(m[1], 10)))
+            setPct(v)
+            setLive(true)
+          } else if (!live) {
+            const t = (Date.now() % 4200) / 4200
+            setPct(Math.round(14 + (Math.sin(t * Math.PI * 2) * 0.5 + 0.5) * 72))
+          }
+          timer = setTimeout(tick, 700)
+        }
+        tick()
+        return () => clearTimeout(timer)
+      }, [live])
+      const offset = RING_C * (1 - pct / 100)
+      return React.createElement('div', { className: 'ef-context-ring', 'aria-hidden': true },
+        React.createElement('svg', { viewBox: '0 0 100 100' },
+          React.createElement('circle', { className: 'ef-ring-track', cx: 50, cy: 50, r: RING_R, fill: 'none', strokeWidth: 7 }),
+          React.createElement('circle', { className: 'ef-ring-prog', cx: 50, cy: 50, r: RING_R, fill: 'none', strokeWidth: 7, strokeDasharray: RING_C, strokeDashoffset: offset }),
+        ),
+        React.createElement('div', { className: 'ef-ring-value' }, pct, React.createElement('small', null, '%')),
+        React.createElement('div', { className: 'ef-ring-label' }, live ? 'CONTEXT' : 'CONTEXT · SYNC'),
+      )
+    }
+
     function EndfieldOverlay() {
       return React.createElement(React.Fragment, null,
         React.createElement(BootSequence),
@@ -143,14 +183,7 @@ window.__ModuleLoader__.load({
             React.createElement('span', null, React.createElement('img', { src: '/endfield-ui/assets/ele-electric.jpg', alt: '' }), React.createElement('small', null, 'ELECTRIC')),
             React.createElement('span', null, React.createElement('img', { src: '/endfield-ui/assets/ele-ice.jpg', alt: '' }), React.createElement('small', null, 'CRYO')),
           ),
-          React.createElement('div', { className: 'ef-core-signal' },
-            React.createElement('img', { src: '/endfield-ui/assets/operator-icon.png', alt: '' }),
-            React.createElement('div', null,
-              React.createElement('small', null, 'OPERATOR LINK / 07'),
-              React.createElement('strong', null, '协议已同步'),
-            ),
-            React.createElement('i'),
-          ),
+          React.createElement(ContextRing),
           React.createElement('div', { className: 'ef-watermark' },
             React.createElement('img', { src: '/endfield-ui/assets/endfield-logo.png', alt: '' }),
           ),

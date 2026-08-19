@@ -4,7 +4,9 @@
 
 `@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端通过官方 Theme Token 与 `shell.overlay` 插槽加载终末地工业风外观。
 
-0.5.0 版在 0.4.3 的基础上**新增标准 `dsh.bundle` 声明**：安装后 `cordis.patch.yml` 会自动进入 web profile 的启动层，普通 `dsh web` 即可自动加载，无需手动复制 CSS、修改 `~/.dsh` 或追加 `--patch`。
+0.6.0 版在 0.5.0 标准 `dsh.bundle` 的基础上**重做了对话区与右下角视觉**：对话区背景换成工业网格图（不再刺眼纯黑）、白色侧栏加入等高线纹理、输入区「命令」按钮改为柠檬黄、右下角「协议已同步」改为圆形上下文进度环（读取 dsh 原生 ContextMeter，无数据时装呼吸演示）。
+
+0.5.0 版**新增标准 `dsh.bundle` 声明**：安装后 `cordis.patch.yml` 会自动进入 web profile 的启动层，普通 `dsh web` 即可自动加载，无需手动复制 CSS、修改 `~/.dsh` 或追加 `--patch`。
 
 ## 安装（一条命令，自动生效）
 
@@ -20,14 +22,14 @@ dsh web
 **2. 从 GitHub Release 的 tarball（首个公开测试版推荐）**
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.5.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz
 dsh web
 ```
 
 **3. 从 GitHub 仓库固定 tag**
 
 ```bash
-dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.5.0
+dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.6.0
 dsh web
 ```
 
@@ -54,7 +56,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.5.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz
 dsh --profile web
 ```
 
@@ -72,7 +74,9 @@ dsh --profile web
 
 | 场景 | 验收内容 |
 |---|---|
-| 新会话首页 | 左上品牌、白色等高线侧栏、输入框白底黑字 |
+| 新会话首页 | 左上品牌、白色等高线侧栏、对话区工业网格背景（非纯黑）、输入框白底黑字 |
+| 输入区 | 「命令」按钮为柠檬黄、在白色输入框中清晰可辨 |
+| 右下角 | 圆形上下文进度环：有上下文数据时显示真实占用百分比，无数据时呼吸式演示 |
 | 已有对话 | 用户气泡白底黑字、助手内容可读、代码块正常 |
 | 工作区 | 活动工作区灰黑卡片清晰，文件夹图标不与背景混色 |
 | 设置 | 浅色、深色、跟随系统三种设置均无白底白字 |
@@ -83,11 +87,11 @@ dsh --profile web
 
 ## 素材与授权
 
-当前素材目录包含参考游戏视觉生成的图片与第三方字体。**公开发布前需逐项确认授权范围**：
+当前素材目录包含参考游戏视觉生成的图片与第三方字体，以及两张用户提供的素材（`chat-grid-bg.jpg` 工业网格背景、`contour-texture.png` 等高线纹理）。**公开发布前需逐项确认授权范围**：
 
 - 对无法确认授权的官方角色图、Logo、职业图标和字体，应替换为原创或可再分发素材。
 - 已保留第三方字体（Harmony / Novecento / Space Grotesk）与图片素材，分发时一并保留其许可证文件。
-- 安装包中未引用但仍在分发的素材（如 `operator-xaihi.png`、`workbench-logo.png`）需要在下一版本清理或确认用途，避免“代码未引用却继续分发”。
+- `operator-xaihi.png` **实际被旋转圆圈（`.ef-atmosphere-operator`）使用**，并非未引用；`workbench-logo.png` 暂未被代码引用，但按用户要求随包保留。全部素材均随包分发，未做清理。
 
 ## 兼容性
 

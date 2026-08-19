@@ -135,10 +135,11 @@ code {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: url("/endfield-ui/assets/deco-right.jpg") center / 100% 100%;
-  filter: grayscale(1) contrast(.78) brightness(1.1);
+  background: url("/endfield-ui/assets/contour-texture.png") repeat;
+  background-size: 150px 150px;
+  filter: grayscale(1) contrast(.9) brightness(.92);
   mix-blend-mode: multiply;
-  opacity: .26;
+  opacity: .34;
 }
 
 [data-slot="sidebar"] > div::after {
@@ -152,6 +153,34 @@ code {
   letter-spacing: .2em;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
+}
+
+/* Conversation area: swap the flat near-black void for the industrial grid
+   plate so it no longer clashes harshly with the paper-white sidebar. The
+   rotating atmosphere layer (.ef-atmosphere) keeps animating untouched above
+   it. Setting the subtree's --dsw-alias-bg-base to transparent lets the dsw
+   surfaces reveal the plate behind them. */
+[data-slot="conversation"] {
+  --dsw-alias-bg-base: transparent;
+  background:
+    linear-gradient(120deg, rgba(9,11,13,.6), rgba(9,11,13,.84)),
+    url("/endfield-ui/assets/chat-grid-bg.jpg") center / cover !important;
+}
+
+/* Command ("命令") toggle in the composer: lemon-yellow so it stands out from
+   the paper-white input box instead of disappearing into it. */
+button[aria-label="命令"],
+button[aria-label="Commands"] {
+  color: #090b0d !important;
+  background: var(--ef-yellow) !important;
+  border: 1px solid #111417 !important;
+  box-shadow: 3px 3px 0 rgba(17,20,23,.22) !important;
+}
+
+button[aria-label="命令"]:hover,
+button[aria-label="Commands"]:hover {
+  background: #e2d800 !important;
+  border-color: var(--ef-yellow) !important;
 }
 
 /* Illustrated Deepseek Harness identity plate. */
@@ -589,53 +618,59 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   opacity: .34;
 }
 
-.ef-core-signal {
+.ef-context-ring {
   position: fixed;
   right: 22px;
   bottom: 27px;
-  display: flex;
-  align-items: center;
-  width: 184px;
-  height: 53px;
-  padding: 6px 9px 6px 7px;
-  border: 1px solid rgba(255,244,79,.2);
-  border-left: 3px solid var(--ef-yellow);
-  background:
-    linear-gradient(104deg, rgba(15,18,21,.86), rgba(15,18,21,.46)),
-    url("/endfield-ui/assets/operator-card.jpg") center / cover;
-  box-shadow: 8px 8px 0 rgba(0,0,0,.18);
-  opacity: .62;
-}
-
-.ef-core-signal > img {
-  width: 36px;
-  height: 36px;
-  margin-right: 8px;
-  filter: grayscale(.6);
-}
-
-.ef-core-signal div {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
   display: grid;
-  gap: 5px;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(20,24,27,.94), rgba(8,10,12,.97)),
+    url("/endfield-ui/assets/ring.png") center / 138% no-repeat;
+  border: 1px solid rgba(255,244,79,.5);
+  box-shadow: 0 0 22px rgba(255,244,79,.18), 8px 8px 0 rgba(0,0,0,.22);
+  overflow: hidden;
 }
 
-.ef-core-signal small {
-  color: #8d959a;
-  font-size: 5px;
-  letter-spacing: .16em;
+.ef-context-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
 }
 
-.ef-core-signal strong {
-  color: #eef0ed;
-  font: 700 10px/1 "EF Harmony", sans-serif;
-  letter-spacing: .08em;
+.ef-context-ring .ef-ring-track {
+  stroke: rgba(255,244,79,.14);
 }
 
-.ef-core-signal > i {
-  align-self: stretch;
-  width: 3px;
-  margin-left: auto;
-  background: url("/endfield-ui/assets/color-bar.png") center / cover;
+.ef-context-ring .ef-ring-prog {
+  stroke: var(--ef-yellow);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(255,244,79,.7));
+  transition: stroke-dashoffset .6s ease;
+}
+
+.ef-context-ring .ef-ring-value {
+  position: relative;
+  color: #f3f4ef;
+  font: 700 17px/1 "EF Numeric", sans-serif;
+  text-shadow: 0 0 8px rgba(255,244,79,.4);
+}
+
+.ef-context-ring .ef-ring-value small {
+  font-size: 9px;
+}
+
+.ef-context-ring .ef-ring-label {
+  position: absolute;
+  bottom: 12px;
+  color: rgba(255,244,79,.66);
+  font: 600 5px/1 "EF Wide", sans-serif;
+  letter-spacing: .14em;
 }
 
 .ef-watermark {
@@ -1108,7 +1143,7 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 }
 
 @media (max-width: 1024px) {
-  .ef-core-signal,
+  .ef-context-ring,
   .ef-watermark,
   .ef-boot-diagnostic { display: none; }
   .ef-atmosphere-operator { right: -20vw; width: 83vw; opacity: .052; }
