@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.5.0）
+# DSH 终末地风格工作台 — 发布说明（v0.6.0）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,7 +8,7 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.5.0`
+- 插件：`@rison/dsh-endfield-ui@0.6.0`
 - 桌面壳：`dsh-endfield-workbench@0.1.4`
 
 ## 兼容的 dsh 版本
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.5.0.tgz   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -28,6 +28,15 @@ dsh web
 - 卸载：`dsh plugin --profile web remove @rison/dsh-endfield-ui`（恢复原生前端，用户数据不受影响）
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
+
+## 本次更新（v0.6.0 视觉修正）
+
+针对用户反馈做了对话区与右下角的视觉重做：
+
+- **对话区背景**：由纯黑改为工业网格图（`chat-grid-bg.jpg`），消除与白色侧栏的刺眼对比；旋转圆圈动画保留不变。
+- **白色侧栏**：叠加用户提供的等高线纹理（`contour-texture.png`，平铺 multiply）。
+- **输入区「命令」按钮**：改为柠檬黄底 + 深色字，在白色输入框中清晰可辨。
+- **右下角上下文环**：原「协议已同步」标识改为圆形进度环，读取 dsh 原生 ContextMeter 的上下文占用百分比显示；无上下文数据时呼吸式演示。
 
 ## 桌面 App（macOS）
 
@@ -40,22 +49,25 @@ dsh web
 
 - 视觉层不修改 dsh 核心源码；用户数据位于 `~/.dsh`。
 - 第三方字体：Harmony（思源/鸿蒙系衍生）、Novecento、Space Grotesk —— 分发时保留各自许可证文件。
-- 图片素材含参考游戏视觉生成的内容；**公开发布前需逐项确认授权**：对无法确认授权的官方角色图、Logo、职业图标，应替换为原创或可再分发素材。
-- 安装包中仍含 `operator-xaihi.png`、`workbench-logo.png` 等当前未在视觉层引用的素材，下一版本将清理（见已知问题）。
+- 图片素材含参考游戏视觉生成的内容与两张用户提供的素材（`chat-grid-bg.jpg` 工业网格背景、`contour-texture.png` 等高线纹理）；**公开发布前需逐项确认授权**：对无法确认授权的官方角色图、Logo、职业图标，应替换为原创或可再分发素材。
+- 全部素材随包分发：`operator-xaihi.png` 实际被旋转圆圈（`.ef-atmosphere-operator`）使用；`workbench-logo.png` 暂未被代码引用，按用户要求保留不清理。
 
 ## 已知问题
 
-1. 未引用素材仍在分发：`operator-xaihi.png`、`workbench-logo.png` 等（`npm pack` 仍包含），计划 0.6.0 清理。
+1. `workbench-logo.png` 在视觉层未引用，仍随包分发（按用户要求保留，未清理）。
 2. 桌面壳 `pack:mac:x64` 仅完成构建练习，尚无 Intel 实机/CI 验证，暂不宣称 x64 可用。
 3. 当前仅 ad-hoc 签名，未做 Developer ID 签名与公证，不能直接对外公开下载。
 4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
 5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
 
-## 验收摘要（实测 8/8 通过）
+## 验收摘要（实测 17/17 通过）
 
-- 隔离 `DSH_HOME` 中 `plugin add` 成功，`profiles/web/package.json` 出现依赖。
-- `dsh.profile.bundles` 自动包含 `@rison/dsh-endfield-ui`。
-- `dsh --profile web` **未带 `--patch`** 启动，`/endfield-ui/theme.css` 返回 200。
-- 卸载后依赖被移除，原生页面可恢复。
+隔离 `DSH_HOME` 真实使用级校验全部通过：
+
+- `plugin add` 成功，`profiles/web/package.json` 出现依赖；`dsh.profile.bundles` 自动包含 `@rison/dsh-endfield-ui`。
+- `dsh --profile web` **未带 `--patch`** 启动；首屏 200 且含 endfield 字样。
+- `GET /endfield-ui/theme.css` → 200，含终末地标记、网格背景、等高线纹理、圆形进度环与命令按钮样式。
+- 插件 client 入口经包名路由暴露为 `/@rison/dsh-endfield-ui/client.js` → 200，且含 `ContextRing` 注入逻辑。
+- 全部 16 个素材（12 图 + 4 字体，含两张新素材）均 200 且为图片/字体。
 
 详见 `HANDOFF.md`（目标定义、实施顺序、完成定义）与 `endfield-ui-plugin/README.md`。
