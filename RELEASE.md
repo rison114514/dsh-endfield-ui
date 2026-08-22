@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.6.0）
+# DSH 终末地风格工作台 — 发布说明（v0.7.0）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,7 +8,7 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.6.0`
+- 插件：`@rison/dsh-endfield-ui@0.7.0`
 - 桌面壳：`dsh-endfield-workbench@0.1.4`
 
 ## 兼容的 dsh 版本
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.7.0.tgz   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,14 +29,15 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.6.0 视觉修正）
+## 本次更新（v0.7.0）
 
-针对用户反馈做了对话区与右下角的视觉重做：
+基于 v0.6.0 的视觉基线，针对侧栏纹理与输入可读性做了两处修正：
 
-- **对话区背景**：由纯黑改为工业网格图（`chat-grid-bg.jpg`），消除与白色侧栏的刺眼对比；旋转圆圈动画保留不变。
-- **白色侧栏**：叠加用户提供的等高线纹理（`contour-texture.png`，平铺 multiply）。
-- **输入区「命令」按钮**：改为柠檬黄底 + 深色字，在白色输入框中清晰可辨。
-- **右下角上下文环**：原「协议已同步」标识改为圆形进度环，读取 dsh 原生 ContextMeter 的上下文占用百分比显示；无上下文数据时呼吸式演示。
+- **侧栏条纹字纹理（`endfield-stripes-texture.svg`）透明化并收窄作用域**：
+  - 素材去掉白底，只保留由均匀同向束状条纹构成的 END FIELD 竖排字母；叠在纸白边栏上只显灰条纹。
+  - 作用域从「整条侧栏铺满」收紧到「会话列表区（工作区卡片下方）」——不透明的 workspace 卡片会自然遮住纹理顶部，使其读作「工作区之下」。
+  - 恢复固定原尺寸 `160×1280`，不再做百分比动态缩放；超出列表高度的部分由容器裁掉（放得下就放下，放不下就算了）。
+- **主输入框文字可读性修复**：对话区主输入框（hero 与非 hero 模式）统一强制深色文字（`#111417`）+ 深色光标 + 灰色占位符（`#6b7378`），解决浅色底 + 浅色字几乎不可见的问题。此前仅 hero 模式被显式覆盖，正常对话模式下占位符/文本会退回 dsh 默认浅色。
 
 ## 桌面 App（macOS）
 
@@ -50,7 +51,7 @@ dsh web
 - 视觉层不修改 dsh 核心源码；用户数据位于 `~/.dsh`。
 - 第三方字体：Harmony（思源/鸿蒙系衍生）、Novecento、Space Grotesk —— 分发时保留各自许可证文件。
 - 图片素材含参考游戏视觉生成的内容与两张用户提供的素材（`chat-grid-bg.jpg` 工业网格背景、`contour-texture.png` 等高线纹理）；**公开发布前需逐项确认授权**：对无法确认授权的官方角色图、Logo、职业图标，应替换为原创或可再分发素材。
-- 全部素材随包分发：`operator-xaihi.png` 实际被旋转圆圈（`.ef-atmosphere-operator`）使用；`workbench-logo.png` 暂未被代码引用，按用户要求保留不清理。
+- 全部素材随包分发：`operator-xaihi.png` 实际被旋转圆圈（`.ef-atmosphere-operator`）使用；`workbench-logo.png` 暂未被代码引用，按用户要求保留不清理；`endfield-sidebar-texture.png` 为历史保留版本（字母方向有误），不在 theme.css 使用，但随包保留。
 
 ## 已知问题
 

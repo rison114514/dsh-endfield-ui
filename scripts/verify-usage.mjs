@@ -139,10 +139,13 @@ async function main() {
     let clientOk = false
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
+      // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
       clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css'")
-        && c.includes('ContextRing') && c.includes('ef-context-ring') && c.includes('JObwrW_root')
+        && c.includes('ContextRing') && c.includes('ef-context-ring')
+        && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
+        && !c.includes('JObwrW_root') && !/Math\.sin/.test(c)
     }
-    ok('已安装 client.js 含注入逻辑 + ContextRing 圆形进度环', clientOk, clientFile)
+    ok('已安装 client.js 含注入逻辑 + 订阅官方 contextPressure 真实数据源（无 DOM 扒取/模拟）', clientOk, clientFile)
 
     // 10. 全部素材可达（12 图 + 4 字体）
     const assets = [
@@ -158,6 +161,8 @@ async function main() {
       '/endfield-ui/assets/operator-icon.png',
       '/endfield-ui/assets/chat-grid-bg.jpg',
       '/endfield-ui/assets/contour-texture.png',
+      '/endfield-ui/assets/endfield-sidebar-texture.png',
+      '/endfield-ui/assets/endfield-stripes-texture.svg',
       '/endfield-ui/assets/harmony-regular.woff2',
       '/endfield-ui/assets/harmony-bold.woff2',
       '/endfield-ui/assets/novecento.woff2',

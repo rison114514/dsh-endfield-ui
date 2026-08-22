@@ -130,16 +130,27 @@ code {
   --dsh-scrollbar-thumb-hover: #111417;
 }
 
-[data-slot="sidebar"] > div::before {
+/* ENDFIELD stripe-letters: applied to the SESSION LIST (the region below the
+   workspace card in the sidebar) — NOT the whole sidebar. Fixed original size
+   (160x1280), no dynamic scaling; the band is allowed to overflow the box.
+   The SVG is transparent so only the striped letters read; the opaque
+   workspace card masks the top of the band, so it reads as "below workspace". */
+[data-slot="sidebar"] [role="tree"] {
+  position: relative;
+  z-index: 0;
+}
+
+[data-slot="sidebar"] [role="tree"]::before {
   content: "";
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 160px;
+  height: 1280px;
+  z-index: -1;
   pointer-events: none;
-  background: url("/endfield-ui/assets/contour-texture.png") repeat;
-  background-size: 150px 150px;
-  filter: grayscale(1) contrast(.9) brightness(.92);
-  mix-blend-mode: multiply;
-  opacity: .34;
+  background: url("/endfield-ui/assets/endfield-stripes-texture.svg") left top / 160px 1280px no-repeat;
+  opacity: .5;
 }
 
 [data-slot="sidebar"] > div::after {
@@ -444,6 +455,27 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   --dsw-alias-markdown-inline-code: rgba(17,20,23,.08);
 }
 
+/* Composer input (hero AND active/steering modes): the real field is a
+   CSS-module class (.uV2eYG_input, carries data-phase) whose placeholder color
+   rides --dsw-alias-label-caption. That token stays light on the paper-white
+   composer, so typed text was near-invisible. Force a dark ink palette and a
+   dark caret on every textarea/input inside the conversation slot, and dim the
+   placeholder to a readable grey. This outranks the hero-only
+   textarea[placeholder="描述你想要构建的内容"] rule above. */
+[data-slot="conversation"] textarea,
+[data-slot="conversation"] input {
+  color: #111417 !important;
+  caret-color: #111417 !important;
+  -webkit-text-fill-color: #111417 !important;
+}
+
+[data-slot="conversation"] textarea::placeholder,
+[data-slot="conversation"] input::placeholder {
+  color: #6b7378 !important;
+  opacity: 1;
+  -webkit-text-fill-color: #6b7378 !important;
+}
+
 .ef-overlay {
   position: fixed;
   inset: 0;
@@ -667,10 +699,27 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 
 .ef-context-ring .ef-ring-label {
   position: absolute;
-  bottom: 12px;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   color: rgba(255,244,79,.66);
   font: 600 5px/1 "EF Wide", sans-serif;
   letter-spacing: .14em;
+}
+
+.ef-context-ring .ef-ring-label-main {
+  font: 600 6px/1 "EF Wide", sans-serif;
+  letter-spacing: .14em;
+}
+
+.ef-context-ring .ef-ring-label-sub {
+  font: 600 6px/1 "EF Numeric", sans-serif;
+  letter-spacing: .02em;
+  color: rgba(255,244,79,.5);
 }
 
 .ef-watermark {

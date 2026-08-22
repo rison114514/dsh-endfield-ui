@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Transparent asset: no background rect, only the striped ENDFIELD letters.
+     viewBox is cropped to the letter band (x 20..140) so the column tiles
+     flush to both edges when placed at the sidebar's right side. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="1280" viewBox="0 0 160 1280">
+  <defs>
+    <pattern id="stripes" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="2" height="5" fill="#A8A8A8"/>
+    </pattern>
+  </defs>
+
+  <!-- E (y=30) -->
+  <g transform="translate(20 30)">
+    <rect x="0" y="0" width="120" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="59" width="90" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="118" width="120" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+  </g>
+
+  <!-- N (y=188) -->
+  <g transform="translate(20 188)">
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="98" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <polygon points="22,0 22,28 98,140 98,112" fill="url(#stripes)"/>
+  </g>
+
+  <!-- D (y=346) approximated as rounded rectangle outline -->
+  <g transform="translate(20 346)">
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="98" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="22" y="0" width="76" height="22" fill="url(#stripes)"/>
+    <rect x="22" y="118" width="76" height="22" fill="url(#stripes)"/>
+    <polygon points="98,22 110,40 110,100 98,118" fill="url(#stripes)"/>
+  </g>
+
+  <!-- F (y=504) -->
+  <g transform="translate(20 504)">
+    <rect x="0" y="0" width="120" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="59" width="90" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+  </g>
+
+  <!-- I (y=662) -->
+  <g transform="translate(20 662)">
+    <rect x="49" y="0" width="22" height="140" fill="url(#stripes)"/>
+  </g>
+
+  <!-- E (y=820) -->
+  <g transform="translate(20 820)">
+    <rect x="0" y="0" width="120" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="59" width="90" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="118" width="120" height="22" fill="url(#stripes)"/>
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+  </g>
+
+  <!-- L (y=978) -->
+  <g transform="translate(20 978)">
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="0" y="118" width="120" height="22" fill="url(#stripes)"/>
+  </g>
+
+  <!-- D (y=1136) -->
+  <g transform="translate(20 1136)">
+    <rect x="0" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="98" y="0" width="22" height="140" fill="url(#stripes)"/>
+    <rect x="22" y="0" width="76" height="22" fill="url(#stripes)"/>
+    <rect x="22" y="118" width="76" height="22" fill="url(#stripes)"/>
+    <polygon points="98,22 110,40 110,100 98,118" fill="url(#stripes)"/>
+  </g>
+</svg>

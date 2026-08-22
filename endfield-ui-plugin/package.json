@@ -1,6 +1,6 @@
 {
   "name": "@rison/dsh-endfield-ui",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Endfield-inspired industrial UI shell for DeepSeek Harness (non-official fan theme)",
   "type": "module",
   "main": "./index.js",

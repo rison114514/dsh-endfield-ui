@@ -122,43 +122,154 @@ window.__ModuleLoader__.load({
       return React.createElement('i', { className: `ef-corner ef-corner-${position}` })
     }
 
-    // Circular context-usage ring (bottom-right). It mirrors dsh's native
-    // ContextMeter: the meter root carries a hashed `JObwrW_root` class and its
-    // trigger button's aria-label embeds the live occupancy like "上下文已用 45%".
-    // We poll that every 700ms; if no provider reports context pressure yet, the
-    // ring falls back to a slow lemon-yellow breathing sweep so it still reads alive.
+    // --------------------------------------------------------------------
+    // Circular context-usage ring (bottom-right) — REAL data, no simulation.
+    //
+    // Official data source: dsh's `contextPressure` projection, computed by the
+    // host `tokenMeter` service from the provider's *real* reported token usage
+    // and the request's context window. The native composer `ContextMeter` reads
+    // it through the session-scoped `useProjection('contextPressure')` hook,
+    // which (client.js:8754) resolves to exactly
+    //     binding.session.projections.faceOf('contextPressure')
+    // A root-scope slot (shell.overlay) is NOT handed `useProjection`, so we
+    // subscribe to that same ProjectionValueStore off the official `ctx.sessions`
+    // service instead. The numerator mirrors the native component
+    // (client.js:2802): `projectedTokens ?? pressureTokens`; the value is null
+    // until both it and `contextWindow` are known (no provider usage yet).
+    //
+    // The store is a plain external source decoupled from React: even if the
+    // subscription never connects, the ring simply shows its idle state and the
+    // rest of the overlay still renders — a data failure can never blank the UI.
+    // --------------------------------------------------------------------
+    const ringStore = {
+      value: undefined,
+      listeners: new Set(),
+      getSnapshot() { return this.value },
+      subscribe(listener) {
+        this.listeners.add(listener)
+        return () => { this.listeners.delete(listener) }
+      },
+      set(value) {
+        if (this.value === value) return
+        this.value = value
+        this.listeners.forEach((l) => { try { l() } catch (e) {} })
+      },
+    }
+
+    function connectRing(ctx) {
+      let listUnsub = null
+      let projUnsub = null
+      let currentId = undefined
+      let retries = 0
+      let retryTimer = null
+
+      const getSessions = () => {
+        try {
+          if (ctx && ctx.sessions) return ctx.sessions
+          if (ctx && typeof ctx.get === 'function') return ctx.get('sessions')
+        } catch (e) { /* service not ready yet */ }
+        return undefined
+      }
+      const readFace = () => {
+        const sessions = getSessions()
+        if (!sessions || typeof sessions.binding !== 'function') { ringStore.set(undefined); return }
+        const id = currentId
+        if (!id) { ringStore.set(undefined); return }
+        try {
+          const binding = sessions.binding(id)
+          const session = binding && binding.session
+          const store = session && session.projections
+          const face = store && typeof store.faceOf === 'function' ? store.faceOf('contextPressure') : undefined
+          ringStore.set(face && typeof face.getSnapshot === 'function' ? face.getSnapshot() : undefined)
+        } catch (e) { ringStore.set(undefined) }
+      }
+      const onList = () => {
+        const sessions = getSessions()
+        if (!sessions || !sessions.list) { scheduleRetry(); return }
+        let state
+        try { state = typeof sessions.list.getSnapshot === 'function' ? sessions.list.getSnapshot() : undefined } catch (e) { state = undefined }
+        const id = state && state.current
+        if (id !== currentId) {
+          currentId = id
+          if (projUnsub) { try { projUnsub() } catch (e) {} projUnsub = null }
+          if (id) {
+            try {
+              const binding = sessions.binding(id)
+              const session = binding && binding.session
+              const store = session && session.projections
+              const face = store && typeof store.faceOf === 'function' ? store.faceOf('contextPressure') : undefined
+              if (face && typeof face.subscribe === 'function') {
+                projUnsub = face.subscribe(readFace)
+                readFace()
+              } else { ringStore.set(undefined) }
+            } catch (e) { ringStore.set(undefined) }
+          } else { ringStore.set(undefined) }
+        } else { readFace() }
+      }
+      const scheduleRetry = () => {
+        if (retryTimer || retries >= 12) return
+        retries += 1
+        retryTimer = setTimeout(() => { retryTimer = null; onList() }, 300)
+      }
+
+      try {
+        const sessions = getSessions()
+        if (sessions && sessions.list && typeof sessions.list.subscribe === 'function') {
+          listUnsub = sessions.list.subscribe(onList)
+        }
+      } catch (e) {}
+      onList()
+
+      return () => {
+        if (retryTimer) clearTimeout(retryTimer)
+        if (listUnsub) { try { listUnsub() } catch (e) {} }
+        if (projUnsub) { try { projUnsub() } catch (e) {} }
+      }
+    }
+
+    function formatTokens(n) {
+      if (n == null || typeof n !== 'number') return null
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+      return String(n)
+    }
+
     const RING_R = 40
     const RING_C = 2 * Math.PI * RING_R
+
+    // Error boundary: if anything inside throws, drop only the ring — never the
+    // whole overlay (the previous failure mode that blanked the background too).
+    class RingBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { failed: false } }
+      static getDerivedStateFromError() { return { failed: true } }
+      componentDidCatch() {}
+      render() { return this.state.failed ? null : this.props.children }
+    }
+
     function ContextRing() {
-      const [pct, setPct] = React.useState(0)
-      const [live, setLive] = React.useState(false)
+      const [pressure, setPressure] = React.useState(ringStore.getSnapshot())
       React.useEffect(() => {
-        let timer
-        const tick = () => {
-          const root = document.querySelector('[class*="JObwrW_root"]')
-          const label = root && root.getAttribute('aria-label')
-          const m = label && label.match(/(\d+)\s*%/)
-          if (m) {
-            const v = Math.max(0, Math.min(100, parseInt(m[1], 10)))
-            setPct(v)
-            setLive(true)
-          } else if (!live) {
-            const t = (Date.now() % 4200) / 4200
-            setPct(Math.round(14 + (Math.sin(t * Math.PI * 2) * 0.5 + 0.5) * 72))
-          }
-          timer = setTimeout(tick, 700)
-        }
-        tick()
-        return () => clearTimeout(timer)
-      }, [live])
-      const offset = RING_C * (1 - pct / 100)
+        const listener = () => { try { setPressure(ringStore.getSnapshot()) } catch (e) {} }
+        const unsub = ringStore.subscribe(listener)
+        setPressure(ringStore.getSnapshot())
+        return unsub
+      }, [])
+      const p = pressure || {}
+      const window = p.contextWindow
+      const used = p.projectedTokens != null ? p.projectedTokens : p.pressureTokens
+      const hasData = window != null && used != null
+      const pct = hasData ? Math.min(100, Math.round((used / window) * 100)) : null
+      const offset = RING_C * (1 - (pct == null ? 0 : pct) / 100)
+      const sub = hasData ? `${formatTokens(used)} / ${formatTokens(window)}` : null
       return React.createElement('div', { className: 'ef-context-ring', 'aria-hidden': true },
         React.createElement('svg', { viewBox: '0 0 100 100' },
           React.createElement('circle', { className: 'ef-ring-track', cx: 50, cy: 50, r: RING_R, fill: 'none', strokeWidth: 7 }),
           React.createElement('circle', { className: 'ef-ring-prog', cx: 50, cy: 50, r: RING_R, fill: 'none', strokeWidth: 7, strokeDasharray: RING_C, strokeDashoffset: offset }),
         ),
-        React.createElement('div', { className: 'ef-ring-value' }, pct, React.createElement('small', null, '%')),
-        React.createElement('div', { className: 'ef-ring-label' }, live ? 'CONTEXT' : 'CONTEXT · SYNC'),
+        React.createElement('div', { className: 'ef-ring-value' }, pct == null ? '—' : pct, React.createElement('small', null, pct == null ? '' : '%')),
+        React.createElement('div', { className: 'ef-ring-label' },
+          React.createElement('span', { className: 'ef-ring-label-main' }, hasData ? 'CONTEXT' : 'CONTEXT · IDLE'),
+          sub ? React.createElement('span', { className: 'ef-ring-label-sub' }, sub) : null,
+        ),
       )
     }
 
@@ -183,7 +294,7 @@ window.__ModuleLoader__.load({
             React.createElement('span', null, React.createElement('img', { src: '/endfield-ui/assets/ele-electric.jpg', alt: '' }), React.createElement('small', null, 'ELECTRIC')),
             React.createElement('span', null, React.createElement('img', { src: '/endfield-ui/assets/ele-ice.jpg', alt: '' }), React.createElement('small', null, 'CRYO')),
           ),
-          React.createElement(ContextRing),
+          React.createElement(RingBoundary, null, React.createElement(ContextRing)),
           React.createElement('div', { className: 'ef-watermark' },
             React.createElement('img', { src: '/endfield-ui/assets/endfield-logo.png', alt: '' }),
           ),
@@ -203,7 +314,7 @@ window.__ModuleLoader__.load({
       )
     }
 
-    const inject = ['slots', 'theme']
+    const inject = ['slots', 'theme', 'sessions']
     function apply(ctx) {
       ctx.effect(() => {
         const link = document.createElement('link')
@@ -217,6 +328,15 @@ window.__ModuleLoader__.load({
       ctx.effect(
         () => ctx.theme.overrideTokens('@rison/dsh-endfield-ui', tokens),
         'endfield-ui: theme tokens',
+      )
+
+      // Subscribe the bottom-right ring to the official `contextPressure`
+      // projection so it shows the session's real token occupancy, not a mock.
+      // Wrapped so a subscription failure can never abort `apply` (which would
+      // skip the slot registration below and blank the whole overlay).
+      ctx.effect(
+        () => { try { return connectRing(ctx) } catch (e) { return () => {} } },
+        'endfield-ui: context ring',
       )
 
       ctx.slots.inject('shell.overlay', () => ctx.slots.register(

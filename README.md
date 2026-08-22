@@ -2,7 +2,7 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本 `0.5.0` 已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本 `0.7.0` 已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
 
 ## 结构
 
@@ -37,7 +37,7 @@ npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签�
 
 ## 开发状态
 
-- **阶段 1（标准插件）**：`dsh.bundle.patch` 已声明，0.5.0 发布准备完成，冒烟测试 8/8 通过。✅
+- **阶段 1（标准插件）**：`dsh.bundle.patch` 已声明，0.7.0 发布准备完成，冒烟测试 8/8 通过。✅
 - **阶段 2（桌面壳消费标准插件）**：移除 `--patch`、dsh 自动发现、首次引导页、单实例锁、启动超时/诊断、dist 脚本，`dist:mac:local` 5/5 通过。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。
