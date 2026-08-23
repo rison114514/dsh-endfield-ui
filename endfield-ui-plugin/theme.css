@@ -202,8 +202,8 @@ code {
    conversation column. Keep the anchor rule above for token inheritance. */
 [data-slot="conversation"] > :first-child {
   background:
-    linear-gradient(90deg, rgba(2,3,4,.04), rgba(2,3,4,.22) 62%, rgba(2,3,4,.42)),
-    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") left center / cover no-repeat !important;
+    linear-gradient(rgba(4,6,7,.48), rgba(4,6,7,.62)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / 100% 100% no-repeat !important;
 }
 
 /* Command ("命令") toggle in the composer: lemon-yellow so it stands out from
