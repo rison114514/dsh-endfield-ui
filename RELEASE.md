@@ -9,7 +9,7 @@
 ## 版本
 
 - 插件：`@rison/dsh-endfield-ui@0.7.1`
-- 桌面壳：`dsh-endfield-workbench@0.1.4`
+- 桌面壳：`dsh-endfield-workbench@0.1.5`
 
 ## 兼容的 dsh 版本
 
@@ -51,6 +51,7 @@ dsh web
 
 - `DSH 终末地工作台-darwin-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
 - 双击启动 → 自动发现 dsh → 装载插件 → 打开窗口；用户数据复用 `~/.dsh`。
+- `0.1.5` 起仅在内置插件版本更新时覆盖安装，禁止旧 App 将用户已安装的新版本降级。
 - 无 dsh 时显示引导页，可手动选择 dsh 可执行文件或源码目录。
 - 公开分发需 Developer ID 签名 + 公证（见 `HANDOFF.md` 4.7），当前构建未做。
 

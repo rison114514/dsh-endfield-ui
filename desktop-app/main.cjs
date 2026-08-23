@@ -108,6 +108,25 @@ function bundledPluginVersion() {
   }
 }
 
+function versionTuple(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version)
+  return match ? match.slice(1).map(Number) : null
+}
+
+function versionAtLeast(installed, bundled) {
+  if (installed === bundled) return true
+  const installedTuple = versionTuple(installed)
+  const bundledTuple = versionTuple(bundled)
+  // 对无法比较的自定义版本保守处理：不用 App 内置包覆盖现有安装。
+  if (!installedTuple || !bundledTuple) return true
+  for (let index = 0; index < installedTuple.length; index += 1) {
+    if (installedTuple[index] !== bundledTuple[index]) {
+      return installedTuple[index] > bundledTuple[index]
+    }
+  }
+  return true
+}
+
 function pluginIsInstalled() {
   const dshHome = process.env.DSH_HOME || path.join(process.env.HOME || '', '.dsh')
   const profileDir = path.join(dshHome, 'profiles', 'web')
@@ -118,7 +137,10 @@ function pluginIsInstalled() {
     const manifest = path.join(profileDir, 'node_modules', '@rison', 'dsh-endfield-ui', 'package.json')
     if (!existsSync(manifest)) return false
     const manifestVersion = JSON.parse(readFileSync(manifest, 'utf8')).version
-    return manifestVersion === bundledPluginVersion()
+    const bundledVersion = bundledPluginVersion()
+    if (typeof manifestVersion !== 'string' || typeof bundledVersion !== 'string') return false
+    // 已安装版本更新时也视为满足，禁止旧 App 将插件降级。
+    return versionAtLeast(manifestVersion, bundledVersion)
   } catch {
     return false
   }
