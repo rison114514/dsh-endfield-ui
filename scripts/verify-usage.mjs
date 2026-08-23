@@ -181,6 +181,11 @@ async function main() {
         && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*#111417\s*!important/s.test(css.body)
         && /\.shikitor--attached \.shikitor-cursor::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
       '原生 textarea caret 透明时，覆盖 Shikitor 绘制的闪烁光标')
+    ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
+      css.ok
+        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important/s.test(css.body)
+        && /\[data-slot="conversation"\] textarea:not\(\.shikitor-input--attached\)/.test(css.body),
+      '避免 /goal、/compact 激活投影时原生字形与高亮字形重叠')
 
     // 8. 插件 client 入口经包名路由暴露
     const clientRoute = await get(`${url}/@rison/dsh-endfield-ui/client.js`)
@@ -192,7 +197,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.4-caret-fix'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.4-slash-fix'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")

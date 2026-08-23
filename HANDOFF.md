@@ -6,7 +6,7 @@
 
 ## 0.8.4 工作台整合交接（当前基线）
 
-0.8.4 延续 0.8.3 的工作台、旋转圆环与开屏门禁，并修复 Electron App 中 `.ef-titlebar` 的 native drag region 覆盖 better-sidebar 顶部按钮的问题。标题条现在按 `--dsh-sidebar-width` 避让展开右栏，折叠时仍保留 78px 按钮安全区。当前基线还移除了会裁切原生 Settings 对话框的左栏隔离层，并将 Shikitor 自绘输入光标固定为黑色；主题 URL 带 `0.8.4-caret-fix` 标记以规避旧 CSS 缓存。`endfield-ui-plugin/package.json` 继续精确依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`。
+0.8.4 延续 0.8.3 的工作台、旋转圆环与开屏门禁，并修复 Electron App 中 `.ef-titlebar` 的 native drag region 覆盖 better-sidebar 顶部按钮的问题。标题条现在按 `--dsh-sidebar-width` 避让展开右栏，折叠时仍保留 78px 按钮安全区。当前基线还移除了会裁切原生 Settings 对话框的左栏隔离层，将 Shikitor 自绘输入光标固定为黑色，并在 Shikitor 接管后隐藏原生 textarea 字形，避免 `/goal`、`/compact` 等命令被原生输入层和高亮投影重复绘制；主题 URL 带 `0.8.4-slash-fix` 标记以规避旧 CSS 缓存。`endfield-ui-plugin/package.json` 继续精确依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`。
 
 关键兼容规则：
 

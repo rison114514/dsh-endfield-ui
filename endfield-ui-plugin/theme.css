@@ -449,13 +449,13 @@ button[aria-label="Commands"]:hover {
   background: rgba(255,244,79,.12) !important;
 }
 
-textarea[placeholder="描述你想要构建的内容"] {
+textarea[placeholder="描述你想要构建的内容"]:not(.shikitor-input--attached) {
   color: #1b1e21 !important;
   caret-color: #111417 !important;
   -webkit-text-fill-color: #1b1e21 !important;
 }
 
-textarea[placeholder="描述你想要构建的内容"]::placeholder {
+textarea[placeholder="描述你想要构建的内容"]:not(.shikitor-input--attached)::placeholder {
   color: #737b80 !important;
   opacity: 1;
   -webkit-text-fill-color: #737b80 !important;
@@ -496,18 +496,34 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
    dark caret on every textarea/input inside the conversation slot, and dim the
    placeholder to a readable grey. This outranks the hero-only
    textarea[placeholder="描述你想要构建的内容"] rule above. */
-[data-slot="conversation"] textarea,
+[data-slot="conversation"] textarea:not(.shikitor-input--attached),
 [data-slot="conversation"] input {
   color: #111417 !important;
   caret-color: #111417 !important;
   -webkit-text-fill-color: #111417 !important;
 }
 
-[data-slot="conversation"] textarea::placeholder,
+[data-slot="conversation"] textarea:not(.shikitor-input--attached)::placeholder,
 [data-slot="conversation"] input::placeholder {
   color: #6b7378 !important;
   opacity: 1;
   -webkit-text-fill-color: #6b7378 !important;
+}
+
+/* Once Shikitor attaches, its textarea is only the invisible keyboard/input
+   surface. The highlighted projection above it owns all visible glyphs.
+   Keeping our generic white-composer ink override on that hidden textarea
+   makes slash commands paint twice (`/goal`, `/compact`, ...), producing the
+   folded first-line ghost seen when completion activates. */
+textarea.shikitor-input--attached {
+  color: transparent !important;
+  caret-color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+textarea.shikitor-input--attached::placeholder {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 /* 用户问卷 / 计划确认卡片（模型轮询页，class 前缀 Mbwy4a_）。

@@ -19,6 +19,7 @@
 - 根据稳定 DOM 特征直接门禁右栏 fixed 面板本体（内联宽度 + `新建标签页` 操作），不依赖 `nArs4W_panel` 等可变 CSS Module 哈希类名。
 - 保留 0.7.1 的浅色输入区黑字、设置页深色修复、Ardot 工业网格、左栏等高线纹理、开屏动画与 DeepSeek Harness 品牌插图。
 - 修复 Shikitor 将原生 caret 隐藏后绘制的合成光标仍为浅色的问题；白色输入区现在固定使用黑色闪烁光标，并通过带版本标记的主题 URL 避免 Electron/Chromium 继续命中旧 CSS。
+- 修复输入 `/goal`、`/compact` 等斜杠命令时首行文字重复绘制的问题；Shikitor 接管输入后仅显示高亮投影，原生 textarea 保持透明。
 - 修复左栏装饰隔离层将原生 Settings 对话框裁切在折叠栏宽度内的问题，设置页恢复完整显示。
 
 ## 结构
@@ -54,7 +55,7 @@ npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签�
 
 ## 开发状态
 
-- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `31/31` 通过。✅
+- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `32/32` 通过。✅
 - **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.10`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证，`dist:mac:local` 5/5 通过。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。
