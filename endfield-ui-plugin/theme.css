@@ -1254,3 +1254,355 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   .ef-boot-brand img:last-child { width: 39vw; }
   .ef-boot-center > span { letter-spacing: .14em; }
 }
+
+/* ======================================================================
+   DSH Better Sidebar 0.12.3 — stable public root only.
+   The upstream CSS-module class names are intentionally never referenced.
+   ====================================================================== */
+
+[data-dsh-better-sidebar] {
+  --dsw-alias-bg-base: #090b0d;
+  --dsw-alias-bg-layer-1: #101419;
+  --dsw-alias-bg-layer-2: #181d22;
+  --dsw-alias-bg-layer-3: #20262b;
+  --dsw-alias-border-l1: rgba(255, 244, 79, .16);
+  --dsw-alias-border-l2: rgba(255, 244, 79, .28);
+  --dsw-alias-brand-primary: var(--ef-yellow);
+  --dsw-alias-state-business-primary: var(--ef-yellow);
+  --dsw-alias-interactive-bg-active: rgba(255, 244, 79, .14);
+  --dsw-alias-interactive-bg-hover: rgba(255, 244, 79, .075);
+  color: #eef0ed;
+  font-family: "EF Harmony", sans-serif;
+}
+
+[data-dsh-better-sidebar]::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 10, 12, .9), rgba(8, 10, 12, .97)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
+  content: "";
+  opacity: .46;
+  pointer-events: none;
+}
+
+[data-dsh-better-sidebar] > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-dsh-better-sidebar] button,
+[data-dsh-better-sidebar] input,
+[data-dsh-better-sidebar] textarea,
+[data-dsh-better-sidebar] select {
+  font-family: inherit;
+}
+
+[data-dsh-better-sidebar] button:focus-visible,
+[data-dsh-better-sidebar] input:focus-visible,
+[data-dsh-better-sidebar] textarea:focus-visible,
+[data-dsh-better-sidebar] select:focus-visible {
+  outline-color: var(--ef-yellow) !important;
+}
+
+[data-dsh-better-sidebar] [role="tab"],
+[data-dsh-better-sidebar] [role="menuitem"] {
+  letter-spacing: .04em;
+}
+
+[data-dsh-better-sidebar] [aria-selected="true"],
+[data-dsh-better-sidebar] [data-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--ef-yellow);
+}
+
+.ef-objective-tab-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--ef-yellow);
+  line-height: 1;
+}
+
+/* ======================================================================
+   Native Goal projection / OBJECTIVE workbench tab
+   ====================================================================== */
+
+.ef-objective {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 18px;
+  overflow: auto;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.025) 0 1px, transparent 1px 18px),
+    linear-gradient(180deg, rgba(9,11,13,.66), rgba(9,11,13,.92));
+  color: #f2f3ef;
+}
+
+.ef-objective-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ef-objective-header > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ef-objective-header span,
+.ef-objective-index {
+  color: #f3f4f0;
+  font: 700 12px/1 "EF Wide", sans-serif;
+  letter-spacing: .13em;
+}
+
+.ef-objective-header small,
+.ef-objective > small {
+  color: #646c72;
+  font: 600 8px/1.4 "EF Wide", sans-serif;
+  letter-spacing: .12em;
+}
+
+.ef-objective-header b {
+  border: 1px solid rgba(255,244,79,.42);
+  padding: 5px 7px 4px;
+  background: rgba(255,244,79,.1);
+  color: var(--ef-yellow);
+  font: 700 8px/1 "EF Wide", sans-serif;
+  letter-spacing: .14em;
+}
+
+.ef-objective[data-phase="blocked"] .ef-objective-header b {
+  border-color: rgba(255,105,105,.5);
+  background: rgba(255,105,105,.1);
+  color: #ff7979;
+}
+
+.ef-objective-rule {
+  position: relative;
+  height: 4px;
+  margin: 14px 0 22px;
+  overflow: hidden;
+  background: rgba(255,255,255,.08);
+}
+
+.ef-objective-rule i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  background: var(--ef-yellow);
+  box-shadow: 0 0 12px rgba(255,244,79,.38);
+}
+
+.ef-objective-copy {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: 12px;
+  grid-template-columns: 30px minmax(0, 1fr);
+}
+
+.ef-objective-copy > span {
+  color: var(--ef-yellow);
+  font: 700 10px/1 "EF Wide", sans-serif;
+}
+
+.ef-objective-copy h2 {
+  margin: -5px 0 0;
+  overflow-wrap: anywhere;
+  color: #f4f5f1;
+  font: 650 22px/1.45 "EF Harmony", sans-serif;
+}
+
+.ef-objective-blocked,
+.ef-objective-error {
+  margin-top: 18px;
+  border-left: 3px solid #ff7979;
+  padding: 10px 12px;
+  background: rgba(255,105,105,.075);
+}
+
+.ef-objective-blocked b {
+  color: #ff7979;
+  font: 700 8px/1 "EF Wide", sans-serif;
+  letter-spacing: .12em;
+}
+
+.ef-objective-blocked p {
+  margin: 7px 0 0;
+  color: #c5c9c6;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ef-objective-error {
+  color: #ff9797;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ef-objective-editor textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 132px;
+  resize: vertical;
+  border: 1px solid rgba(255,244,79,.32);
+  border-radius: 0;
+  padding: 12px;
+  outline: none;
+  background: rgba(0,0,0,.3);
+  color: #f4f5f1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ef-objective-editor textarea:focus {
+  border-color: var(--ef-yellow);
+  box-shadow: 0 0 0 1px rgba(255,244,79,.15);
+}
+
+.ef-objective-editor small {
+  display: block;
+  margin-top: 7px;
+  color: #656c72;
+  font: 600 8px/1 "EF Wide", sans-serif;
+  letter-spacing: .1em;
+}
+
+.ef-objective-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.ef-objective-actions button {
+  min-height: 30px;
+  border: 1px solid rgba(255,244,79,.28);
+  border-radius: 0;
+  padding: 0 9px;
+  background: rgba(255,244,79,.06);
+  color: #d9dcd8;
+  cursor: pointer;
+  font: 650 9px/1 "EF Wide", sans-serif;
+  letter-spacing: .04em;
+}
+
+.ef-objective-actions button:hover:not(:disabled) {
+  border-color: var(--ef-yellow);
+  background: var(--ef-yellow);
+  color: #090b0d;
+}
+
+.ef-objective-actions button:disabled { opacity: .4; cursor: default; }
+
+.ef-objective-actions > span {
+  margin-left: auto;
+  color: #737a80;
+  font: 700 8px/1 "EF Wide", sans-serif;
+  letter-spacing: .12em;
+}
+
+.ef-objective-empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ef-objective-empty .ef-objective-index {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  color: #626a70;
+}
+
+.ef-objective-empty-mark {
+  display: flex;
+  width: 72px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,244,79,.22);
+  color: var(--ef-yellow);
+  font: 200 38px/1 sans-serif;
+  transform: rotate(45deg);
+}
+
+.ef-objective-empty-mark + h2 {
+  margin: 25px 0 7px;
+  font: 700 13px/1 "EF Wide", sans-serif;
+  letter-spacing: .11em;
+}
+
+.ef-objective-empty p { margin: 0 0 13px; color: #7d858a; font-size: 12px; }
+.ef-objective-empty code {
+  border: 1px solid rgba(255,244,79,.22);
+  padding: 7px 10px;
+  background: rgba(255,244,79,.05);
+  color: var(--ef-yellow);
+}
+.ef-objective-empty > small { margin-top: 14px; }
+
+/* ======================================================================
+   Shikitor 1.0.2 — public class surface, user preferences remain untouched.
+   ====================================================================== */
+
+.shikitor--attached .shikitor-popup-completions-board {
+  border-color: rgba(255,244,79,.35) !important;
+  border-radius: 2px !important;
+  background:
+    linear-gradient(180deg, rgba(27,31,35,.98), rgba(12,15,18,.99)) !important;
+  box-shadow: 8px 8px 0 rgba(0,0,0,.32), 0 0 0 1px rgba(255,244,79,.06) !important;
+}
+
+.shikitor--attached .shikitor-completion-item { border-radius: 0 !important; }
+.shikitor--attached .shikitor-completion-item:hover,
+.shikitor--attached .shikitor-completion-item.selected {
+  background: rgba(255,244,79,.11) !important;
+  box-shadow: inset 3px 0 0 var(--ef-yellow);
+}
+
+.shikitor--attached .dsh-shikitor-file-reference,
+.shikitor--attached .dsh-shikitor-session-reference,
+.dsh-shikitor-message-session-link {
+  border-color: rgba(255,244,79,.28) !important;
+  border-radius: 2px !important;
+  background: rgba(255,244,79,.065) !important;
+}
+
+.dsh-shikitor-editor,
+.dsh-shikitor-editor-empty {
+  background:
+    linear-gradient(rgba(9,11,13,.93), rgba(9,11,13,.96)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat !important;
+}
+
+.dsh-shikitor-editor__toolbar {
+  border-bottom-color: rgba(255,244,79,.22) !important;
+  box-shadow: inset 0 -2px 0 rgba(255,244,79,.035);
+}
+
+.dsh-shikitor-editor__body {
+  border-left: 1px solid rgba(255,244,79,.12);
+}
+
+.dsh-shikitor-settings__tab[data-active="true"]::after,
+.dsh-shikitor-settings__tab:focus-visible::after {
+  border-radius: 0 !important;
+  background: var(--ef-yellow) !important;
+}
+
+.dsh-shikitor-settings__scheme-choice[aria-pressed="true"] {
+  border-color: rgba(255,244,79,.55) !important;
+  background: rgba(255,244,79,.08) !important;
+}

@@ -1,7 +1,7 @@
 {
   "name": "dsh-endfield-workbench",
   "productName": "DSH 终末地工作台",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Endfield-inspired desktop shell for DeepSeek Harness",
   "main": "main.cjs",
   "private": true,

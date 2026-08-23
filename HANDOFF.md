@@ -1,8 +1,30 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
-> 最后更新：2026-08-15  
-> 当前插件版本：`@rison/dsh-endfield-ui@0.4.3`  
+> 最后更新：2026-08-23
+> 当前插件版本：`@rison/dsh-endfield-ui@0.8.0`
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
+
+## 0.8.0 工作台整合交接（当前基线）
+
+0.8.0 已从纯视觉包升级为 rc.6 完整工作台包。`endfield-ui-plugin/package.json` 以**精确版本**依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`；`cordis.patch.yml` 再以 better-sidebar、Shikitor、Endfield 适配层的顺序挂载。用户仍只需安装 `@rison/dsh-endfield-ui`。
+
+关键兼容规则：
+
+- 目标 DSH 固定为 `0.1.0-rc.6`；better-sidebar 固定 `0.12.3`，禁止用 `latest`。`0.13.x` 要求 rc.7，`0.15.2` 要求 rc.8。
+- Shikitor 固定 `1.0.2`，要求 Node `>=22.19.0`。它负责输入框 `@/#/$//` 补全与中央编辑页。
+- better-sidebar 保留自己的右栏快速编辑器。Shikitor 没有公开可嵌入 better-sidebar 的 React 组件，因此不要用 DOM 搬运或 fork 上游的方式强行合并；当前产品定义是“右栏快速编辑 + 中央深度编辑”。
+- 内嵌浏览器受目标站点 CSP / `X-Frame-Options` 限制，被拒绝时走上游自带的外部打开入口。
+- pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.12.3 会降级挂载并只禁用终端。
+
+Goal 适配规则：
+
+- `OBJECTIVE` 通过 `ctx.betterSidebar.registerTab()` 注册，每个会话为单例标签。
+- 只订阅 `sessions.binding(sessionId).session.projections.faceOf('goal')`，不建第二份 Store。
+- 编辑、暂停、恢复、清除调用 `ctx.remote.goals`，并在调用瞬间从 projection 读取最新 `{id, revision}`。
+- 每个 Goal id 首次进入 active/paused/blocked 时自动加入右栏标签，但 type-only open 不强制展开收起的右栏。用户关闭后不在同一 Goal id 上反复弹回。
+- 官方 GoalBar 和 `/goal` 保留；Goal 清除或完成后标签保留布局，页面显示 `/goal <目标>` 提示。
+
+发布前必须运行 `scripts/verify-usage.mjs` 的隔离 Profile 测试，确认两个整合依赖的实际版本、三层 patch 顺序、OBJECTIVE/Goal Remote 代码、资源路由和卸载无残留。
 
 ## 1. 交接目标
 
@@ -10,7 +32,7 @@
 
 1. **目标 A：把现有视觉层完善为“一条命令安装并自动生效”的标准 dsh Web 插件。**
    - 用户已经安装 dsh。
-   - 用户只执行一次 `dsh plugin --profile web add <包名>`。
+   - 用户只执行一次 `dsh plugin --profile web add <包名> --allow-build=node-pty`。
    - 以后正常执行 `dsh web`，终末地风格自动加载。
    - 不要求用户复制 CSS、修改 `~/.dsh` 文件或手动追加 `--patch`。
    - 可以用标准命令升级和卸载，卸载后恢复原生 dsh 前端。
@@ -27,6 +49,8 @@
 ---
 
 ## 2. 当前项目结构与状态
+
+> 本节保留了项目从 0.7.x 迁移到标准 bundle 的历史背景；凡与“0.8.0 工作台整合交接”冲突的描述，均以文首 0.8.0 基线为准。
 
 ```text
 dsh接入终末地风格/
@@ -57,9 +81,9 @@ dsh接入终末地风格/
 - `npm pack --dry-run` 已确认 27 个文件都能进入安装包，压缩包约 2.6 MB。
 - 视觉层不修改 dsh 核心源码，用户数据仍位于 `~/.dsh`。
 
-### 2.2 当前插件尚未自动生效的原因
+### 2.2 已解决的历史问题：插件未自动生效
 
-当前 `package.json` 只有 `dsh.client`，缺少 dsh 组合包声明：
+0.7.x 曾只有 `dsh.client`、缺少 dsh 组合包声明；0.8.0 已补齐：
 
 ```json
 "dsh": {
@@ -71,13 +95,13 @@ dsh接入终末地风格/
 
 dsh 的插件安装器只会把声明了 `dsh.bundle.patch` 的依赖加入 profile 的 `dsh.profile.bundles`。没有该字段时，包虽然被安装，但 `cordis.patch.yml` 不会自动进入启动层。
 
-当前桌面壳因此在 `main.cjs` 中额外传入：
+旧桌面壳曾在 `main.cjs` 中额外传入：
 
 ```text
 --patch /path/to/endfield-ui-plugin/cordis.patch.yml
 ```
 
-这能保证当前 App 工作，但不是面向所有 dsh 用户的标准安装方式。
+0.8.0 已删除这一临时路径，App 与 Web 都走标准 bundle 安装。
 
 ### 2.3 当前 `.app` 的限制
 
@@ -103,21 +127,21 @@ dsh 的插件安装器只会把声明了 `dsh.bundle.patch` 的依赖加入 prof
 发布到 npm 后：
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
 dsh web
 ```
 
 如果发布到 GitHub：
 
 ```bash
-dsh plugin --profile web add github:<owner>/<repo>#v1.0.0
+dsh plugin --profile web add github:<owner>/<repo>#v0.8.0 --allow-build=node-pty
 dsh web
 ```
 
 离线安装构建好的 tarball：
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
 dsh web
 ```
 
@@ -210,7 +234,7 @@ dsh --profile web
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
@@ -273,7 +297,7 @@ dsh --profile web
 1. 创建 Electron 原生窗口。
 2. 找到随 App 携带的 `endfield-ui-plugin`。
 3. 检查插件是否已链接进用户的 `~/.dsh/profiles/web`。
-4. 必要时执行 `dsh plugin --profile web add <pluginDir>`。
+4. 必要时执行 `dsh plugin --profile web add <pluginDir> --allow-build=node-pty`。
 5. 启动随机本地端口的 dsh Web 服务。
 6. 从日志中识别 `http://127.0.0.1:<port>` 并加载。
 7. 窗口关闭时向 dsh 子进程发送 `SIGTERM`。
@@ -315,7 +339,7 @@ dsh --profile web
 插件完成标准 bundle 后，建议桌面壳采用：
 
 ```text
-dsh plugin --profile web add <App Resources 中的插件目录>
+dsh plugin --profile web add <App Resources 中的插件目录> --allow-build=node-pty
 dsh --profile web --port 0
 ```
 

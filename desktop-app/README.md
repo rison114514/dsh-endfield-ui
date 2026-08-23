@@ -15,7 +15,7 @@ npm start
 
 1. 按优先级发现 dsh：`DSH_BIN` 环境变量 → 上次用户选择（存于 `userData/dsh-launch.json`）→ `/opt/homebrew/bin`、`/usr/local/bin` 常见目录 → `PATH`。
 2. 未发现 dsh 时显示终末地风格**引导页**：可选择 dsh 可执行文件、选择 deepseek-harness 源码目录（开发模式），或重新检测；选择结果只存本机用户数据。
-3. 自动把 App 内插件以标准 bundle 方式加入 dsh web profile（`dsh plugin --profile web add <插件目录>`，幂等）。
+3. 自动把 App 内插件以标准 bundle 方式加入 dsh web profile（追加精确的 `--allow-build=node-pty`，只授权 better-sidebar 的终端原生模块构建，幂等）。
 4. 启动 `dsh --profile web --port 0`（**不再附加 `--patch`**），从日志识别 `http://127.0.0.1:<port>` 并加载。
 5. 30 秒未出现本地地址则显示诊断页，提供「复制诊断信息」。
 6. 窗口关闭 / 退出 / 崩溃均向 dsh 子进程发 `SIGTERM`，5 秒未退则 `SIGKILL`，避免残留端口。

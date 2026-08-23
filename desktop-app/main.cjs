@@ -260,7 +260,9 @@ function startDsh(executable) {
 
   // 标准插件方式：先确保插件以 bundle 形式加入 web profile（幂等）。
   if (!pluginIsInstalled()) {
-    const install = spawnSync(executable, ['plugin', '--profile', 'web', 'add', pluginDir], {
+    const install = spawnSync(executable, [
+      'plugin', '--profile', 'web', 'add', pluginDir, '--allow-build=node-pty',
+    ], {
       cwd: workspace,
       env,
       encoding: 'utf8',

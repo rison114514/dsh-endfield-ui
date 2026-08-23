@@ -1,7 +1,7 @@
 {
   "name": "@rison/dsh-endfield-ui",
-  "version": "0.7.1",
-  "description": "Endfield-inspired industrial UI shell for DeepSeek Harness (non-official fan theme)",
+  "version": "0.8.0",
+  "description": "Endfield-inspired DSH workbench with sidebar, Shikitor input, and native Goal projection",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -19,9 +19,18 @@
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-ui-theme",
-        "@deepseek-ai/dsh-client-ui-layout"
+        "@deepseek-ai/dsh-client-ui-layout",
+        "dsh-better-sidebar",
+        "dsh-shikitor"
       ]
     }
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "dsh-better-sidebar": "0.12.3",
+    "dsh-shikitor": "1.0.2"
   },
   "files": [
     "README.md",

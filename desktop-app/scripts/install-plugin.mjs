@@ -19,7 +19,9 @@ const command = [
 
 if (!command) throw new Error('找不到本机 dsh，请先安装 @deepseek-ai/dsh。')
 
-const result = spawnSync(command, ['plugin', '--profile', 'web', 'add', pluginDir], {
+const result = spawnSync(command, [
+  'plugin', '--profile', 'web', 'add', pluginDir, '--allow-build=node-pty',
+], {
   cwd: existsSync(config.workspace) ? config.workspace : homedir(),
   env: {
     ...process.env,

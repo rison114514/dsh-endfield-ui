@@ -16,17 +16,19 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = ../rison-dsh-endfield-ui-0.6.0.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.0.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
 import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, dirname } from 'node:path'
+import { join, dirname, isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET = process.argv[2] || join(ROOT, 'rison-dsh-endfield-ui-0.6.0.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.0.tgz')
+const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
 const PORT_TIMEOUT_MS = 30000
@@ -80,7 +82,7 @@ async function main() {
   const PLUGIN_ROOT = join(DSH_HOME, 'profiles', 'web', 'node_modules', PLUGIN_NAME)
 
   // 1. 安装
-  const add = runDsh(['plugin', '--profile', 'web', 'add', TARGET], env)
+  const add = runDsh(['plugin', '--profile', 'web', 'add', TARGET, '--allow-build=node-pty'], env)
   ok('plugin add 退出码为 0', add.status === 0, add.stderr.trim().split('\n').slice(-3).join(' '))
 
   // 2. profile 清单：依赖 + bundles
@@ -93,19 +95,35 @@ async function main() {
 
   // 3. 插件自身清单（node_modules 下）：client / bundle 声明
   const pluginPkgPath = join(PLUGIN_ROOT, 'package.json')
+  if (!existsSync(pluginPkgPath)) throw new Error(`plugin install did not materialize ${pluginPkgPath}`)
   const pluginPkg = JSON.parse(readFileSync(pluginPkgPath, 'utf8'))
   ok('插件 package.json：dsh.client.immediately = true', pluginPkg.dsh?.client?.immediately === true, JSON.stringify(pluginPkg.dsh?.client))
   ok('插件 package.json：dsh.client.inject 非空', Array.isArray(pluginPkg.dsh?.client?.inject) && pluginPkg.dsh.client.inject.length > 0, JSON.stringify(pluginPkg.dsh?.client?.inject))
   ok('插件 package.json：dsh.bundle.patch = ./cordis.patch.yml', pluginPkg.dsh?.bundle?.patch === './cordis.patch.yml', String(pluginPkg.dsh?.bundle?.patch))
+  ok('better-sidebar 精确锁定 0.12.3', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.12.3', JSON.stringify(pluginPkg.dependencies))
+  ok('dsh-shikitor 精确锁定 1.0.2', pluginPkg.dependencies?.['dsh-shikitor'] === '1.0.2', JSON.stringify(pluginPkg.dependencies))
+
+  const pluginRequire = createRequire(pluginPkgPath)
+  for (const [name, expected] of [['dsh-better-sidebar', '0.12.3'], ['dsh-shikitor', '1.0.2']]) {
+    let actual = null
+    try {
+      actual = JSON.parse(readFileSync(pluginRequire.resolve(`${name}/package.json`), 'utf8')).version
+    } catch {}
+    ok(`${name}@${expected} 已作为整合依赖安装`, actual === expected, `actual=${actual}`)
+  }
 
   // 4. cordis.patch.yml 注册 id=endfield-ui
   const patchPath = join(PLUGIN_ROOT, 'cordis.patch.yml')
   let patchOk = false
   if (existsSync(patchPath)) {
     const txt = readFileSync(patchPath, 'utf8')
-    patchOk = /id:\s*endfield-ui/.test(txt) && /name:\s*'@rison\/dsh-endfield-ui'/.test(txt)
+    const betterAt = txt.indexOf('id: better-sidebar')
+    const shikitorAt = txt.indexOf('id: dsh-shikitor')
+    const endfieldAt = txt.indexOf('id: endfield-ui')
+    patchOk = betterAt >= 0 && shikitorAt > betterAt && endfieldAt > shikitorAt
+      && /name:\s*'@rison\/dsh-endfield-ui'/.test(txt)
   }
-  ok('cordis.patch.yml 注册 id=endfield-ui', patchOk, patchOk ? patchPath : 'missing')
+  ok('cordis.patch.yml 按 better-sidebar → Shikitor → Endfield 顺序注册', patchOk, patchOk ? patchPath : 'missing/order mismatch')
 
   // 5. 启动
   const { url, child, stderr } = await startServer(env)
@@ -123,8 +141,8 @@ async function main() {
     ok('theme.css 含终末地标记（#fff44f / .ef-overlay / --ef-yellow）',
       css.ok && css.body.includes('#fff44f') && css.body.includes('.ef-overlay') && css.body.includes('--ef-yellow'),
       `len=${css.body.length}`)
-    ok('theme.css 含新网格背景 + 等高线纹理 + 圆形进度环样式',
-      css.ok && css.body.includes('chat-grid-bg.jpg') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
+    ok('theme.css 含右栏 Ardot 工业网格 + 等高线纹理 + 圆形进度环样式',
+      css.ok && css.body.includes('ardot/endfield-industrial-grid.webp') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
       `len=${css.body.length}`)
     ok('theme.css 含命令按钮（aria-label=命令）柠檬黄覆盖',
       css.ok && css.body.includes('aria-label="命令"') && css.body.includes('var(--ef-yellow)'),
@@ -143,11 +161,13 @@ async function main() {
       clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
+        && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
+        && c.includes("faceOf('goal')") && c.includes('ctx.remote.goals.edit')
         && !c.includes('JObwrW_root') && !/Math\.sin/.test(c)
     }
     ok('已安装 client.js 含注入逻辑 + 订阅官方 contextPressure 真实数据源（无 DOM 扒取/模拟）', clientOk, clientFile)
 
-    // 10. 全部素材可达（12 图 + 4 字体）
+    // 10. 全部运行时与保留素材可达
     const assets = [
       '/endfield-ui/assets/ring.png',
       '/endfield-ui/assets/operator-xaihi.png',
@@ -160,6 +180,7 @@ async function main() {
       '/endfield-ui/assets/ele-ice.jpg',
       '/endfield-ui/assets/operator-icon.png',
       '/endfield-ui/assets/chat-grid-bg.jpg',
+      '/endfield-ui/assets/ardot/endfield-industrial-grid.webp',
       '/endfield-ui/assets/contour-texture.png',
       '/endfield-ui/assets/endfield-sidebar-texture.png',
       '/endfield-ui/assets/endfield-stripes-texture.svg',
@@ -183,6 +204,16 @@ async function main() {
     await new Promise((r) => setTimeout(r, 800))
     if (!child.killed) child.kill('SIGKILL')
   }
+
+  const remove = runDsh(['plugin', '--profile', 'web', 'remove', PLUGIN_NAME], env)
+  ok('卸载整合插件退出码为 0', remove.status === 0, remove.stderr.trim().split('\n').slice(-3).join(' '))
+  const removedPkg = JSON.parse(readFileSync(profilePkgPath, 'utf8'))
+  const removedDeps = removedPkg.dependencies || {}
+  const removedBundles = removedPkg.dsh?.profile?.bundles || []
+  ok('卸载后不留 Endfield 依赖或组合层',
+    !removedDeps[PLUGIN_NAME] && !removedBundles.includes(PLUGIN_NAME),
+    `deps=${JSON.stringify(removedDeps)} bundles=${JSON.stringify(removedBundles)}`)
+
   rmSync(DSH_HOME, { recursive: true, force: true })
 
   const failed = results.filter((r) => !r.pass)

@@ -314,7 +314,276 @@ window.__ModuleLoader__.load({
       )
     }
 
-    const inject = ['slots', 'theme', 'sessions']
+    // --------------------------------------------------------------------
+    // Native Goal projection -> dsh-better-sidebar OBJECTIVE tab.
+    //
+    // There is deliberately no Goal store here. Every render and mutation
+    // reads the authoritative, session-scoped `goal` projection. Mutations
+    // use the same CAS ref ({id, revision}) and Remote service as GoalBar.
+    // --------------------------------------------------------------------
+    const objectiveBadgeBySession = new Map()
+
+    function goalFace(ctx, sessionId) {
+      try {
+        const binding = ctx.sessions && ctx.sessions.binding(sessionId)
+        const projections = binding && binding.session && binding.session.projections
+        return projections && typeof projections.faceOf === 'function'
+          ? projections.faceOf('goal')
+          : undefined
+      } catch (e) { return undefined }
+    }
+
+    function readGoal(ctx, sessionId) {
+      const face = goalFace(ctx, sessionId)
+      try {
+        const projection = face && typeof face.getSnapshot === 'function' ? face.getSnapshot() : undefined
+        return projection == null ? projection : projection.goal
+      } catch (e) { return undefined }
+    }
+
+    function useNativeGoal(ctx, sessionId) {
+      const [goal, setGoal] = React.useState(() => readGoal(ctx, sessionId))
+      React.useEffect(() => {
+        let disposed = false
+        let unsubscribe = null
+        let retry = null
+        let attempts = 0
+        const update = () => {
+          if (!disposed) setGoal(readGoal(ctx, sessionId))
+        }
+        const attach = () => {
+          if (disposed) return
+          const face = goalFace(ctx, sessionId)
+          if (face && typeof face.subscribe === 'function') {
+            unsubscribe = face.subscribe(update)
+            update()
+            return
+          }
+          update()
+          if (attempts++ < 12) retry = setTimeout(attach, 250)
+        }
+        attach()
+        return () => {
+          disposed = true
+          if (retry) clearTimeout(retry)
+          if (unsubscribe) { try { unsubscribe() } catch (e) {} }
+        }
+      }, [ctx, sessionId])
+      return goal
+    }
+
+    const PHASE_COPY = {
+      active: ['ACTIVE', '执行中'],
+      paused: ['PAUSED', '已暂停'],
+      blocked: ['BLOCKED', '已阻塞'],
+      complete: ['COMPLETE', '已完成'],
+    }
+
+    class ObjectiveBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { failed: false } }
+      static getDerivedStateFromError() { return { failed: true } }
+      componentDidCatch() {}
+      render() {
+        if (!this.state.failed) return this.props.children
+        return React.createElement('section', {
+          className: 'ef-objective ef-objective-empty',
+          'data-endfield-objective': 'error',
+        },
+        React.createElement('div', { className: 'ef-objective-index' }, 'OBJ / ERR'),
+        React.createElement('h2', null, 'OBJECTIVE LINK OFFLINE'),
+        React.createElement('p', null, 'Goal 工作台暂时不可用；原生 GoalBar 与 /goal 不受影响。'))
+      }
+    }
+
+    function ObjectiveWorkbench({ ctx, scope }) {
+      const goal = useNativeGoal(ctx, scope.sessionId)
+      const [editing, setEditing] = React.useState(false)
+      const [draft, setDraft] = React.useState('')
+      const [pending, setPending] = React.useState(false)
+      const [error, setError] = React.useState(null)
+      const [clearedId, setClearedId] = React.useState(null)
+      const pendingRef = React.useRef(false)
+      const goalId = goal && goal.id
+
+      React.useEffect(() => {
+        setEditing(false)
+        setError(null)
+        setClearedId(null)
+      }, [goalId])
+
+      const runAction = React.useCallback(async (verb, objective) => {
+        if (pendingRef.current) return false
+        const latest = readGoal(ctx, scope.sessionId)
+        if (!latest || !latest.id || latest.revision == null) {
+          setError('当前会话没有可操作的 Goal')
+          return false
+        }
+        const ref = { id: latest.id, revision: latest.revision }
+        pendingRef.current = true
+        setPending(true)
+        setError(null)
+        try {
+          let result
+          if (verb === 'edit') result = await ctx.remote.goals.edit(scope.sessionId, ref, { objective })
+          else if (verb === 'pause') result = await ctx.remote.goals.pause(scope.sessionId, ref)
+          else if (verb === 'resume') result = await ctx.remote.goals.resume(scope.sessionId, ref)
+          else result = await ctx.remote.goals.clear(scope.sessionId, ref)
+          if (!result || !result.ok) {
+            const detail = result && result.error
+            setError(detail ? `${detail.message} (${detail.code})` : 'Goal 操作失败')
+            return false
+          }
+          return true
+        } catch (e) {
+          setError(e && e.message ? e.message : String(e))
+          return false
+        } finally {
+          pendingRef.current = false
+          setPending(false)
+        }
+      }, [ctx, scope.sessionId])
+
+      const visibleGoal = goal && goal.phase !== 'complete' && goal.id !== clearedId ? goal : null
+      if (!visibleGoal) {
+        return React.createElement('section', {
+          className: 'ef-objective ef-objective-empty',
+          'data-endfield-objective': 'empty',
+        },
+          React.createElement('div', { className: 'ef-objective-index' }, 'OBJ / 00'),
+          React.createElement('div', { className: 'ef-objective-empty-mark', 'aria-hidden': true }, '+'),
+          React.createElement('h2', null, 'NO ACTIVE OBJECTIVE'),
+          React.createElement('p', null, '当前会话尚未设置持久目标。'),
+          React.createElement('code', null, '/goal <目标>'),
+          React.createElement('small', null, 'GOAL STATE IS PROVIDED BY DSH CORE'),
+        )
+      }
+
+      const phase = PHASE_COPY[visibleGoal.phase] || [String(visibleGoal.phase).toUpperCase(), visibleGoal.phase]
+      const blocked = visibleGoal.phase === 'blocked' && visibleGoal.blockedReason
+      const saveEdit = async () => {
+        const objective = draft.trim()
+        if (!objective) return
+        if (await runAction('edit', objective)) setEditing(false)
+      }
+      const clearGoal = async () => {
+        if (await runAction('clear')) setClearedId(visibleGoal.id)
+      }
+
+      return React.createElement('section', {
+        className: 'ef-objective',
+        'data-endfield-objective': 'active',
+        'data-phase': visibleGoal.phase,
+      },
+        React.createElement('header', { className: 'ef-objective-header' },
+          React.createElement('div', null,
+            React.createElement('span', null, 'CURRENT OBJECTIVE'),
+            React.createElement('small', null, `SESSION / ${scope.sessionId.slice(0, 8).toUpperCase()}`),
+          ),
+          React.createElement('b', null, phase[0]),
+        ),
+        React.createElement('div', { className: 'ef-objective-rule' }, React.createElement('i')),
+        editing
+          ? React.createElement('div', { className: 'ef-objective-editor' },
+              React.createElement('textarea', {
+                value: draft,
+                autoFocus: true,
+                'aria-label': '编辑 Goal',
+                onChange: (event) => setDraft(event.target.value),
+                onKeyDown: (event) => {
+                  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') saveEdit()
+                  if (event.key === 'Escape') setEditing(false)
+                },
+              }),
+              React.createElement('small', null, '⌘/CTRL + ENTER 保存 · ESC 取消'),
+            )
+          : React.createElement('div', { className: 'ef-objective-copy' },
+              React.createElement('span', null, '01'),
+              React.createElement('h2', null, visibleGoal.objective),
+            ),
+        blocked ? React.createElement('div', { className: 'ef-objective-blocked' },
+          React.createElement('b', null, 'BLOCKING CONDITION'),
+          React.createElement('p', null, blocked.message || String(blocked)),
+        ) : null,
+        error ? React.createElement('div', { className: 'ef-objective-error', role: 'alert' }, error) : null,
+        React.createElement('footer', { className: 'ef-objective-actions' },
+          editing
+            ? React.createElement(React.Fragment, null,
+                React.createElement('button', { type: 'button', disabled: pending || !draft.trim(), onClick: saveEdit }, '保存 / SAVE'),
+                React.createElement('button', { type: 'button', disabled: pending, onClick: () => setEditing(false) }, '取消 / CANCEL'),
+              )
+            : React.createElement(React.Fragment, null,
+                visibleGoal.phase === 'active'
+                  ? React.createElement('button', { type: 'button', disabled: pending, onClick: () => runAction('pause') }, '暂停 / PAUSE')
+                  : null,
+                visibleGoal.phase === 'paused'
+                  ? React.createElement('button', { type: 'button', disabled: pending, onClick: () => runAction('resume') }, '恢复 / RESUME')
+                  : null,
+                React.createElement('button', {
+                  type: 'button', disabled: pending,
+                  onClick: () => { setDraft(visibleGoal.objective); setEditing(true) },
+                }, '编辑 / EDIT'),
+                React.createElement('button', { type: 'button', disabled: pending, onClick: clearGoal }, '清除 / CLEAR'),
+              ),
+          pending ? React.createElement('span', null, 'SYNCING…') : React.createElement('span', null, phase[1]),
+        ),
+      )
+    }
+
+    function connectObjectiveAutoOpen(ctx) {
+      let listUnsub = null
+      let projectionUnsub = null
+      let currentId
+      let currentFace
+      const openedGoalBySession = new Map()
+
+      const update = () => {
+        if (!currentId) return
+        const goal = readGoal(ctx, currentId)
+        const phase = goal && goal.phase
+        objectiveBadgeBySession.set(currentId, phase && phase !== 'complete' ? phase.toUpperCase() : null)
+        try {
+          const snapshot = ctx.betterSidebar.getSnapshot()
+          const hasTab = snapshot && snapshot.state && JSON.stringify(snapshot.state).includes('endfield:objective')
+          if (hasTab && ctx.betterSidebar.features.includes('updateTab')) {
+            ctx.betterSidebar.updateTab('endfield:objective', { meta: { phase: phase || null } })
+          }
+        } catch (e) {}
+        if (!goal || !['active', 'paused', 'blocked'].includes(phase)) return
+        if (openedGoalBySession.get(currentId) === goal.id) return
+        openedGoalBySession.set(currentId, goal.id)
+        try {
+          ctx.betterSidebar.openTab(
+            { type: 'endfield:objective', title: 'OBJECTIVE' },
+            { sessionId: currentId },
+          )
+        } catch (e) {}
+      }
+
+      const bindCurrent = () => {
+        let state
+        try { state = ctx.sessions.list.getSnapshot() } catch (e) { state = undefined }
+        const nextId = state && state.current
+        if (nextId === currentId && currentFace) { update(); return }
+        if (projectionUnsub) { try { projectionUnsub() } catch (e) {} projectionUnsub = null }
+        currentId = nextId
+        currentFace = currentId ? goalFace(ctx, currentId) : undefined
+        if (currentFace && typeof currentFace.subscribe === 'function') {
+          projectionUnsub = currentFace.subscribe(update)
+        }
+        update()
+      }
+
+      if (ctx.sessions.list && typeof ctx.sessions.list.subscribe === 'function') {
+        listUnsub = ctx.sessions.list.subscribe(bindCurrent)
+      }
+      bindCurrent()
+      return () => {
+        if (listUnsub) { try { listUnsub() } catch (e) {} }
+        if (projectionUnsub) { try { projectionUnsub() } catch (e) {} }
+      }
+    }
+
+    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'remote', 'remote.goals']
     function apply(ctx) {
       ctx.effect(() => {
         const link = document.createElement('link')
@@ -337,6 +606,29 @@ window.__ModuleLoader__.load({
       ctx.effect(
         () => { try { return connectRing(ctx) } catch (e) { return () => {} } },
         'endfield-ui: context ring',
+      )
+
+      ctx.effect(() => ctx.betterSidebar.registerTab({
+        id: 'endfield:objective',
+        title: 'OBJECTIVE',
+        order: 5,
+        single: true,
+        icon: (size) => React.createElement('span', {
+          className: 'ef-objective-tab-icon',
+          style: { width: size, height: size, fontSize: Math.max(10, size - 2) },
+          'aria-hidden': true,
+        }, '◆'),
+        badge: (_tabCtx, scope) => objectiveBadgeBySession.get(scope.sessionId),
+        component: ({ ctx: tabCtx, scope }) => React.createElement(
+          ObjectiveBoundary,
+          null,
+          React.createElement(ObjectiveWorkbench, { ctx: tabCtx, scope }),
+        ),
+      }), 'endfield-ui: OBJECTIVE workbench tab')
+
+      ctx.effect(
+        () => connectObjectiveAutoOpen(ctx),
+        'endfield-ui: OBJECTIVE auto-open',
       )
 
       ctx.slots.inject('shell.overlay', () => ctx.slots.register(

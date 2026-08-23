@@ -1,4 +1,9 @@
-# Endfield visual shell for the dsh web profile.
+# Endfield workbench for DSH 0.1.0-rc.6.
+# Keep this order: the public services must mount before the Endfield adapter.
 - insert:
+    - id: better-sidebar
+      name: 'dsh-better-sidebar'
+    - id: dsh-shikitor
+      name: 'dsh-shikitor'
     - id: endfield-ui
       name: '@rison/dsh-endfield-ui'

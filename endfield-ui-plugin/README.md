@@ -2,9 +2,11 @@
 
 > **非官方同人主题（Unofficial fan-made theme）**。本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。如素材授权存在疑问，请见下方「素材与授权」一节。
 
-`@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端通过官方 Theme Token 与 `shell.overlay` 插槽加载终末地工业风外观。
+`@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 工作台插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端使用官方 Theme Token、会话 projection 和公开插件服务构建终末地工业风外观。
 
-0.6.0 版在 0.5.0 标准 `dsh.bundle` 的基础上**重做了对话区与右下角视觉**：对话区背景换成工业网格图（不再刺眼纯黑）、白色侧栏加入等高线纹理、输入区「命令」按钮改为柠檬黄、右下角「协议已同步」改为圆形上下文进度环（读取 dsh 原生 ContextMeter，无数据时装呼吸演示）。
+0.8.0 是面向 **DSH 0.1.0-rc.6** 的完整工作台版：精确集成 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`，并将 DSH 原生 Goal projection 投射为右侧 `OBJECTIVE` 页面。它不安装第二套 Goal，不使用 `latest`，不覆盖 Shikitor 的用户偏好。
+
+0.6.0 起逐步形成当前视觉基线：右侧对话栏使用低透明度 Ardot 工业网格，白色侧栏加入等高线纹理，输入区「命令」按钮改为柠檬黄，右下角改为读取 dsh 原生 projection 的上下文进度环。
 
 0.5.0 版**新增标准 `dsh.bundle` 声明**：安装后 `cordis.patch.yml` 会自动进入 web profile 的启动层，普通 `dsh web` 即可自动加载，无需手动复制 CSS、修改 `~/.dsh` 或追加 `--patch`。
 
@@ -15,21 +17,21 @@
 **1. 从 npm（稳定后推荐）**
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
 dsh web
 ```
 
 **2. 从 GitHub Release 的 tarball（首个公开测试版推荐）**
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
 dsh web
 ```
 
 **3. 从 GitHub 仓库固定 tag**
 
 ```bash
-dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.6.0
+dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.8.0 --allow-build=node-pty
 dsh web
 ```
 
@@ -45,8 +47,21 @@ dsh plugin --profile web update @rison/dsh-endfield-ui
 dsh plugin --profile web remove @rison/dsh-endfield-ui
 
 # 重新安装
-dsh plugin --profile web add @rison/dsh-endfield-ui
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
 ```
+
+## 0.8.0 工作台能力
+
+- 右侧 better-sidebar：文件管理、快速编辑、内嵌浏览器、终端、Git、任务与子代理。新会话默认只打开 Explorer，其余页面从 `+` 菜单打开。
+- Shikitor 输入层：`@` 文件、`#` 会话、`$` Skills、`/` 命令补全，及中央工作区编辑器。
+- 双编辑入口：better-sidebar 用于右栏快速查看/修改；Shikitor 中央页面用于更完整的文件编辑。两者各自使用上游公开接口。
+- `OBJECTIVE` 页面：直接读取当前会话原生 Goal，提供编辑、暂停、恢复和清除。首次出现活动 Goal 时自动加入并聚焦该标签，但不强制展开已收起的右栏。
+- 原生 `/goal` 和输入框上方 GoalBar 继续保留；`OBJECTIVE` 不创建独立 Store。
+
+### 上游限制
+
+- better-sidebar 的内嵌浏览器使用 sandbox iframe；被目标站点 CSP 或 `X-Frame-Options` 拒绝时，请使用其“在外部浏览器打开”。
+- 终端依赖 `node-pty`。pnpm 11 需要显式授权，因此上述一条安装命令带有 `--allow-build=node-pty`；它只允许这一个原生依赖，不是全局放行。如果 node-pty 仍无法加载，better-sidebar 会降级运行：其他页面仍可用，终端页面显示上游自带的修复命令。
 
 ## 干净环境验证
 
@@ -56,7 +71,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.6.0.tgz
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
@@ -76,7 +91,7 @@ dsh --profile web
 |---|---|
 | 新会话首页 | 左上品牌、白色等高线侧栏、对话区工业网格背景（非纯黑）、输入框白底黑字 |
 | 输入区 | 「命令」按钮为柠檬黄、在白色输入框中清晰可辨 |
-| 右下角 | 圆形上下文进度环：有上下文数据时显示真实占用百分比，无数据时呼吸式演示 |
+| 右下角 | 圆形上下文进度环：有上下文数据时显示真实占用百分比，无数据时显示 IDLE |
 | 已有对话 | 用户气泡白底黑字、助手内容可读、代码块正常 |
 | 工作区 | 活动工作区灰黑卡片清晰，文件夹图标不与背景混色 |
 | 设置 | 浅色、深色、跟随系统三种设置均无白底白字 |
@@ -95,4 +110,4 @@ dsh --profile web
 
 ## 兼容性
 
-本主题通过若干 dsh DOM / CSS Module 特征选择器实现覆盖，dsh 大版本升级时可能需要同步维护。释出前请在目标 dsh 版本上回归上述矩阵；暂不在 `package.json` 中写宽泛兼容声明，待确认范围后补充准确的版本约束。
+0.8.0 只对 **DSH 0.1.0-rc.6 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 必须保持 `0.12.3`：`0.13.x` 已转向 rc.7，`0.15.2` 要求 rc.8，不能在升级 DSH 前单独替换。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记，不依赖其 CSS Module 哈希类名。
