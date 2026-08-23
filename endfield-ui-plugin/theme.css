@@ -104,30 +104,40 @@ code {
   background: var(--ef-yellow);
 }
 
-/* Expanded sidebar: the original workbench's white paper column, with the
-   downloaded contour-map plate kept deliberately faint behind live controls. */
+/* Expanded sidebar: a charcoal technical-print column.  The layered contour,
+   ruled grid and scan lines deliberately stay low-contrast so live controls
+   remain readable while the empty area still feels authored. */
 [data-slot="sidebar"] > div {
   position: relative;
-  color: #111417 !important;
-  background: #f3f3ef !important;
+  isolation: isolate;
+  color: #e4e7e3 !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.012) 3px 4px),
+    radial-gradient(circle at 18% 72%, rgba(255,244,79,.055), transparent 31%),
+    url("/endfield-ui/assets/contour-texture.png") 8px 18px / 150px 150px repeat,
+    linear-gradient(145deg, #262a2c 0%, #191c1e 58%, #111416 100%) !important;
+  background-blend-mode: normal, normal, normal, normal, soft-light, normal !important;
+  background-size: 32px 32px, 32px 32px, auto, auto, 150px 150px, auto !important;
   border-right: 4px solid var(--ef-yellow);
-  box-shadow: 1px 0 0 #111417, 9px 0 22px rgba(0,0,0,.24);
-  --dsw-alias-label-primary: #111417;
-  --dsw-alias-label-primary-bluish: #111417;
-  --dsw-alias-label-primary-dimmed: #33383c;
-  --dsw-alias-label-secondary: #555d62;
-  --dsw-alias-label-tertiary: #737b80;
-  --dsw-alias-label-caption: #8a9195;
-  --dsw-alias-border-l1: rgba(17,20,23,.13);
-  --dsw-alias-border-l2: rgba(17,20,23,.28);
-  --dsw-alias-button-elevated-fill: rgba(255,255,255,.68);
-  --dsw-alias-button-floating-hover: rgba(255,244,79,.45);
-  --dsw-alias-interactive-bg-hover: rgba(17,20,23,.07);
-  --dsw-specific-sidebar-nav-item-active: rgba(255,244,79,.58);
-  --dsw-specific-sidebar-nav-item-hover: rgba(17,20,23,.06);
-  --dsw-specific-sidebar-fill: #f3f3ef;
-  --dsh-scrollbar-thumb: rgba(17,20,23,.3);
-  --dsh-scrollbar-thumb-hover: #111417;
+  box-shadow: 1px 0 0 #050607, 9px 0 24px rgba(0,0,0,.42), inset -1px 0 rgba(255,255,255,.06);
+  --dsw-alias-label-primary: #e4e7e3;
+  --dsw-alias-label-primary-bluish: #e4e7e3;
+  --dsw-alias-label-primary-dimmed: #bdc3c1;
+  --dsw-alias-label-secondary: #969e9d;
+  --dsw-alias-label-tertiary: #747d7d;
+  --dsw-alias-label-caption: #626b6c;
+  --dsw-alias-border-l1: rgba(255,255,255,.09);
+  --dsw-alias-border-l2: rgba(255,255,255,.18);
+  --dsw-alias-button-elevated-fill: rgba(9,11,12,.58);
+  --dsw-alias-button-floating-hover: rgba(255,244,79,.18);
+  --dsw-alias-interactive-bg-hover: rgba(255,255,255,.065);
+  --dsw-specific-sidebar-nav-item-active: rgba(255,244,79,.92);
+  --dsw-specific-sidebar-nav-item-hover: rgba(255,255,255,.055);
+  --dsw-specific-sidebar-fill: #1a1d1f;
+  --dsh-scrollbar-thumb: rgba(213,219,216,.24);
+  --dsh-scrollbar-thumb-hover: rgba(255,244,79,.66);
 }
 
 /* ENDFIELD stripe-letters: applied to the SESSION LIST (the region below the
@@ -150,7 +160,21 @@ code {
   z-index: -1;
   pointer-events: none;
   background: url("/endfield-ui/assets/endfield-stripes-texture.svg") left top / 160px 1280px no-repeat;
-  opacity: .5;
+  filter: brightness(1.55);
+  opacity: .16;
+}
+
+[data-slot="sidebar"] [role="tree"]::after {
+  content: "CORDIS LOCAL / SESSION INDEX  \A 07-A · OPERATOR ARCHIVE  \A GRID 32 / SCALE 01";
+  position: absolute;
+  right: 10px;
+  bottom: 14px;
+  z-index: -1;
+  white-space: pre;
+  color: rgba(215,220,218,.2);
+  font: 600 5px/1.75 "EF Wide", sans-serif;
+  letter-spacing: .18em;
+  text-align: right;
 }
 
 [data-slot="sidebar"] > div::after {
@@ -159,23 +183,21 @@ code {
   left: 3px;
   bottom: 52px;
   z-index: -1;
-  color: rgba(17,20,23,.32);
+  color: rgba(216,221,218,.32);
   font: 600 5px/1 "EF Wide", sans-serif;
   letter-spacing: .2em;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
 }
 
-/* Conversation area: swap the flat near-black void for the industrial grid
-   plate so it no longer clashes harshly with the paper-white sidebar. The
-   rotating atmosphere layer (.ef-atmosphere) keeps animating untouched above
-   it. Setting the subtree's --dsw-alias-bg-base to transparent lets the dsw
-   surfaces reveal the plate behind them. */
+/* Conversation area: the original industrial-grid plate exported from the
+   connected Ardot canvas.  A dark wash protects text contrast while preserving
+   the terrain relief, radial instrument markings and yellow locator accents. */
 [data-slot="conversation"] {
   --dsw-alias-bg-base: transparent;
   background:
-    linear-gradient(120deg, rgba(9,11,13,.6), rgba(9,11,13,.84)),
-    url("/endfield-ui/assets/chat-grid-bg.jpg") center / cover !important;
+    linear-gradient(112deg, rgba(4,6,7,.3), rgba(5,7,8,.54) 62%, rgba(3,4,5,.7)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover !important;
 }
 
 /* Command ("命令") toggle in the composer: lemon-yellow so it stands out from
@@ -202,7 +224,7 @@ button[aria-label="Commands"]:hover {
   align-items: stretch !important;
   margin: 0 0 10px !important;
   padding: 7px 6px 8px !important;
-  border-bottom: 1px solid rgba(17,20,23,.18);
+  border-bottom: 1px solid rgba(255,255,255,.12);
 }
 
 [data-slot="sidebar"] > div > div:first-child > button[aria-label="新建会话"] {
@@ -260,9 +282,11 @@ button[aria-label="Commands"]:hover {
 
 [data-slot="sidebar"] [role="treeitem"][aria-selected="true"] {
   color: #111417 !important;
-  background: linear-gradient(90deg, rgba(255,244,79,.72), rgba(255,244,79,.22)) !important;
-  border-left: 3px solid #111417;
-  box-shadow: 3px 3px 0 rgba(17,20,23,.13);
+  background:
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.08) 0 2px, transparent 2px 7px),
+    linear-gradient(90deg, rgba(255,244,79,.96), rgba(255,244,79,.7)) !important;
+  border-left: 3px solid #f4f5ef;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.28);
 }
 
 /* The current Workspace borrows the protocol-card treatment: a charcoal
@@ -341,8 +365,9 @@ button[aria-label="Commands"]:hover {
 }
 
 [data-slot="sidebar"] button[aria-label="设置"] {
-  color: #111417 !important;
-  border-top: 1px solid rgba(17,20,23,.16) !important;
+  color: #e4e7e3 !important;
+  background: linear-gradient(90deg, rgba(255,255,255,.035), transparent) !important;
+  border-top: 1px solid rgba(255,255,255,.12) !important;
 }
 
 /* Settings is a dark industrial module regardless of the host appearance
@@ -541,16 +566,7 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 }
 
 .ef-atmosphere-operator {
-  position: absolute;
-  right: -8vw;
-  bottom: -11vw;
-  width: min(69vw, 860px);
-  opacity: .075;
-  filter: saturate(.74) contrast(1.12);
-  mix-blend-mode: screen;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 30%, #000 78%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 30%, #000 78%, transparent 100%);
-  animation: ef-operator-breathe 9s ease-in-out infinite;
+  display: none;
 }
 
 .ef-atmosphere-triangles {
