@@ -195,9 +195,15 @@ code {
    the terrain relief, radial instrument markings and yellow locator accents. */
 [data-slot="conversation"] {
   --dsw-alias-bg-base: transparent;
+}
+
+/* The slot host itself is a zero-size Cordis anchor in dsh rc.6. Paint the
+   plate on its first rendered child, which is the actual full-height
+   conversation column. Keep the anchor rule above for token inheritance. */
+[data-slot="conversation"] > :first-child {
   background:
-    linear-gradient(112deg, rgba(4,6,7,.3), rgba(5,7,8,.54) 62%, rgba(3,4,5,.7)),
-    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover !important;
+    linear-gradient(90deg, rgba(2,3,4,.04), rgba(2,3,4,.22) 62%, rgba(2,3,4,.42)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") left center / cover no-repeat !important;
 }
 
 /* Command ("命令") toggle in the composer: lemon-yellow so it stands out from
@@ -556,13 +562,7 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 }
 
 .ef-atmosphere-ring {
-  position: absolute;
-  right: -25vw;
-  bottom: -68vw;
-  width: min(112vw, 1380px);
-  opacity: .045;
-  filter: grayscale(1) brightness(2.4);
-  animation: ef-ring-drift 32s linear infinite;
+  display: none;
 }
 
 .ef-atmosphere-operator {
