@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.8.1）
+# DSH 终末地风格工作台 — 发布说明（v0.8.4）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,8 +8,8 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.8.1`
-- 桌面壳：`dsh-endfield-workbench@0.1.7`
+- 插件：`@rison/dsh-endfield-ui@0.8.4`
+- 桌面壳：`dsh-endfield-workbench@0.1.10`
 
 ## 兼容的 dsh 版本
 
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.4.tgz --allow-build=node-pty   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +29,25 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.8.1）
+## 本次更新（v0.8.4）
+
+- 新增开屏工作台门禁：动画期间右栏完全离场、主对话保持全宽。
+- 修复桌面 App 自绘标题拖拽区覆盖右栏顶部的问题；加号、收放、底部面板/终端按钮恢复点击，右栏宽度拖拽不再被窗口拖动抢占。
+- 移除右栏 Ardot 纹理层的半透明黑色渐变，改为极低透明度的 screen 提亮混合；开屏期间同步隐藏纹理层。
+- 删除开屏动画延迟出现的 `#080a0b` 黑色全屏擦除层，改为容器跟随黄色擦除前沿裁切，直接露出主界面。
+- 开屏门禁增加 better-sidebar 宿主的内联 `display:none!important` 与 MutationObserver，覆盖插件延迟挂载的时序窗口；释放后触发尺寸重算。
+- 开屏期间将 `--dsh-sidebar-width/height` 临时覆盖为 `0`，防止对话背景按已隐藏右栏的宽度裁空，消除黄色扫屏时的等宽黑色空槽。
+- 针对 better-sidebar 实际渲染的 fixed 面板节点增加第二层门禁，使用内联宽度、定位几何和 `新建标签页` 语义标记识别，不依赖可变哈希类名。
+- 动画结束后释放 better-sidebar 原生滑入与布局过渡，不改写用户保存的展开/折叠状态。
+- `prefers-reduced-motion` 下门禁缩短到 80ms，避免无动画时仍等待 3.65 秒。
+
+## 视觉动效恢复（v0.8.2）
+
+- 恢复 0.7.x 对话背景上的 CSS 旋转仪表圆环，并保留 32 秒低速旋转节奏。
+- 圆环随 `--dsh-sidebar-width` 裁切和横向定位，只覆盖对话栏，不进入 better-sidebar。
+- 尊重 `prefers-reduced-motion`，系统关闭动效时圆环保持静态。
+
+## 布局修复（v0.8.1）
 
 - 修复终末地适配层覆盖 better-sidebar 面板 `position: fixed`、导致右栏落入页面下方的问题。
 - 恢复上游原生的右栏拖拽宽度、折叠按钮、布局占位与底栏独立开关。
@@ -60,6 +78,8 @@ dsh web
   - 作用域从「整条侧栏铺满」收紧到「会话列表区（工作区卡片下方）」——不透明的 workspace 卡片会自然遮住纹理顶部，使其读作「工作区之下」。
   - 恢复固定原尺寸 `160×1280`，不再做百分比动态缩放；超出列表高度的部分由容器裁掉（放得下就放下，放不下就算了）。
 - **主输入框文字可读性修复**：对话区主输入框（hero 与非 hero 模式）统一强制深色文字（`#111417`）+ 深色光标 + 灰色占位符（`#6b7378`），解决浅色底 + 浅色字几乎不可见的问题。此前仅 hero 模式被显式覆盖，正常对话模式下占位符/文本会退回 dsh 默认浅色。
+- **Shikitor 合成光标修复**：Shikitor 会主动隐藏 textarea 原生 caret 并绘制 `.shikitor-cursor::after`；该合成光标现在在白色输入区固定为 `#111417`。主题链接增加 `0.8.4-caret-fix` 构建标记，避免 Electron/Chromium 复用旧 CSS。
+- **设置页完整显示修复**：移除左侧栏根节点的 `isolation:isolate`，避免原生 fixed Settings 对话框被困在折叠栏的 56px 区域；左栏装饰纹理仍保留。
 
 ## 桌面 App（macOS）
 
@@ -84,7 +104,7 @@ dsh web
 4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
 5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
 
-## 验收摘要（实测 24/24 通过）
+## 验收摘要（实测 31/31 通过）
 
 隔离 `DSH_HOME` 真实使用级校验全部通过：
 

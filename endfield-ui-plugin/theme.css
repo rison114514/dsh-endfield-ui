@@ -109,7 +109,6 @@ code {
    remain readable while the empty area still feels authored. */
 [data-slot="sidebar"] > div {
   position: relative;
-  isolation: isolate;
   color: #e4e7e3 !important;
   background:
     linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
@@ -182,7 +181,11 @@ code {
   position: absolute;
   left: 3px;
   bottom: 52px;
-  z-index: -1;
+  /* Do not isolate the complete sidebar just to hold this decoration.  The
+     native Settings dialog is mounted below the sidebar slot as a fixed
+     descendant; an isolated sidebar traps that dialog inside the collapsed
+     56px column and makes the normal settings page appear missing. */
+  z-index: 0;
   color: rgba(216,221,218,.32);
   font: 600 5px/1 "EF Wide", sans-serif;
   letter-spacing: .2em;
@@ -549,7 +552,9 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   inset: 30px 0 0;
   overflow: hidden;
   opacity: 0;
+  clip-path: inset(0 var(--dsh-sidebar-width, 0px) 0 56px);
   animation: ef-atmosphere-enter 1.3s 3.2s ease-out forwards;
+  transition: clip-path var(--ds-transition-duration-slow) var(--ds-ease-in-out);
 }
 
 .ef-atmosphere::before {
@@ -562,7 +567,15 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 }
 
 .ef-atmosphere-ring {
-  display: none;
+  position: absolute;
+  right: calc(var(--dsh-sidebar-width, 0px) - 25vw);
+  bottom: -68vw;
+  width: min(112vw, 1380px);
+  opacity: .045;
+  filter: grayscale(1) brightness(2.4);
+  mix-blend-mode: screen;
+  animation: ef-ring-drift 32s linear infinite;
+  transition: right var(--ds-transition-duration-slow) var(--ds-ease-in-out);
 }
 
 .ef-atmosphere-operator {
@@ -582,7 +595,12 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
+  /* Electron turns this strip into a native window-drag region.  Yield the
+     complete better-sidebar width while it is open, and permanently reserve
+     its 78px collapsed toggle cluster.  Without this exclusion the drag strip
+     swallows the sidebar's + / panel / terminal controls in the desktop App,
+     although the same controls appear healthy in a normal browser. */
+  right: max(var(--dsh-sidebar-width, 0px), 78px);
   height: 30px;
   display: flex;
   align-items: center;
@@ -595,6 +613,7 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   font-size: 7px;
   letter-spacing: .15em;
   -webkit-app-region: drag;
+  transition: right var(--ds-transition-duration-slow) var(--ds-ease-in-out);
 }
 
 .ef-titlebar::after {
@@ -881,7 +900,7 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   pointer-events: none !important;
   background: #060708;
   color: #f5f6f2;
-  animation: ef-boot-dismiss 3.5s cubic-bezier(.5,0,.18,1) forwards;
+  animation: ef-boot-dismiss 3.22s cubic-bezier(.75,0,.18,1) forwards;
 }
 
 .ef-boot::before {
@@ -892,16 +911,6 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
     radial-gradient(circle at 71% 52%, rgba(80,215,227,.09), transparent 28%),
     linear-gradient(90deg, rgba(18,20,22,.32), rgba(0,0,0,.46) 55%, rgba(0,0,0,.86));
   opacity: 1;
-}
-
-.ef-boot::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  background: #080a0b;
-  transform: translateX(-101%);
-  animation: ef-black-wipe .76s 2.72s cubic-bezier(.75,0,.18,1) forwards;
 }
 
 .ef-boot-grid {
@@ -1186,15 +1195,17 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   100% { transform: translateX(101%); }
 }
 
-@keyframes ef-black-wipe {
-  0% { transform: translateX(-101%); }
-  58% { transform: translateX(0); }
-  100% { transform: translateX(101%); }
-}
-
 @keyframes ef-boot-dismiss {
-  0%, 91% { opacity: 1; visibility: visible; }
-  100% { opacity: 0; visibility: hidden; }
+  0%, 87% {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    visibility: hidden;
+    clip-path: inset(0 0 0 100%);
+  }
 }
 
 @keyframes ef-scan {
@@ -1260,6 +1271,62 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
    The upstream CSS-module class names are intentionally never referenced.
    ====================================================================== */
 
+/* Opening choreography: while the Endfield boot overlay is active, keep the
+   better-sidebar portal off-stage and let the DSH root use the full viewport.
+   Removing the body attribute releases the upstream panel transform and root
+   margin transitions, so the saved OPEN state slides in after the boot while
+   a saved COLLAPSED state remains collapsed. Geometry/resize rules stay owned
+   by better-sidebar. */
+html:has(> body[data-endfield-booting]) {
+  /* better-sidebar keeps its saved dimensions as inline custom properties
+     even while the portal is visually gated.  The atmosphere layer consumes
+     the same width to avoid painting behind an OPEN workbench, so leaving the
+     value active creates an empty black slot exactly as wide as the sidebar
+     when the yellow wipe starts revealing the app.  Override only during the
+     boot; the upstream inline values become effective again on release. */
+  --dsh-sidebar-width: 0px !important;
+  --dsh-sidebar-height: 0px !important;
+}
+
+body[data-endfield-booting] #root {
+  margin-right: 0 !important;
+}
+
+/* Hide the COMPLETE portal host, not just today's known panel children.
+   better-sidebar owns several fixed surfaces (right panel, bottom panel,
+   toggles and boundary fallbacks); hiding only a direct child can leave one
+   of those surfaces composited as a translucent rectangle over the boot
+   animation. Host-level visibility is inherited by every current/future
+   surface and cannot paint a box. */
+body[data-endfield-booting] [data-dsh-better-sidebar] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Directly gate the concrete right-panel node as a second line of defence.
+   The selector deliberately uses public/semantic structure from the rendered
+   DOM (inline width + the localized stable action label) rather than the
+   volatile CSS-module class such as `nArs4W_panel`. */
+body[data-endfield-booting] div[style*="width"]:has(> div + div button[aria-label="新建标签页"]) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+body[data-endfield-booting] [data-dsh-better-sidebar] > div {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateX(102%) !important;
+}
+
+/* The texture belongs to the workbench, not to the boot scene.  Hide its
+   independent portal layer as well, otherwise the panel leaves behind a
+   semi-transparent rectangular ghost while its children are off-stage. */
+body[data-endfield-booting] [data-dsh-better-sidebar]::before {
+  opacity: 0 !important;
+}
+
 [data-dsh-better-sidebar] {
   --dsw-alias-bg-base: #090b0d;
   --dsw-alias-bg-layer-1: rgba(16, 20, 25, .94);
@@ -1282,13 +1349,19 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   right: 0;
   bottom: 0;
   width: var(--dsh-sidebar-width, 0px);
-  background:
-    linear-gradient(180deg, rgba(8, 10, 12, .9), rgba(8, 10, 12, .97)),
-    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
+  /* Screen blending makes the bright grid marks whisper over the native
+     panel surface while the image's black pixels become transparent in
+     effect.  Do not add a dark gradient here: it reads as a black glass box
+     and remains conspicuous during panel transitions. */
+  background: url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
   content: "";
-  opacity: .34;
+  opacity: .1;
+  mix-blend-mode: screen;
+  filter: grayscale(1) brightness(.8);
   pointer-events: none;
-  transition: width var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+  transition:
+    width var(--ds-transition-duration-slow) var(--ds-ease-in-out),
+    opacity var(--ds-transition-duration-slow) var(--ds-ease-in-out);
 }
 
 [data-dsh-better-sidebar] button,
@@ -1562,6 +1635,18 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   background:
     linear-gradient(180deg, rgba(27,31,35,.98), rgba(12,15,18,.99)) !important;
   box-shadow: 8px 8px 0 rgba(0,0,0,.32), 0 0 0 1px rgba(255,244,79,.06) !important;
+}
+
+/* Shikitor intentionally makes the native textarea caret transparent and
+   paints its own cursor in `.shikitor-cursor::after`.  On the paper-white
+   composer that synthetic caret must stay dark, independent of the global
+   dark UI tokens and the user's syntax theme. */
+.shikitor--attached {
+  --shikitor-caret-color: #111417 !important;
+}
+
+.shikitor--attached .shikitor-cursor::after {
+  background-color: #111417 !important;
 }
 
 .shikitor--attached .shikitor-completion-item { border-radius: 0 !important; }

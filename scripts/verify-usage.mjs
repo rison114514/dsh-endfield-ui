@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.1.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.4.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.1.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.4.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -144,14 +144,43 @@ async function main() {
     ok('theme.css 含右栏 Ardot 工业网格 + 等高线纹理 + 圆形进度环样式',
       css.ok && css.body.includes('ardot/endfield-industrial-grid.webp') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
       `len=${css.body.length}`)
+    ok('Ardot 纹理不再叠加黑色遮罩，开屏期间与右栏一起隐藏',
+      css.ok
+        && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*mix-blend-mode:\s*screen/s.test(css.body)
+        && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*opacity:\s*\.1/s.test(css.body)
+        && /body\[data-endfield-booting\] \[data-dsh-better-sidebar\]\s*\{[^}]*visibility:\s*hidden\s*!important/s.test(css.body)
+        && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar]::before')
+        && !/\[data-dsh-better-sidebar\]::before\s*\{[^}]*linear-gradient/s.test(css.body),
+      '仅保留低透明度提亮网格，开屏期间完整 portal host 不参与绘制')
     ok('Endfield 适配层不覆盖 better-sidebar 原生 fixed 定位',
       css.ok
         && css.body.includes('width: var(--dsh-sidebar-width, 0px)')
         && !/\[data-dsh-better-sidebar\]\s*>\s*\*\s*\{[^}]*position\s*:/s.test(css.body),
       '右栏几何结构完全交还 better-sidebar 0.12.3')
+    ok('Electron 标题拖拽区避让右侧工作台与折叠按钮',
+      css.ok
+        && /\.ef-titlebar\s*\{[^}]*right:\s*max\(var\(--dsh-sidebar-width, 0px\), 78px\)/s.test(css.body)
+        && /\.ef-titlebar\s*\{[^}]*-webkit-app-region:\s*drag/s.test(css.body),
+      '展开时避让整个右栏，折叠时保留 78px 交互安全区')
+    ok('0.7.x 对话背景旋转圆环已恢复并按右栏宽度裁切',
+      css.ok
+        && /\.ef-atmosphere-ring\s*\{[^}]*animation:\s*ef-ring-drift 32s linear infinite/s.test(css.body)
+        && css.body.includes('clip-path: inset(0 var(--dsh-sidebar-width, 0px) 0 56px)')
+        && !/\.ef-atmosphere-ring\s*\{[^}]*display:\s*none/s.test(css.body),
+      '旋转层只覆盖 conversation，且保留 reduced-motion 降级')
     ok('theme.css 含命令按钮（aria-label=命令）柠檬黄覆盖',
       css.ok && css.body.includes('aria-label="命令"') && css.body.includes('var(--ef-yellow)'),
       `len=${css.body.length}`)
+    ok('左侧栏不创建隔离层，原生设置对话框可越过折叠栏完整显示',
+      css.ok
+        && !/\[data-slot="sidebar"\]\s*>\s*div\s*\{[^}]*isolation:\s*isolate/s.test(css.body)
+        && /\[data-slot="sidebar"\]\s*>\s*div::after\s*\{[^}]*z-index:\s*0/s.test(css.body),
+      '避免 fixed Settings dialog 被困在 56px sidebarCol 中')
+    ok('Shikitor 合成输入光标在白色输入区固定为黑色',
+      css.ok
+        && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*#111417\s*!important/s.test(css.body)
+        && /\.shikitor--attached \.shikitor-cursor::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
+      '原生 textarea caret 透明时，覆盖 Shikitor 绘制的闪烁光标')
 
     // 8. 插件 client 入口经包名路由暴露
     const clientRoute = await get(`${url}/@rison/dsh-endfield-ui/client.js`)
@@ -163,7 +192,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.4-caret-fix'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
@@ -171,6 +200,34 @@ async function main() {
         && !c.includes('JObwrW_root') && !/Math\.sin/.test(c)
     }
     ok('已安装 client.js 含注入逻辑 + 订阅官方 contextPressure 真实数据源（无 DOM 扒取/模拟）', clientOk, clientFile)
+    let bootGateOk = false
+    if (existsSync(clientFile)) {
+      const c = readFileSync(clientFile, 'utf8')
+      bootGateOk = css.ok
+        && css.body.includes('html:has(> body[data-endfield-booting])')
+        && css.body.includes('--dsh-sidebar-width: 0px !important')
+        && css.body.includes('--dsh-sidebar-height: 0px !important')
+        && css.body.includes('body[data-endfield-booting] #root')
+        && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar] > div')
+        && c.includes("setAttribute('data-endfield-booting', '')")
+        && c.includes("style.setProperty('display', 'none', 'important')")
+        && c.includes('div[style*="width"]:has(button[aria-label="新建标签页"])')
+        && c.includes("style.position !== 'fixed'")
+        && c.includes("new MutationObserver")
+        && c.includes("removeProperty('display')")
+        && c.includes("dispatchEvent(new Event('resize'))")
+        && c.includes('reducedMotion ? 80 : 3650')
+        && css.body.includes('div[style*="width"]:has(> div + div button[aria-label="新建标签页"])')
+    }
+    ok('开屏期间隐藏工作台，结束后释放原生展开状态', bootGateOk,
+      '宿主硬隐藏 + 宽高变量归零，不写 better-sidebar Store')
+    ok('开屏黄色擦除后直接露出主界面，无黑色接力方框',
+      css.ok
+        && css.body.includes('animation: ef-boot-dismiss 3.22s')
+        && css.body.includes('clip-path: inset(0 0 0 100%)')
+        && !css.body.includes('ef-black-wipe')
+        && !/\.ef-boot::after\s*\{/s.test(css.body),
+      '删除原 #080a0b 全屏 black wipe，改由开屏容器跟随黄色前沿裁切')
 
     // 10. 全部运行时与保留素材可达
     const assets = [
