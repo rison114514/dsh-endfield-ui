@@ -476,6 +476,33 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   -webkit-text-fill-color: #6b7378 !important;
 }
 
+/* 用户问卷 / 计划确认卡片（模型轮询页，class 前缀 Mbwy4a_）。
+   仅作用于 .Mbwy4a_card 内部（它是浅色表面），【绝不】碰
+   [data-slot="conversation"] 全局 label token，故不影响对话区 AI 深色气泡。
+   整改：文字改黑、不加粗；选项序号改明黄（黑圆底衬托，浅底上纯明黄不可见）。 */
+.Mbwy4a_card .Mbwy4a_eyebrow {
+  color: #111417 !important;          /* 前置小标签：浅灰 → 黑 */
+  opacity: 1 !important;
+}
+
+.Mbwy4a_card .Mbwy4a_title {
+  color: #111417 !important;          /* 主问句：浅灰 → 黑 */
+}
+
+.Mbwy4a_card .Mbwy4a_optionLabel {
+  color: #111417 !important;          /* 选项名（强调部分）→ 黑 */
+}
+
+.Mbwy4a_card .Mbwy4a_description {
+  color: #5d656a !important;          /* 选项描述：可读中灰，不过浅 */
+}
+
+.Mbwy4a_card .Mbwy4a_number {
+  color: #FFF44F !important;          /* 序号：明黄 */
+  background: #111417 !important;     /* 深色圆底衬托 */
+  border-color: #FFF44F !important;   /* 明黄描边 */
+}
+
 .ef-overlay {
   position: fixed;
   inset: 0;

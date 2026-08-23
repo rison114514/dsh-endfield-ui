@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.7.0）
+# DSH 终末地风格工作台 — 发布说明（v0.7.1）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,7 +8,7 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.7.0`
+- 插件：`@rison/dsh-endfield-ui@0.7.1`
 - 桌面壳：`dsh-endfield-workbench@0.1.4`
 
 ## 兼容的 dsh 版本
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.7.0.tgz   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.7.1.tgz   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +29,15 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.7.0）
+## 本次更新（v0.7.1）
+
+在 v0.7.0 基础上，仅针对 dsh 的**用户问卷 / 计划确认卡片**（模型轮询页，class 前缀 `Mbwy4a_`）做了可读性修复，并严格限定作用域，不影响 AI 气泡与全局对话区配色：
+
+- **问卷卡片文字改黑（不加粗）**：`.Mbwy4a_card` 内部的前置小标签（eyebrow）、主问句（title）、选项名（optionLabel）统一改为深墨色 `#111417`；选项描述降为可读中灰 `#5d656a`。
+- **选项序号改明黄**：`1/2/3…` 数字使用终末地主色 `#FFF44F`，并配深色圆底 + 明黄描边衬托（浅底上纯明黄不可见，需深色衬托才浮得出来）。
+- **作用域安全**：本次修复**仅命中 `.Mbwy4a_card` 这一个浅色卡片**，使用具体 `color` 属性，未触碰任何 `--dsw-alias-label-*` 全局 token，因此**不会**导致此前「统一治理」误伤的「AI 回答深底深字 / 背景错乱」问题。
+
+## 历史更新（v0.7.0）
 
 基于 v0.6.0 的视觉基线，针对侧栏纹理与输入可读性做了两处修正：
 

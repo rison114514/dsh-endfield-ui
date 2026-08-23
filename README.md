@@ -2,7 +2,7 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本 `0.7.0` 已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本 `0.7.1` 已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
 
 ## 结构
 
