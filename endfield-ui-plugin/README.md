@@ -4,7 +4,7 @@
 
 `@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 工作台插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端使用官方 Theme Token、会话 projection 和公开插件服务构建终末地工业风外观。
 
-0.8.0 是面向 **DSH 0.1.0-rc.6** 的完整工作台版：精确集成 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`，并将 DSH 原生 Goal projection 投射为右侧 `OBJECTIVE` 页面。它不安装第二套 Goal，不使用 `latest`，不覆盖 Shikitor 的用户偏好。
+0.8.1 是面向 **DSH 0.1.0-rc.6** 的完整工作台修正版：精确集成 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`，并将 DSH 原生 Goal projection 投射为右侧 `OBJECTIVE` 页面。它不安装第二套 Goal，不使用 `latest`，不覆盖 Shikitor 的用户偏好。0.8.1 同时修复了适配层误覆盖上游 fixed 定位、导致右栏落到页面下方的问题。
 
 0.6.0 起逐步形成当前视觉基线：右侧对话栏使用低透明度 Ardot 工业网格，白色侧栏加入等高线纹理，输入区「命令」按钮改为柠檬黄，右下角改为读取 dsh 原生 projection 的上下文进度环。
 
@@ -17,21 +17,21 @@
 **1. 从 npm（稳定后推荐）**
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.1 --allow-build=node-pty
 dsh web
 ```
 
 **2. 从 GitHub Release 的 tarball（首个公开测试版推荐）**
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty
 dsh web
 ```
 
 **3. 从 GitHub 仓库固定 tag**
 
 ```bash
-dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.8.0 --allow-build=node-pty
+dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.8.1 --allow-build=node-pty
 dsh web
 ```
 
@@ -47,10 +47,10 @@ dsh plugin --profile web update @rison/dsh-endfield-ui
 dsh plugin --profile web remove @rison/dsh-endfield-ui
 
 # 重新安装
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.1 --allow-build=node-pty
 ```
 
-## 0.8.0 工作台能力
+## 0.8.1 工作台能力
 
 - 右侧 better-sidebar：文件管理、快速编辑、内嵌浏览器、终端、Git、任务与子代理。新会话默认只打开 Explorer，其余页面从 `+` 菜单打开。
 - Shikitor 输入层：`@` 文件、`#` 会话、`$` Skills、`/` 命令补全，及中央工作区编辑器。
@@ -71,7 +71,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
@@ -110,4 +110,4 @@ dsh --profile web
 
 ## 兼容性
 
-0.8.0 只对 **DSH 0.1.0-rc.6 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 必须保持 `0.12.3`：`0.13.x` 已转向 rc.7，`0.15.2` 要求 rc.8，不能在升级 DSH 前单独替换。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记，不依赖其 CSS Module 哈希类名。
+0.8.1 只对 **DSH 0.1.0-rc.6 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 必须保持 `0.12.3`：`0.13.x` 已转向 rc.7，`0.15.2` 要求 rc.8，不能在升级 DSH 前单独替换。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记和公开尺寸变量，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。

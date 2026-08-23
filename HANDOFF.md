@@ -1,12 +1,12 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
 > 最后更新：2026-08-23
-> 当前插件版本：`@rison/dsh-endfield-ui@0.8.0`
+> 当前插件版本：`@rison/dsh-endfield-ui@0.8.1`
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 0.8.0 工作台整合交接（当前基线）
+## 0.8.1 工作台整合交接（当前基线）
 
-0.8.0 已从纯视觉包升级为 rc.6 完整工作台包。`endfield-ui-plugin/package.json` 以**精确版本**依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`；`cordis.patch.yml` 再以 better-sidebar、Shikitor、Endfield 适配层的顺序挂载。用户仍只需安装 `@rison/dsh-endfield-ui`。
+0.8.1 延续 0.8.0 的 rc.6 完整工作台整合，并修复适配层覆盖上游 fixed 定位造成的布局回归。`endfield-ui-plugin/package.json` 以**精确版本**依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`；`cordis.patch.yml` 再以 better-sidebar、Shikitor、Endfield 适配层的顺序挂载。用户仍只需安装 `@rison/dsh-endfield-ui`。
 
 关键兼容规则：
 
@@ -127,21 +127,21 @@ dsh 的插件安装器只会把声明了 `dsh.bundle.patch` 的依赖加入 prof
 发布到 npm 后：
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.0 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.1 --allow-build=node-pty
 dsh web
 ```
 
 如果发布到 GitHub：
 
 ```bash
-dsh plugin --profile web add github:<owner>/<repo>#v0.8.0 --allow-build=node-pty
+dsh plugin --profile web add github:<owner>/<repo>#v0.8.1 --allow-build=node-pty
 dsh web
 ```
 
 离线安装构建好的 tarball：
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty
 dsh web
 ```
 
@@ -234,7 +234,7 @@ dsh --profile web
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty
 dsh --profile web
 ```
 

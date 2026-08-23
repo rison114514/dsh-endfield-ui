@@ -1262,9 +1262,9 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 
 [data-dsh-better-sidebar] {
   --dsw-alias-bg-base: #090b0d;
-  --dsw-alias-bg-layer-1: #101419;
-  --dsw-alias-bg-layer-2: #181d22;
-  --dsw-alias-bg-layer-3: #20262b;
+  --dsw-alias-bg-layer-1: rgba(16, 20, 25, .94);
+  --dsw-alias-bg-layer-2: rgba(24, 29, 34, .96);
+  --dsw-alias-bg-layer-3: rgba(32, 38, 43, .97);
   --dsw-alias-border-l1: rgba(255, 244, 79, .16);
   --dsw-alias-border-l2: rgba(255, 244, 79, .28);
   --dsw-alias-brand-primary: var(--ef-yellow);
@@ -1276,20 +1276,19 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 }
 
 [data-dsh-better-sidebar]::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
+  position: fixed;
+  z-index: 39;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--dsh-sidebar-width, 0px);
   background:
     linear-gradient(180deg, rgba(8, 10, 12, .9), rgba(8, 10, 12, .97)),
     url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
   content: "";
-  opacity: .46;
+  opacity: .34;
   pointer-events: none;
-}
-
-[data-dsh-better-sidebar] > * {
-  position: relative;
-  z-index: 1;
+  transition: width var(--ds-transition-duration-slow) var(--ds-ease-in-out);
 }
 
 [data-dsh-better-sidebar] button,

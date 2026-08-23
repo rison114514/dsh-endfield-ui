@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.0.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.1.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.0.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.1.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -144,6 +144,11 @@ async function main() {
     ok('theme.css 含右栏 Ardot 工业网格 + 等高线纹理 + 圆形进度环样式',
       css.ok && css.body.includes('ardot/endfield-industrial-grid.webp') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
       `len=${css.body.length}`)
+    ok('Endfield 适配层不覆盖 better-sidebar 原生 fixed 定位',
+      css.ok
+        && css.body.includes('width: var(--dsh-sidebar-width, 0px)')
+        && !/\[data-dsh-better-sidebar\]\s*>\s*\*\s*\{[^}]*position\s*:/s.test(css.body),
+      '右栏几何结构完全交还 better-sidebar 0.12.3')
     ok('theme.css 含命令按钮（aria-label=命令）柠檬黄覆盖',
       css.ok && css.body.includes('aria-label="命令"') && css.body.includes('var(--ef-yellow)'),
       `len=${css.body.length}`)

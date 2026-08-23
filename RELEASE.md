@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.8.0）
+# DSH 终末地风格工作台 — 发布说明（v0.8.1）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,8 +8,8 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.8.0`
-- 桌面壳：`dsh-endfield-workbench@0.1.6`
+- 插件：`@rison/dsh-endfield-ui@0.8.1`
+- 桌面壳：`dsh-endfield-workbench@0.1.7`
 
 ## 兼容的 dsh 版本
 
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.0.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.1.tgz --allow-build=node-pty   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +29,13 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.8.0）
+## 本次更新（v0.8.1）
+
+- 修复终末地适配层覆盖 better-sidebar 面板 `position: fixed`、导致右栏落入页面下方的问题。
+- 恢复上游原生的右栏拖拽宽度、折叠按钮、布局占位与底栏独立开关。
+- 工业纹理只绘制在 `--dsh-sidebar-width` 对应的右侧工作台区域，不再改变上游面板几何结构。
+
+## 工作台整合（v0.8.0）
 
 - 一条插件安装命令自动挂载 better-sidebar、Shikitor 和终末地适配层。
 - 新增右侧完整工作台：Explorer、快速编辑、浏览器、终端、Git、任务与子代理。
@@ -78,7 +84,7 @@ dsh web
 4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
 5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
 
-## 验收摘要（实测 23/23 通过）
+## 验收摘要（实测 24/24 通过）
 
 隔离 `DSH_HOME` 真实使用级校验全部通过：
 
