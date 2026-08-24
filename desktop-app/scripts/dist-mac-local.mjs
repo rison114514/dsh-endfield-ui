@@ -11,7 +11,7 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { rmSync, existsSync, readdirSync } from 'node:fs'
+import { rmSync, existsSync, readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -36,6 +36,17 @@ for (const f of ['index.js', 'client.js']) {
   const r = run(process.platform === 'win32' ? 'node.exe' : 'node', ['--check', join(PLUGIN_DIR, f)])
   ok(`插件语法检查 ${f}`, r.status === 0, r.stderr.trim())
 }
+
+// 桌面入口必须以 no-open + loopback 模式启动 DSH。没有 --no-open 时，
+// DSH 会在 Electron 窗口之外再打开默认浏览器，形成第二个会话写入者。
+const mainFile = join(APP_DIR, 'main.cjs')
+const mainSyntax = run(process.platform === 'win32' ? 'node.exe' : 'node', ['--check', mainFile])
+const mainSource = readFileSync(mainFile, 'utf8')
+ok('桌面入口仅启动私有 no-open 服务',
+  mainSyntax.status === 0
+    && /const DSH_START_ARGS = \[[\s\S]*'--host', '127\.0\.0\.1'[\s\S]*'--no-open'[\s\S]*'--port', '0'[\s\S]*\]/.test(mainSource)
+    && /spawn\(executable, DSH_START_ARGS,/.test(mainSource),
+  mainSyntax.stderr.trim())
 
 // 2. npm pack 资源完整性
 const pack = run('npm', ['pack', '--dry-run'], { cwd: PLUGIN_DIR })

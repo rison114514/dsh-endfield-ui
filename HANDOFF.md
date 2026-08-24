@@ -1,12 +1,14 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
 > 最后更新：2026-08-24
-> 当前插件版本：`@rison/dsh-endfield-ui@0.9.0`
+> 当前统一版本：`0.9.1`（插件、桌面 App、Git tag、GitHub Release）
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 0.9.0 视觉模型兼容性交接（当前基线）
+## 0.9.1 单写入桌面端与统一版本交接（当前基线）
 
-0.9.0 的核心更新是修复视觉模型兼容性。宿主升级到 DSH `0.1.1-rc.2`，DeepSeek Vision 图片由 `deepseek-official` 原生附件链路发送，不再经过第三方 `image-understanding` 插件。同时锁定页面根滚动并隔离 better-sidebar 内部滚动链，修复右栏下滚导致整体页面错位。已完成真实图片识别回归与隔离 Profile `35/35` 验证。`endfield-ui-plugin/package.json` 精确依赖 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`。
+0.9.1 延续 0.9.0 的原生 Vision 兼容与右栏滚动隔离，并修复桌面 App 启动时额外打开默认浏览器的问题。Electron 仍需要本地 DSH 后端，但启动参数必须固定为 `--host 127.0.0.1 --no-open --port 0`，避免默认浏览器成为第二个会话写入者。从本版起插件、桌面 App、Git tag、GitHub Release 和产物文件名统一使用同一个 SemVer。`endfield-ui-plugin/package.json` 精确依赖 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`。
+
+版本规则：修复且不改变兼容线时递增补丁号（例如 `0.9.1` → `0.9.2`）；新增完整能力或调整 DSH 兼容线时递增次版本号。禁止再次创建独立的 App `0.1.x` 版本。
 
 关键兼容规则：
 
@@ -298,7 +300,7 @@ dsh --profile web
 2. 找到随 App 携带的 `endfield-ui-plugin`。
 3. 检查插件是否已链接进用户的 `~/.dsh/profiles/web`。
 4. 必要时执行 `dsh plugin --profile web add <pluginDir> --allow-build=node-pty`。
-5. 启动随机本地端口的 dsh Web 服务。
+5. 使用 `--host 127.0.0.1 --no-open --port 0` 启动仅供 Electron 使用的随机本地服务；禁止额外打开系统浏览器。
 6. 从日志中识别 `http://127.0.0.1:<port>` 并加载。
 7. 窗口关闭时向 dsh 子进程发送 `SIGTERM`。
 
@@ -340,7 +342,7 @@ dsh --profile web
 
 ```text
 dsh plugin --profile web add <App Resources 中的插件目录> --allow-build=node-pty
-dsh --profile web --port 0
+dsh --profile web --host 127.0.0.1 --no-open --port 0
 ```
 
 不再附加 `--patch`。
@@ -351,6 +353,7 @@ dsh --profile web --port 0
 - 收集最近一段 stdout/stderr，错误页提供“复制诊断信息”。
 - 防止重复启动：同一 App 实例只维护一个 dsh 子进程。
 - 使用 `app.requestSingleInstanceLock()`；第二次双击时聚焦已有窗口。
+- 强制传入 `--no-open`；构建脚本必须检查该参数，防止 Electron 与默认浏览器同时写入同一会话。
 - 正常退出、崩溃退出、窗口关闭都可靠回收子进程。
 - 只加载 `127.0.0.1`，禁止 Electron 导航到不可信远程页面。
 - 保持 `contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`。

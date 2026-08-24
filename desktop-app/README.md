@@ -4,6 +4,8 @@
 
 轻量桌面壳：后台启动本机 DeepSeek Harness，自动装载随 App 携带的终末地 UI 插件（标准 bundle，无需 `--patch`），并在原生 Electron 窗口中打开。
 
+从 `0.9.1` 起，桌面 App、终末地插件、仓库 tag 和 GitHub Release 使用同一个 SemVer，不再单独维护 App 的 `0.1.x` 版本线。
+
 ## 运行（开发模式）
 
 ```bash
@@ -16,7 +18,7 @@ npm start
 1. 按优先级发现 dsh：`DSH_BIN` 环境变量 → 上次用户选择（存于 `userData/dsh-launch.json`）→ `/opt/homebrew/bin`、`/usr/local/bin` 常见目录 → `PATH`。
 2. 未发现 dsh 时显示终末地风格**引导页**：可选择 dsh 可执行文件、选择 deepseek-harness 源码目录（开发模式），或重新检测；选择结果只存本机用户数据。
 3. 自动把 App 内插件以标准 bundle 方式加入 dsh web profile（追加精确的 `--allow-build=node-pty`，只授权 better-sidebar 的终端原生模块构建，幂等）。
-4. 启动 `dsh --profile web --port 0`（**不再附加 `--patch`**），从日志识别 `http://127.0.0.1:<port>` 并加载。
+4. 启动 `dsh --profile web --host 127.0.0.1 --no-open --port 0`（**不再附加 `--patch`**），只为 Electron 窗口提供随机本地端口，不再额外打开系统浏览器中的 Web UI。
 5. 30 秒未出现本地地址则显示诊断页，提供「复制诊断信息」。
 6. 窗口关闭 / 退出 / 崩溃均向 dsh 子进程发 `SIGTERM`，5 秒未退则 `SIGKILL`，避免残留端口。
 
@@ -35,7 +37,7 @@ npm run pack:mac:x64       # Intel 构建（需 Intel 实机/CI 验证后才宣�
 
 ## 单实例
 
-使用 `app.requestSingleInstanceLock()`：第二次双击聚焦已有窗口，不启动第二个 dsh 服务。
+使用 `app.requestSingleInstanceLock()`：第二次双击聚焦已有窗口，不启动第二个 dsh 服务。DSH 启动参数强制包含 `--no-open`，避免 Electron 与默认浏览器同时成为同一会话的写入者。
 
 ## 公开分发
 

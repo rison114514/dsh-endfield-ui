@@ -2,7 +2,14 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本为 `0.9.0`，桌面 App 版本为 `0.1.12`；插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前统一版本为 `0.9.1`；插件、桌面 App、仓库 tag 与 GitHub Release 使用同一个 SemVer。插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+
+## v0.9.1 桌面单写入与版本统一
+
+- 修复桌面 App 启动时额外打开默认浏览器 Web UI 的问题，避免 Electron 与浏览器同时成为同一会话的写入者。
+- App 仍通过随机本地端口连接 DSH，但强制使用 `--host 127.0.0.1 --no-open --port 0`，服务仅供当前桌面窗口使用。
+- 构建流程新增启动参数门禁；缺少 `--no-open` 或 loopback 绑定时直接判定构建失败。
+- 从本版开始统一版本管理：插件、App、Git tag、Release 和产物文件名全部使用 `0.9.1`，后续修复递增补丁号，兼容/功能更新递增次版本号。
 
 ## v0.9.0 视觉模型兼容性更新
 
@@ -47,7 +54,7 @@
 ## 方式一：只装插件（推荐 Web 用户）
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.0 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
 dsh web
 ```
 
@@ -64,13 +71,13 @@ npm run pack:mac        # 构建 darwin-arm64 .app
 npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签名 + 校验
 ```
 
-桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**），含单实例锁、30s 启动超时与「复制诊断信息」、退出/崩溃可靠回收子进程。
+桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**）；通过 `--no-open` 禁止额外打开浏览器，并保留单实例锁、30s 启动超时、「复制诊断信息」及退出/崩溃可靠回收子进程。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.1.12`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.9.1`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
 
 ## 开发状态
 
 - **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `35/35` 通过。✅
-- **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.12`，内置插件 `0.9.0`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证。✅
+- **阶段 2（桌面壳消费标准插件）**：当前 App 与内置插件统一为 `0.9.1`，完成 dsh 自动发现、浏览器禁开、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。

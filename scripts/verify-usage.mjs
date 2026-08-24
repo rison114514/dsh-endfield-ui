@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.9.0.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.9.1.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.9.0.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.9.1.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -219,7 +219,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.9.0-vision-scroll-lock'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.9.1-no-open-unified-release'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")

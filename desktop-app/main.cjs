@@ -7,6 +7,16 @@ const path = require('node:path')
 app.setName('DSH 终末地工作台')
 
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
+// Electron still needs DSH's local HTTP backend, but it must be private to the
+// desktop window.  `--no-open` prevents DSH from creating a second browser UI
+// (and therefore a second session writer) while the random loopback port keeps
+// the service local to this machine.
+const DSH_START_ARGS = [
+  '--profile', 'web',
+  '--host', '127.0.0.1',
+  '--no-open',
+  '--port', '0',
+]
 
 const pluginDir = app.isPackaged
   ? path.join(process.resourcesPath, 'endfield-ui-plugin')
@@ -275,8 +285,9 @@ function startDsh(executable) {
     }
   }
 
-  // 不再附加 --patch；bundle 已在安装时自动进入启动层。
-  const proc = spawn(executable, ['--profile', 'web', '--port', '0'], {
+  // 不再附加 --patch；bundle 已在安装时自动进入启动层。必须保留
+  // --no-open，否则新版 DSH 会额外打开默认浏览器，产生第二个前端写入者。
+  const proc = spawn(executable, DSH_START_ARGS, {
     cwd: workspace,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],

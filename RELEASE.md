@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.9.0）
+# DSH 终末地风格工作台 — 发布说明（v0.9.1）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,19 +8,22 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.9.0`
-- 桌面壳：`dsh-endfield-workbench@0.1.12`
+- 插件：`@rison/dsh-endfield-ui@0.9.1`
+- 桌面壳：`dsh-endfield-workbench@0.9.1`
+- 仓库 tag / GitHub Release：`v0.9.1`
+
+从本版起三者统一使用同一个 SemVer；不再为桌面 App 单独维护 `0.1.x` 编号。
 
 ## 兼容的 dsh 版本
 
-- **目标并实测**：`dsh 0.1.1-rc.2`（本机 `dsh --profile web --port 0`）。
+- **目标并实测**：`dsh 0.1.1-rc.2`（桌面端使用 `dsh --profile web --host 127.0.0.1 --no-open --port 0`）。
 - 精确锁定 `dsh-better-sidebar@0.15.2` 与 `dsh-shikitor@1.0.2`；不允许使用 `latest`。Node 要求 `>=22.19.0`。
 - 桌面壳要求本机已安装可运行的 `dsh` 命令（0.1.x 系列）。
 
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.0.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.1.tgz --allow-build=node-pty   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +32,15 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.9.0）
+## 本次更新（v0.9.1）
+
+- **修复桌面端双写入风险**：此前 App 启动 DSH 时没有传入 `--no-open`，新版 DSH 会同时打开默认浏览器 Web UI，使 Electron 与浏览器成为两个前端写入者。
+- 桌面启动参数固定为 `--host 127.0.0.1 --no-open --port 0`：保留 Electron 必需的随机本地后端，不再额外拉起浏览器页面，也不向局域网暴露监听地址。
+- 构建验证新增桌面启动参数门禁；缺少 loopback、`--no-open` 或随机端口中的任一项都会失败。
+- **统一版本管理**：插件、桌面 App、Git tag、GitHub Release 和产物文件名全部使用 `0.9.1`。后续修复使用 `0.9.x`，出现兼容线或完整功能更新时递增次版本号。
+- 延续 v0.9.0 的原生 Vision 兼容、右栏滚动隔离、完整 better-sidebar 工作台与输入可读性修复。
+
+## 历史更新（v0.9.0）
 
 - **修复视觉模型兼容性**：解决选择 DeepSeek Vision 模型后仍提示“当前模型不支持图片”的问题。
 - 升级到 DSH `0.1.1-rc.2`，使用 `deepseek-official` 原生附件服务和多模态请求链路，不再依赖第三方视觉理解插件。
@@ -100,7 +111,7 @@ dsh web
 
 ## 桌面 App（macOS）
 
-- `DSH-Endfield-Workbench-0.1.12-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
+- `DSH-Endfield-Workbench-0.9.1-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
 - 双击启动 → 自动发现 dsh → 装载插件 → 打开窗口；用户数据复用 `~/.dsh`。
 - `0.1.5` 起仅在内置插件版本更新时覆盖安装，禁止旧 App 将用户已安装的新版本降级；`0.1.6` 起首次安装会精确授权 `node-pty` 构建。
 - 无 dsh 时显示引导页，可手动选择 dsh 可执行文件或源码目录。
