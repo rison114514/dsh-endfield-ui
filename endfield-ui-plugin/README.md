@@ -4,7 +4,7 @@
 
 `@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 工作台插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端使用官方 Theme Token、会话 projection 和公开插件服务构建终末地工业风外观。
 
-0.8.5 是面向 **DSH 0.1.0-rc.6** 的可读性修正版：精确集成 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`，保留 0.8.4 的右栏布局、旋转仪表圆环、开屏门禁和 Electron 交互修复，并修正等待审批卡片及新会话输入区的浅色文字问题。
+0.9.0 升级到 **DSH 0.1.1-rc.2** 兼容线：精确集成 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`，保留 0.8.5 的右栏布局、旋转仪表圆环、开屏门禁、Electron 交互与输入可读性修复，并改用 DSH 新版 `deepseek-official` 原生图片链路。不再安装或依赖第三方视觉理解插件。
 
 0.6.0 起逐步形成当前视觉基线：右侧对话栏使用低透明度 Ardot 工业网格，白色侧栏加入等高线纹理，输入区「命令」按钮改为柠檬黄，右下角改为读取 dsh 原生 projection 的上下文进度环。
 
@@ -17,21 +17,21 @@
 **1. 从 npm（稳定后推荐）**
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.0 --allow-build=node-pty
 dsh web
 ```
 
 **2. 从 GitHub Release 的 tarball（首个公开测试版推荐）**
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.5.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.0.tgz --allow-build=node-pty
 dsh web
 ```
 
 **3. 从 GitHub 仓库固定 tag**
 
 ```bash
-dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.8.5 --allow-build=node-pty
+dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.9.0 --allow-build=node-pty
 dsh web
 ```
 
@@ -47,10 +47,10 @@ dsh plugin --profile web update @rison/dsh-endfield-ui
 dsh plugin --profile web remove @rison/dsh-endfield-ui
 
 # 重新安装
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.0 --allow-build=node-pty
 ```
 
-## 0.8.5 工作台能力
+## 0.9.0 工作台能力
 
 - 右侧 better-sidebar：文件管理、快速编辑、内嵌浏览器、终端、Git、任务与子代理。新会话默认只打开 Explorer，其余页面从 `+` 菜单打开。
 - Shikitor 输入层：`@` 文件、`#` 会话、`$` Skills、`/` 命令补全，及中央工作区编辑器。
@@ -59,6 +59,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
 - 原生 `/goal` 和输入框上方 GoalBar 继续保留；`OBJECTIVE` 不创建独立 Store。
 - 对话背景恢复 0.7.x 的低透明度旋转仪表圆环，并根据右栏宽度动态裁切；系统启用“减少动态效果”时停止旋转。
 - 开场动画期间隐藏工作台并保持主对话全宽；动画结束后释放上游原生滑入，不修改用户保存的展开/折叠状态。
+- 右侧工作台内部列表保持独立滚动，滚到边界后不再把滚轮事件传给整页；页面根容器和工作台 portal 固定在视口内，避免整体下移错位。
 - Electron App 的窗口拖拽标题条会自动避让右侧工作台；页面加号、收放、底部面板/终端及宽度拖拽在 App 中保持可交互。
 - Shikitor 接管输入框后隐藏原生 textarea 字形，`/goal`、`/compact` 等斜杠命令只绘制一层高亮文本，不再出现首行重影。
 - 新会话首页的可见文字由 Shikitor 投影统一绘制为深墨色；其原生 textarea 字形保持透明，不再用白色渐变遮住投影；本地插入光标改回浏览器原生黑色 caret，长文本自动换行或滚动后仍跟随真实输入位置。
@@ -77,7 +78,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.5.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.0.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
@@ -118,4 +119,4 @@ dsh --profile web
 
 ## 兼容性
 
-0.8.5 只对 **DSH 0.1.0-rc.6 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 必须保持 `0.12.3`：`0.13.x` 已转向 rc.7，`0.15.2` 要求 rc.8，不能在升级 DSH 前单独替换。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记和公开尺寸变量，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。
+0.9.0 只对 **DSH 0.1.1-rc.2 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 精确锁定 `0.15.2`，`dsh-shikitor` 精确锁定 `1.0.2`，避免 rc.6/rc.8/0.1.1 之间的 peer 依赖遮蔽。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记和公开尺寸变量，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。Vision 模型必须在 `llm-deepseek.models` 中声明 `inputModalities: [text, image]`，由新版 DSH 原生附件服务发送图片。

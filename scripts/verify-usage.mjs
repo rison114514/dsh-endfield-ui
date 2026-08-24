@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.5.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.9.0.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.5.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.9.0.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -100,11 +100,11 @@ async function main() {
   ok('插件 package.json：dsh.client.immediately = true', pluginPkg.dsh?.client?.immediately === true, JSON.stringify(pluginPkg.dsh?.client))
   ok('插件 package.json：dsh.client.inject 非空', Array.isArray(pluginPkg.dsh?.client?.inject) && pluginPkg.dsh.client.inject.length > 0, JSON.stringify(pluginPkg.dsh?.client?.inject))
   ok('插件 package.json：dsh.bundle.patch = ./cordis.patch.yml', pluginPkg.dsh?.bundle?.patch === './cordis.patch.yml', String(pluginPkg.dsh?.bundle?.patch))
-  ok('better-sidebar 精确锁定 0.12.3', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.12.3', JSON.stringify(pluginPkg.dependencies))
+  ok('better-sidebar 精确锁定 0.15.2', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.15.2', JSON.stringify(pluginPkg.dependencies))
   ok('dsh-shikitor 精确锁定 1.0.2', pluginPkg.dependencies?.['dsh-shikitor'] === '1.0.2', JSON.stringify(pluginPkg.dependencies))
 
   const pluginRequire = createRequire(pluginPkgPath)
-  for (const [name, expected] of [['dsh-better-sidebar', '0.12.3'], ['dsh-shikitor', '1.0.2']]) {
+  for (const [name, expected] of [['dsh-better-sidebar', '0.15.2'], ['dsh-shikitor', '1.0.2']]) {
     let actual = null
     try {
       actual = JSON.parse(readFileSync(pluginRequire.resolve(`${name}/package.json`), 'utf8')).version
@@ -156,7 +156,14 @@ async function main() {
       css.ok
         && css.body.includes('width: var(--dsh-sidebar-width, 0px)')
         && !/\[data-dsh-better-sidebar\]\s*>\s*\*\s*\{[^}]*position\s*:/s.test(css.body),
-      '右栏几何结构完全交还 better-sidebar 0.12.3')
+      '右栏几何结构完全交还 better-sidebar 0.15.2')
+    ok('右栏滚动链隔离，整页不再跟随下滚',
+      css.ok
+        && /html,\s*\nbody\s*\{[^}]*overflow:\s*hidden\s*!important[^}]*overscroll-behavior:\s*none/s.test(css.body)
+        && /#root\s*\{[^}]*overflow:\s*hidden\s*!important/s.test(css.body)
+        && /\[data-dsh-better-sidebar\] > \[data-dsh-panel-host\]\s*\{[^}]*position:\s*fixed\s*!important[^}]*overflow:\s*hidden[^}]*overscroll-behavior:\s*none/s.test(css.body)
+        && /\[data-dsh-better-sidebar\] \[data-dsh-panel\] \*\s*\{[^}]*overscroll-behavior:\s*contain/s.test(css.body),
+      'portal 固定于视口，内部列表保留独立滚动')
     ok('Electron 标题拖拽区避让右侧工作台与折叠按钮',
       css.ok
         && /\.ef-titlebar\s*\{[^}]*right:\s*max\(var\(--dsh-sidebar-width, 0px\), 78px\)/s.test(css.body)
@@ -201,9 +208,10 @@ async function main() {
         && /\[data-approval-key\] button\s*\{[^}]*color:\s*#111417\s*!important/s.test(css.body),
       '审批卡片以 data-approval-key 稳定锚点隔离，不修改对话区全局 token')
 
-    // 8. 插件 client 入口经包名路由暴露
-    const clientRoute = await get(`${url}/@rison/dsh-endfield-ui/client.js`)
-    ok('GET /@rison/dsh-endfield-ui/client.js → 200（harness 加载 client 入口）', clientRoute.status === 200, `status=${clientRoute.status} ct=${clientRoute.ct}`)
+    // 8. 新版 Harness 会在首屏 manifest 中为 client 入口生成带 rev 的路由。
+    const clientPath = idx.body.match(/"id":"@rison\/dsh-endfield-ui","url":"([^"]+)"/)?.[1]
+    const clientRoute = clientPath ? await get(new URL(clientPath, url).href) : { status: -1, ct: '', body: '', ok: false }
+    ok('首屏 manifest 中的 Endfield client 路由 → 200', !!clientPath && clientRoute.status === 200, `path=${clientPath || 'missing'} status=${clientRoute.status} ct=${clientRoute.ct}`)
 
     // 9. 已安装 client.js 内容（运行时注入逻辑可加载）
     const clientFile = join(PLUGIN_ROOT, 'client.js')
@@ -211,7 +219,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.5-native-caret-fix3'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.9.0-vision-scroll-lock'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")

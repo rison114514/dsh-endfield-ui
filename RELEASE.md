@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.8.5）
+# DSH 终末地风格工作台 — 发布说明（v0.9.0）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,19 +8,19 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.8.5`
-- 桌面壳：`dsh-endfield-workbench@0.1.11`
+- 插件：`@rison/dsh-endfield-ui@0.9.0`
+- 桌面壳：`dsh-endfield-workbench@0.1.12`
 
 ## 兼容的 dsh 版本
 
-- **目标并实测**：`dsh 0.1.0-rc.6`（本机 `dsh --profile web --port 0`）。
-- 精确锁定 `dsh-better-sidebar@0.12.3` 与 `dsh-shikitor@1.0.2`；不允许使用 `latest`。Node 要求 `>=22.19.0`。
+- **目标并实测**：`dsh 0.1.1-rc.2`（本机 `dsh --profile web --port 0`）。
+- 精确锁定 `dsh-better-sidebar@0.15.2` 与 `dsh-shikitor@1.0.2`；不允许使用 `latest`。Node 要求 `>=22.19.0`。
 - 桌面壳要求本机已安装可运行的 `dsh` 命令（0.1.x 系列）。
 
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.5.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.0.tgz --allow-build=node-pty   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +29,16 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.8.5）
+## 本次更新（v0.9.0）
+
+- **修复视觉模型兼容性**：解决选择 DeepSeek Vision 模型后仍提示“当前模型不支持图片”的问题。
+- 升级到 DSH `0.1.1-rc.2`，使用 `deepseek-official` 原生附件服务和多模态请求链路，不再依赖第三方视觉理解插件。
+- 清理旧 `image-understanding` 活动配置与 rc.6 依赖残留，Vision 模型明确声明 `inputModalities: [text, image]`。
+- 工作台依赖升级为 `dsh-better-sidebar@0.15.2` + `dsh-shikitor@1.0.2`，保留终末地外观、开屏、右侧工作台、Goal 投影与输入修复。
+- 修复右栏滚轮穿透导致整个页面下移错位：锁定页面根滚动，将 better-sidebar portal 固定于视口，并在内部滚动区边界截断滚动链。
+- 真实图片回归通过：`DeepSeek-V4-Flash Vision` 正确识别图标图形、颜色和风格；隔离 Profile 验证 `35/35` 通过。
+
+## 历史更新（v0.8.5）
 
 - 修复“等待审批”卡片的浅黄/浅灰文字：标题、提权原因、命令内容与操作按钮在白色卡片上统一使用深色字；样式限定在稳定的 `data-approval-key` 容器内，不影响深色对话区。
 - 修复初始“新会话”输入框仍显示浅灰文字：Shikitor 可见投影固定为深墨色，原生 textarea 背景保持透明，避免白色渐变覆盖投影；占位符维持可读中灰。
@@ -91,7 +100,7 @@ dsh web
 
 ## 桌面 App（macOS）
 
-- `DSH-Endfield-Workbench-0.1.11-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
+- `DSH-Endfield-Workbench-0.1.12-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
 - 双击启动 → 自动发现 dsh → 装载插件 → 打开窗口；用户数据复用 `~/.dsh`。
 - `0.1.5` 起仅在内置插件版本更新时覆盖安装，禁止旧 App 将用户已安装的新版本降级；`0.1.6` 起首次安装会精确授权 `node-pty` 构建。
 - 无 dsh 时显示引导页，可手动选择 dsh 可执行文件或源码目录。
@@ -112,15 +121,15 @@ dsh web
 4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
 5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
 
-## 验收摘要（实测 34/34 通过）
+## 验收摘要（实测 35/35 通过）
 
 隔离 `DSH_HOME` 真实使用级校验全部通过：
 
 - `plugin add` 成功，`profiles/web/package.json` 出现依赖；`dsh.profile.bundles` 自动包含 `@rison/dsh-endfield-ui`。
 - `dsh --profile web` **未带 `--patch`** 启动；首屏 200 且含 endfield 字样。
 - `GET /endfield-ui/theme.css` → 200，含终末地标记、网格背景、等高线纹理、圆形进度环与命令按钮样式。
-- 插件 client 入口经包名路由暴露为 `/@rison/dsh-endfield-ui/client.js` → 200，且含 `ContextRing` 注入逻辑。
-- better-sidebar 与 Shikitor 的声明版本、实际安装版本均严格匹配 `0.12.3` / `1.0.2`，三层 patch 顺序正确。
+- 插件 client 入口经首屏 manifest 暴露为带 `rev` 的 `/plugins/@rison/dsh-endfield-ui/client.js` 路由 → 200，且含 `ContextRing` 注入逻辑。
+- better-sidebar 与 Shikitor 的声明版本、实际安装版本均严格匹配 `0.15.2` / `1.0.2`，三层 patch 顺序正确。
 - `OBJECTIVE` 注册、原生 Goal projection 订阅与官方 Goal Remote 调用均进入安装包；页面层另有错误边界，不会拖垮右栏。
 - 全部 19 个运行时与保留素材（含 Ardot 工业网格）均 200 且为图片/字体。
 - 卸载后 profile 中不残留主插件依赖或组合层。

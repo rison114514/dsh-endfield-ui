@@ -1,20 +1,20 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
-> 最后更新：2026-08-23
-> 当前插件版本：`@rison/dsh-endfield-ui@0.8.4`
+> 最后更新：2026-08-24
+> 当前插件版本：`@rison/dsh-endfield-ui@0.9.0`
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 0.8.4 工作台整合交接（当前基线）
+## 0.9.0 视觉模型兼容性交接（当前基线）
 
-0.8.4 延续 0.8.3 的工作台、旋转圆环与开屏门禁，并修复 Electron App 中 `.ef-titlebar` 的 native drag region 覆盖 better-sidebar 顶部按钮的问题。标题条现在按 `--dsh-sidebar-width` 避让展开右栏，折叠时仍保留 78px 按钮安全区。当前基线还移除了会裁切原生 Settings 对话框的左栏隔离层，将 Shikitor 自绘输入光标固定为黑色，并在 Shikitor 接管后隐藏原生 textarea 字形，避免 `/goal`、`/compact` 等命令被原生输入层和高亮投影重复绘制；主题 URL 带 `0.8.4-slash-fix` 标记以规避旧 CSS 缓存。`endfield-ui-plugin/package.json` 继续精确依赖 `dsh-better-sidebar@0.12.3` 和 `dsh-shikitor@1.0.2`。
+0.9.0 的核心更新是修复视觉模型兼容性。宿主升级到 DSH `0.1.1-rc.2`，DeepSeek Vision 图片由 `deepseek-official` 原生附件链路发送，不再经过第三方 `image-understanding` 插件。同时锁定页面根滚动并隔离 better-sidebar 内部滚动链，修复右栏下滚导致整体页面错位。已完成真实图片识别回归与隔离 Profile `35/35` 验证。`endfield-ui-plugin/package.json` 精确依赖 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`。
 
 关键兼容规则：
 
-- 目标 DSH 固定为 `0.1.0-rc.6`；better-sidebar 固定 `0.12.3`，禁止用 `latest`。`0.13.x` 要求 rc.7，`0.15.2` 要求 rc.8。
+- 目标 DSH 固定为 `0.1.1-rc.2`；better-sidebar 固定 `0.15.2`，禁止用 `latest`。Vision 模型必须声明 `inputModalities: [text, image]`。
 - Shikitor 固定 `1.0.2`，要求 Node `>=22.19.0`。它负责输入框 `@/#/$//` 补全与中央编辑页。
 - better-sidebar 保留自己的右栏快速编辑器。Shikitor 没有公开可嵌入 better-sidebar 的 React 组件，因此不要用 DOM 搬运或 fork 上游的方式强行合并；当前产品定义是“右栏快速编辑 + 中央深度编辑”。
 - 内嵌浏览器受目标站点 CSP / `X-Frame-Options` 限制，被拒绝时走上游自带的外部打开入口。
-- pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.12.3 会降级挂载并只禁用终端。
+- pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.15.2 会降级挂载并只禁用终端。
 
 Goal 适配规则：
 

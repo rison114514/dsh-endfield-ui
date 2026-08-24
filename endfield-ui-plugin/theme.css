@@ -41,6 +41,25 @@ body,
   background: var(--ef-black) !important;
 }
 
+/* DSH is a viewport application: conversation, sidebar and workbench panes
+   own their scrolling independently.  Leaving the document scroller enabled
+   lets a wheel gesture chain out of a right-pane list once that list reaches
+   its end, moving the entire app canvas and exposing off-stage portal nodes.
+   Keep the page itself immovable while preserving every internal scroller. */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
 body {
   color: #f5f6f2;
   font-family: "EF Harmony", "PingFang SC", sans-serif !important;
@@ -1345,7 +1364,7 @@ textarea.shikitor-input--attached::placeholder {
 }
 
 /* ======================================================================
-   DSH Better Sidebar 0.12.3 — stable public root only.
+   DSH Better Sidebar 0.15.2 — stable public root only.
    The upstream CSS-module class names are intentionally never referenced.
    ====================================================================== */
 
@@ -1418,6 +1437,24 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   --dsw-alias-interactive-bg-hover: rgba(255, 244, 79, .075);
   color: #eef0ed;
   font-family: "EF Harmony", sans-serif;
+}
+
+/* 0.15.x marks its portal host as degraded when the optional shell anchor is
+   absent and falls back to position:absolute.  Because the host is appended
+   after #root, hidden bottom-panel geometry can then enlarge the document and
+   receive chained wheel input.  The public host/panel data attributes are the
+   stable contract: pin the portal to the viewport and contain scroll chaining
+   without touching upstream panel sizing, dragging or collapse state. */
+[data-dsh-better-sidebar] > [data-dsh-panel-host] {
+  position: fixed !important;
+  inset: 0 !important;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+[data-dsh-better-sidebar] [data-dsh-panel],
+[data-dsh-better-sidebar] [data-dsh-panel] * {
+  overscroll-behavior: contain;
 }
 
 [data-dsh-better-sidebar]::before {

@@ -1,4 +1,4 @@
-# Endfield workbench for DSH 0.1.0-rc.6.
+# Endfield workbench for DSH 0.1.1-rc.2.
 # Keep this order: the public services must mount before the Endfield adapter.
 - insert:
     - id: better-sidebar

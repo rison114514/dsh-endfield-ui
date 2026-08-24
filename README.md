@@ -2,7 +2,16 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本为 `0.8.5`，桌面 App 版本为 `0.1.11`；插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本为 `0.9.0`，桌面 App 版本为 `0.1.12`；插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+
+## v0.9.0 视觉模型兼容性更新
+
+- 核心修复：解决选择 DeepSeek Vision 模型后仍提示“当前模型不支持图片”的问题。
+- 升级并实测 `DeepSeek Harness 0.1.1-rc.2`，图片由 `deepseek-official` 原生附件链路直接发送给视觉模型，不再经过第三方视觉理解插件。
+- 清理旧 `image-understanding` 插件残留配置，避免附件在发送前被旧适配器拦截或转换。
+- 工作台依赖升级为 `dsh-better-sidebar@0.15.2` + `dsh-shikitor@1.0.2`，与新版 DSH 保持同一兼容线。
+- 修复右侧工作台滚轮穿透：右栏列表滚到底后不再带动整个页面下移，主对话、右栏与底部面板始终锁定在视口内。
+- 真实图片回归已通过：`DeepSeek-V4-Flash Vision` 能正确识别图标的主要图形、颜色与风格；隔离 Profile 安装与资源验证 `35/35` 通过。
 
 ## v0.8.5 更新与修复
 
@@ -38,7 +47,7 @@
 ## 方式一：只装插件（推荐 Web 用户）
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.0 --allow-build=node-pty
 dsh web
 ```
 
@@ -57,11 +66,11 @@ npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签�
 
 桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**），含单实例锁、30s 启动超时与「复制诊断信息」、退出/崩溃可靠回收子进程。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.1.11`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.1.12`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
 
 ## 开发状态
 
-- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `34/34` 通过。✅
-- **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.11`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证，`dist:mac:local` 5/5 通过。✅
+- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `35/35` 通过。✅
+- **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.12`，内置插件 `0.9.0`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。
