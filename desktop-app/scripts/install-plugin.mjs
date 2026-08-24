@@ -8,6 +8,9 @@ const here = dirname(fileURLToPath(import.meta.url))
 const appDir = resolve(here, '..')
 const projectRoot = resolve(appDir, '..')
 const pluginDir = resolve(projectRoot, 'endfield-ui-plugin')
+const pluginVersion = JSON.parse(readFileSync(resolve(pluginDir, 'package.json'), 'utf8')).version
+const pluginArchive = resolve(pluginDir, `rison-dsh-endfield-ui-${pluginVersion}.tgz`)
+const pluginTarget = existsSync(pluginArchive) ? pluginArchive : pluginDir
 const config = JSON.parse(readFileSync(resolve(appDir, 'app.config.json'), 'utf8'))
 const localBin = resolve(homedir(), '.local', 'bin')
 const command = [
@@ -20,7 +23,7 @@ const command = [
 if (!command) throw new Error('找不到本机 dsh，请先安装 @deepseek-ai/dsh。')
 
 const result = spawnSync(command, [
-  'plugin', '--profile', 'web', 'add', pluginDir, '--allow-build=node-pty',
+  'plugin', '--profile', 'web', 'add', pluginTarget, '--allow-build=node-pty',
 ], {
   cwd: existsSync(config.workspace) ? config.workspace : homedir(),
   env: {

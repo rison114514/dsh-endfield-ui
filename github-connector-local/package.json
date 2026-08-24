@@ -1,0 +1,35 @@
+{
+  "name": "@rison/dsh-connector-github-local",
+  "version": "0.1.0",
+  "description": "Local OAuth GitHub connector for DeepSeek Harness (dsh) via stdio github-mcp-server (no PAT needed)",
+  "type": "module",
+  "private": false,
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-mcp-client": "^0.1.1-rc.2"
+  },
+  "files": [
+    "README.md",
+    "cordis.patch.yml"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "connector",
+    "mcp",
+    "github"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rison114514/dsh-endfield-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rison114514/dsh-endfield-ui/issues"
+  },
+  "homepage": "https://github.com/rison114514/dsh-endfield-ui#readme",
+  "license": "MIT"
+}

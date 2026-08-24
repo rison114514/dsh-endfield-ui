@@ -118,6 +118,17 @@ function bundledPluginVersion() {
   }
 }
 
+function bundledPluginInstallTarget() {
+  const version = bundledPluginVersion()
+  if (!version) return null
+  const archive = path.join(pluginDir, `rison-dsh-endfield-ui-${version}.tgz`)
+  // A packaged App must install from an archive. Adding pluginDir directly
+  // creates a pnpm link whose transitive dependencies are not materialized in
+  // the web profile, so DSH later fails to import better-sidebar/Shikitor.
+  if (existsSync(archive)) return archive
+  return app.isPackaged ? null : pluginDir
+}
+
 function versionTuple(version) {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version)
   return match ? match.slice(1).map(Number) : null
@@ -143,14 +154,26 @@ function pluginIsInstalled() {
   try {
     const profile = JSON.parse(readFileSync(path.join(profileDir, 'package.json'), 'utf8'))
     const dependency = profile.dependencies?.[PLUGIN_NAME]
-    if (typeof dependency !== 'string') return false
+    if (typeof dependency !== 'string' || dependency.startsWith('link:')) return false
     const manifest = path.join(profileDir, 'node_modules', '@rison', 'dsh-endfield-ui', 'package.json')
     if (!existsSync(manifest)) return false
     const manifestVersion = JSON.parse(readFileSync(manifest, 'utf8')).version
     const bundledVersion = bundledPluginVersion()
     if (typeof manifestVersion !== 'string' || typeof bundledVersion !== 'string') return false
     // 已安装版本更新时也视为满足，禁止旧 App 将插件降级。
-    return versionAtLeast(manifestVersion, bundledVersion)
+    if (manifestVersion !== bundledVersion) return versionAtLeast(manifestVersion, bundledVersion)
+
+    // 主插件存在不代表组合层完整。DSH 从 profile 根目录解析这些包；
+    // 任一依赖缺失都会让整个 plugin tree 在 UI 加载前退出。
+    for (const name of ['dsh-better-sidebar', 'dsh-shikitor']) {
+      const expected = JSON.parse(readFileSync(manifest, 'utf8')).dependencies?.[name]
+      if (typeof expected !== 'string') return false
+      const dependencyManifest = path.join(profileDir, 'node_modules', ...name.split('/'), 'package.json')
+      if (!existsSync(dependencyManifest)) return false
+      const actual = JSON.parse(readFileSync(dependencyManifest, 'utf8')).version
+      if (actual !== expected) return false
+    }
+    return true
   } catch {
     return false
   }
@@ -270,8 +293,14 @@ function startDsh(executable) {
 
   // 标准插件方式：先确保插件以 bundle 形式加入 web profile（幂等）。
   if (!pluginIsInstalled()) {
+    const pluginTarget = bundledPluginInstallTarget()
+    if (!pluginTarget) {
+      loadDiagnostic('终末地 UI 插件归档缺失',
+        `App 内未找到与版本 ${bundledPluginVersion() || 'unknown'} 匹配的插件安装包。\n\n请重新构建或下载完整 App。`)
+      return
+    }
     const install = spawnSync(executable, [
-      'plugin', '--profile', 'web', 'add', pluginDir, '--allow-build=node-pty',
+      'plugin', '--profile', 'web', 'add', pluginTarget, '--allow-build=node-pty',
     ], {
       cwd: workspace,
       env,

@@ -2,7 +2,16 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前统一版本为 `0.9.1`；插件、桌面 App、仓库 tag 与 GitHub Release 使用同一个 SemVer。插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前源码与本地候选 App 版本为 `0.9.2`；插件、桌面 App、仓库 tag 与 GitHub Release 使用同一个 SemVer。插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+
+## v0.9.2 输入框投影修复（源码已推送，Release 待验收）
+
+- 重构 Shikitor 输入兼容层：原生 `textarea` 只负责输入、IME 和 selection 数据，可见文字与黑色光标统一由富文本投影层绘制。
+- 修复 `/goal`、`/compact`、长技能名称、`@文件`、`#会话`以及中英文多行输入中的光标偏移和文字重影。
+- 鼠标拖选改为投影层选区，原生选中文字保持完全透明，解决选中内容后两套文字严重叠加的问题。
+- 新增光标与选区几何回归脚本，覆盖软换行、内部滚动、窗口重排和原子引用标签。
+- 桌面 App 改为内置并安装当前版本的插件归档，同时检查 better-sidebar 与 Shikitor 是否完整，避免源码链接缺少传递依赖而启动失败。
+- 本节描述的是已经推送的 `0.9.2` 源码；本地 `.app` 已完成打包，但在验收完成前不上传 GitHub Release。
 
 ## v0.9.1 桌面单写入与版本统一
 
@@ -47,11 +56,15 @@
 ## 结构
 
 - `endfield-ui-plugin/`：双端 dsh 插件。**核心交付物**。Host 端提供素材，Client 端加载视觉外壳。
+- `github-connector/`：按插件形式安装的 **GitHub 连接器（远端 + Bearer）**。纯 Patch 层，自动生效。
+- `github-connector-local/`：**GitHub 连接器（本地 stdio + OAuth）** —— 无需 PAT，服务器自己走 OAuth，体验更接近 WorkBuddy/Codex。纯 Patch 层。
 - `desktop-app/`：Electron 桌面入口（可选）。自动启动本地 dsh、装载插件并打开窗口。
 - `cover/`：封面图素材。
 - `dsh-packaged-final.jpg` / `dsh-settings-final.jpg`：界面预览。
 
 ## 方式一：只装插件（推荐 Web 用户）
+
+当前已发布稳定版仍为 `0.9.1`；`0.9.2` 需等待本地候选 App 验收后再发布：
 
 ```bash
 dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
@@ -73,11 +86,31 @@ npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签�
 
 桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**）；通过 `--no-open` 禁止额外打开浏览器，并保留单实例锁、30s 启动超时、「复制诊断信息」及退出/崩溃可靠回收子进程。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.9.1`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.9.2`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+
+## 方式三：GitHub 连接器（插件形式安装）
+
+**偏好本地 stdio + OAuth（无需 PAT，推荐）**：
+
+```bash
+brew install github-mcp-server
+dsh plugin --profile web add @rison/dsh-connector-github-local
+dsh web        # 首次会自动弹浏览器做 GitHub OAuth 授权
+```
+
+**或远端服务器 + Bearer token**：
+
+```bash
+dsh plugin --profile web add @rison/dsh-connector-github
+export GITHUB_TOKEN="github_pat_..."
+dsh web
+```
+
+两者安装后普通 `dsh web` 即自动挂上 GitHub 工具（`mcp__github__*`）。差异与 caveat 见各连接器 `README.md`（本地 OAuth 的 token 只在服务器进程内存、dsh 重启需重新授权）。验证：`node scripts/smoke-connector.mjs <dir>`（隔离 DSH_HOME，8/8 通过）。
 
 ## 开发状态
 
 - **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `35/35` 通过。✅
-- **阶段 2（桌面壳消费标准插件）**：当前 App 与内置插件统一为 `0.9.1`，完成 dsh 自动发现、浏览器禁开、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证。✅
+- **阶段 2（桌面壳消费标准插件）**：当前源码与本地候选 App 统一为 `0.9.2`，完成 dsh 自动发现、浏览器禁开、开屏门禁、桌面按钮命中区修复、输入投影修复、ad-hoc 签名与验证；Release 待用户验收。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。

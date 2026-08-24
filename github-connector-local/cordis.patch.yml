@@ -1,0 +1,36 @@
+# Local-OAuth GitHub connector for the dsh web profile (stdio + github-mcp-server).
+#
+# This is a patch layer, not a standalone plugin: it inserts ONE instance of
+# dsh's official MCP client bridge (`@deepseek-ai/dsh-mcp-client`) that spawns
+# the LOCAL github-mcp-server over stdio. The bridge registers every advertised
+# GitHub tool on `ctx.tools` under server-qualified public names:
+#     mcp__github__<rawName>       e.g. mcp__github__create_pull_request
+#
+# WHY LOCAL + OAuth (and no token here):
+#   The local github-mcp-server does its OWN GitHub OAuth login (authorization
+#   code + PKCE; on github.com the official binary auto-opens your browser on
+#   first run — no flags, no client id, no PAT). dsh only ever talks to it over
+#   stdio, so dsh's config never holds a token. This mirrors how WorkBuddy /
+#   Codex authenticate: the host never asks the user for a PAT; OAuth is handled
+#   by the server / host side.
+#
+#   * Install the server once:  brew install github-mcp-server
+#     (official binary: github-mcp-server; subcommand "stdio")
+#   * Override the binary path / extra args with GITHUB_MCP_BIN / GITHUB_MCP_ARGS
+#     (GITHUB_MCP_ARGS is a JSON array, e.g. ["stdio","--oauth-client-id","..."]).
+#
+# CAVEAT (important): dsh spawns the stdio child and owns its lifecycle, and
+# github-mcp-server keeps its OAuth access token IN MEMORY only (nothing on
+# disk). So every dsh restart starts a fresh server process and needs the OAuth
+# login again on first connect. Browser auto-open covers interactive desktop
+# dsh; a headless deployment should pre-auth instead — see the README's
+# "GitHub App authentication" and "PAT override" sections.
+- insert:
+    - id: mcp-github
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: github
+        transport: stdio
+        command: !!js 'process.env.GITHUB_MCP_BIN ?? "github-mcp-server"'
+        args: !!js 'JSON.parse(process.env.GITHUB_MCP_ARGS ?? "[\"stdio\"]")'
+        failOnStartupError: false

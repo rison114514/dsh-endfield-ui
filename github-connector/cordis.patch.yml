@@ -1,0 +1,28 @@
+# GitHub connector for the dsh web profile.
+#
+# This is a patch layer, not a standalone plugin: it inserts ONE instance of
+# dsh's official MCP client bridge (`@deepseek-ai/dsh-mcp-client`) pointed at
+# GitHub's hosted remote MCP server. The bridge registers every advertised
+# GitHub tool on `ctx.tools` under server-qualified public names:
+#     mcp__github__<rawName>       e.g. mcp__github__create_pull_request
+#
+# AUTH (important): dsh's MCP client supports STATIC headers only — it does NOT
+# implement interactive OAuth device flow (no OAuthClientProvider / PKCE loop).
+# So this connector authenticates to the remote GitHub MCP server with a
+# Personal Access Token in the `Authorization: Bearer` header, which the GitHub
+# README documents as the "Using a GitHub PAT" mode for the remote server.
+#
+#   * Token is read from the env at profile boot: $GITHUB_TOKEN
+#   * Set it before launching dsh, e.g.  GITHUB_TOKEN=ghp_...  dsh web
+#   * If unset, the bridge activates with zero GitHub tools and logs a connect
+#     error (failOnStartupError is false), so the rest of dsh still boots.
+- insert:
+    - id: mcp-github
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: github
+        transport: streamable-http
+        url: 'https://api.githubcopilot.com/mcp/'
+        headers:
+          Authorization: !!js '`Bearer ${process.env.GITHUB_TOKEN ?? ""}`'
+        failOnStartupError: false

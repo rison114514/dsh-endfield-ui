@@ -21,6 +21,8 @@ const ARCH = process.argv[2] || 'arm64'
 const APP_NAME = 'DSH 终末地工作台'
 const OUT_DIR = join(APP_DIR, 'release')
 const APP_PATH = join(OUT_DIR, `${APP_NAME}-darwin-${ARCH}`, `${APP_NAME}.app`)
+const PLUGIN_VERSION = JSON.parse(readFileSync(join(PLUGIN_DIR, 'package.json'), 'utf8')).version
+const PLUGIN_ARCHIVE = `rison-dsh-endfield-ui-${PLUGIN_VERSION}.tgz`
 
 const results = []
 const ok = (name, cond, detail = '') => {
@@ -45,7 +47,9 @@ const mainSource = readFileSync(mainFile, 'utf8')
 ok('桌面入口仅启动私有 no-open 服务',
   mainSyntax.status === 0
     && /const DSH_START_ARGS = \[[\s\S]*'--host', '127\.0\.0\.1'[\s\S]*'--no-open'[\s\S]*'--port', '0'[\s\S]*\]/.test(mainSource)
-    && /spawn\(executable, DSH_START_ARGS,/.test(mainSource),
+    && /spawn\(executable, DSH_START_ARGS,/.test(mainSource)
+    && /bundledPluginInstallTarget\(\)/.test(mainSource)
+    && /\['dsh-better-sidebar', 'dsh-shikitor'\]/.test(mainSource),
   mainSyntax.stderr.trim())
 
 // 2. npm pack 资源完整性
@@ -59,11 +63,21 @@ const hasKeyFiles = /cordis\.patch\.yml/.test(packOut)
   && /client\.js/.test(packOut)
 ok('npm pack 资源完整', pack.status === 0 && totalFiles >= 25 && hasKeyFiles, `totalFiles=${totalFiles}`)
 
+// 真实生成当前版本 tarball。桌面 App 必须安装归档而不是 link 源目录，
+// 否则 pnpm 不会在 profile 根目录物化插件的组合依赖。
+const materialize = run('npm', ['pack'], { cwd: PLUGIN_DIR })
+ok('生成当前版本插件归档',
+  materialize.status === 0 && existsSync(join(PLUGIN_DIR, PLUGIN_ARCHIVE)),
+  PLUGIN_ARCHIVE)
+
 // 3. 清理并生成 .app
 rmSync(join(OUT_DIR, `${APP_NAME}-darwin-${ARCH}`), { recursive: true, force: true })
 const packCmd = ARCH === 'x64' ? 'pack:mac:x64' : 'pack:mac'
 const build = run('npm', ['run', packCmd])
 ok('electron-packager 构建 .app', build.status === 0 && existsSync(APP_PATH), build.stderr.trim().split('\n').slice(-3).join(' '))
+ok('App 内含当前版本插件归档',
+  existsSync(join(APP_PATH, 'Contents', 'Resources', 'endfield-ui-plugin', PLUGIN_ARCHIVE)),
+  PLUGIN_ARCHIVE)
 
 // 4. ad-hoc 签名 + 校验
 if (existsSync(APP_PATH)) {

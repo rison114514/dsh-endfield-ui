@@ -4,4 +4,7 @@ desktop-app/release/
 .qa-artifacts/
 rison-dsh-endfield-ui-*.tgz
 endfield-ui-plugin/rison-dsh-endfield-ui-*.tgz
+github-connector/rison-dsh-connector-github-*.tgz
+github-connector-local/rison-dsh-connector-github-local-*.tgz
 .workbuddy/
+repair-backups/

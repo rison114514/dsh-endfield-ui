@@ -79,6 +79,286 @@ window.__ModuleLoader__.load({
       '--dsw-specific-tip': pair('#1b2024'),
     }
 
+    // --------------------------------------------------------------------
+    // Composer projection/caret compatibility.
+    //
+    // DSH owns the textarea value, selection, IME and submission. Shikitor
+    // owns the visible projection, including inline command icons and the
+    // compact file/session references. Those projected atoms do not have the
+    // same width as their raw textarea source, so a browser-native textarea
+    // caret can never stay aligned with them. Keep one visual coordinate
+    // system: derive the local Shikitor caret from the rendered projection.
+    // --------------------------------------------------------------------
+    const SHIKITOR_SOURCE_SELECTOR = '[data-dsh-shikitor-source-start]'
+    const SHIKITOR_TOKEN_CLASS = 'dsh-shikitor-token-icon'
+
+    function numericData(element, key) {
+      const value = Number(element.dataset[key])
+      return Number.isFinite(value) ? value : undefined
+    }
+
+    function textNodeOf(element) {
+      return Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE)
+    }
+
+    function collapsedBoundaryRect(node, character) {
+      const range = node.ownerDocument.createRange()
+      range.setStart(node, character)
+      range.collapse(true)
+      const collapsed = range.getBoundingClientRect()
+      if (collapsed.height > 0) return collapsed
+
+      const fallback = node.ownerDocument.createRange()
+      if (character === 0) {
+        fallback.setStart(node, 0)
+        fallback.setEnd(node, Math.min(1, node.length))
+        return fallback.getBoundingClientRect()
+      }
+      fallback.setStart(node, character - 1)
+      fallback.setEnd(node, character)
+      const rect = fallback.getBoundingClientRect()
+      return new DOMRect(rect.right, rect.top, 0, rect.height)
+    }
+
+    function collectProjectedBoundaries(output, lineHeight) {
+      const boundaries = []
+      output.querySelectorAll(SHIKITOR_SOURCE_SELECTOR).forEach((element) => {
+        const start = numericData(element, 'dshShikitorSourceStart')
+        const end = numericData(element, 'dshShikitorSourceEnd')
+        if (start === undefined || end === undefined) return
+        const line = element.closest('.shikitor-output-line')
+        if (!line) return
+        const lineRect = line.getBoundingClientRect()
+        const normalize = (rect, offset, x, atomic) => {
+          const row = Math.max(0, Math.round((rect.top - lineRect.top) / lineHeight))
+          const top = lineRect.top + row * lineHeight
+          boundaries.push({
+            offset,
+            x,
+            top,
+            bottom: top + lineHeight,
+            atomicStart: atomic ? start : undefined,
+            atomicEnd: atomic ? end : undefined,
+          })
+        }
+        const kind = element.dataset.dshShikitorSourceKind
+        const atomic = kind === 'file' || kind === 'session' || element.classList.contains(SHIKITOR_TOKEN_CLASS)
+        if (atomic) {
+          const rect = element.getBoundingClientRect()
+          normalize(rect, start, rect.left, true)
+          normalize(rect, end, rect.right, true)
+          return
+        }
+        if (kind === 'placeholder') {
+          const rect = element.getBoundingClientRect()
+          normalize(rect, start, rect.left, false)
+          return
+        }
+        const node = textNodeOf(element)
+        if (!node) return
+        for (let character = 0; character <= node.length; character += 1) {
+          const rect = collapsedBoundaryRect(node, character)
+          normalize(rect, start + character, rect.left, false)
+        }
+      })
+      return boundaries
+    }
+
+    function projectedBoundaryAtOffset(boundaries, offset) {
+      const exact = boundaries.find((boundary) => boundary.offset === offset)
+      if (exact) return exact
+      const atomic = boundaries.find((boundary) => (
+        boundary.atomicStart !== undefined
+        && offset > boundary.atomicStart
+        && offset < boundary.atomicEnd
+      ))
+      if (!atomic) return undefined
+      const start = boundaries.find((boundary) => (
+        boundary.offset === atomic.atomicStart
+        && boundary.atomicStart === atomic.atomicStart
+        && boundary.atomicEnd === atomic.atomicEnd
+      ))
+      const end = boundaries.find((boundary) => (
+        boundary.offset === atomic.atomicEnd
+        && boundary.atomicStart === atomic.atomicStart
+        && boundary.atomicEnd === atomic.atomicEnd
+      ))
+      if (!start || !end) return undefined
+      return offset - atomic.atomicStart <= atomic.atomicEnd - offset ? start : end
+    }
+
+    function projectedCaretPosition(target, input, output) {
+      const container = target.querySelector('.shikitor-container')
+      if (!container) return undefined
+      const lineHeight = Number.parseFloat(getComputedStyle(input).lineHeight) || 22
+      const focus = input.selectionDirection === 'backward' ? input.selectionStart : input.selectionEnd
+      const boundary = projectedBoundaryAtOffset(collectProjectedBoundaries(output, lineHeight), focus)
+      if (!boundary) return undefined
+      const containerRect = container.getBoundingClientRect()
+      return {
+        x: boundary.x - containerRect.left + output.scrollLeft,
+        y: boundary.top - containerRect.top + output.scrollTop,
+      }
+    }
+
+    function publishProjectedCaret(target, input, output) {
+      const position = projectedCaretPosition(target, input, output)
+      if (!position) return false
+      const top = `${position.y}px`
+      const left = `${position.x}px`
+      // 1.0.2 consumes root-scoped variables. Newer Shikitor cores scope them
+      // to the cursor layer to avoid restyling the whole projection.
+      const cursorLayer = target.querySelector('.shikitor-cursors')
+      for (const host of [target, cursorLayer]) {
+        if (!host) continue
+        if (host.style.getPropertyValue('--shikitor-cursor-t') !== top) {
+          host.style.setProperty('--shikitor-cursor-t', top)
+        }
+        if (host.style.getPropertyValue('--shikitor-cursor-l') !== left) {
+          host.style.setProperty('--shikitor-cursor-l', left)
+        }
+      }
+      return true
+    }
+
+    function projectedSelectionRects(target, input, output) {
+      const container = target.querySelector('.shikitor-container')
+      if (!container) return []
+      const selectionStart = Math.min(input.selectionStart, input.selectionEnd)
+      const selectionEnd = Math.max(input.selectionStart, input.selectionEnd)
+      if (selectionStart === selectionEnd) return []
+      const containerRect = container.getBoundingClientRect()
+      const rects = []
+      output.querySelectorAll(SHIKITOR_SOURCE_SELECTOR).forEach((element) => {
+        const start = numericData(element, 'dshShikitorSourceStart')
+        const end = numericData(element, 'dshShikitorSourceEnd')
+        if (start === undefined || end === undefined || end <= selectionStart || start >= selectionEnd) return
+        const kind = element.dataset.dshShikitorSourceKind
+        if (kind === 'placeholder') return
+        const atomic = kind === 'file' || kind === 'session' || element.classList.contains(SHIKITOR_TOKEN_CLASS)
+        const clientRects = []
+        if (atomic) {
+          clientRects.push(element.getBoundingClientRect())
+        } else {
+          const node = textNodeOf(element)
+          if (!node) return
+          const from = Math.max(0, selectionStart - start)
+          const to = Math.min(node.length, selectionEnd - start)
+          if (from >= to) return
+          const range = node.ownerDocument.createRange()
+          range.setStart(node, from)
+          range.setEnd(node, to)
+          clientRects.push(...range.getClientRects())
+        }
+        for (const rect of clientRects) {
+          if (rect.width <= 0 || rect.height <= 0) continue
+          rects.push({
+            left: rect.left - containerRect.left,
+            top: rect.top - containerRect.top,
+            width: rect.width,
+            height: rect.height,
+          })
+        }
+      })
+      return rects
+    }
+
+    function renderProjectedSelection(target, input, output, layer) {
+      const rects = projectedSelectionRects(target, input, output)
+      const fragment = input.ownerDocument.createDocumentFragment()
+      for (const rect of rects) {
+        const highlight = input.ownerDocument.createElement('i')
+        highlight.className = 'ef-shikitor-selection'
+        highlight.style.left = `${rect.left}px`
+        highlight.style.top = `${rect.top}px`
+        highlight.style.width = `${rect.width}px`
+        highlight.style.height = `${rect.height}px`
+        fragment.appendChild(highlight)
+      }
+      layer.replaceChildren(fragment)
+      layer.toggleAttribute('data-active', rects.length > 0)
+      return rects
+    }
+
+    const endfieldComposerProjectionPlugin = {
+      name: 'endfield-composer-projection',
+      inject: ['shikitor'],
+      apply(pluginCtx) {
+        const shikitor = pluginCtx.shikitor
+        const target = shikitor && shikitor.element
+        const input = shikitor && shikitor.inputElement
+        const output = target && target.querySelector('.shikitor-output')
+        const container = target && target.querySelector('.shikitor-container')
+        const view = input && input.ownerDocument && input.ownerDocument.defaultView
+        const MutationObserverClass = view && view.MutationObserver
+        if (!target || !input || !output || !container || !view || !MutationObserverClass) return
+
+        target.setAttribute('data-endfield-input-owner', 'shikitor')
+        const selectionLayer = input.ownerDocument.createElement('div')
+        selectionLayer.className = 'ef-shikitor-selection-layer'
+        selectionLayer.setAttribute('aria-hidden', 'true')
+        container.appendChild(selectionLayer)
+        let frame
+        let disposed = false
+        const refresh = () => {
+          frame = undefined
+          if (disposed) return
+          publishProjectedCaret(target, input, output)
+          renderProjectedSelection(target, input, output, selectionLayer)
+        }
+        const schedule = () => {
+          if (disposed || frame !== undefined) return
+          frame = view.requestAnimationFrame(refresh)
+        }
+        const onSelectionChange = () => {
+          if (input.ownerDocument.activeElement === input) schedule()
+        }
+        const observer = new MutationObserverClass(schedule)
+        observer.observe(output, {
+          attributes: true,
+          characterData: true,
+          childList: true,
+          subtree: true,
+        })
+        const ResizeObserverClass = view.ResizeObserver
+        const resizeObserver = ResizeObserverClass ? new ResizeObserverClass(schedule) : undefined
+        resizeObserver && resizeObserver.observe(input)
+        resizeObserver && resizeObserver.observe(output)
+
+        const inputEvents = ['input', 'select', 'keyup', 'click', 'scroll', 'compositionend']
+        inputEvents.forEach((event) => input.addEventListener(event, schedule))
+        output.addEventListener('scroll', schedule)
+        input.ownerDocument.addEventListener('selectionchange', onSelectionChange)
+        view.addEventListener('resize', schedule)
+        const fonts = input.ownerDocument.fonts
+        fonts && fonts.addEventListener('loadingdone', schedule)
+        fonts && fonts.ready.then(schedule)
+        const stopChange = typeof pluginCtx.on === 'function'
+          ? pluginCtx.on('shikitor/change', schedule)
+          : undefined
+        const stopCursor = typeof pluginCtx.on === 'function'
+          ? pluginCtx.on('shikitor/cursor-change', schedule)
+          : undefined
+        schedule()
+
+        return () => {
+          disposed = true
+          if (frame !== undefined) view.cancelAnimationFrame(frame)
+          observer.disconnect()
+          resizeObserver && resizeObserver.disconnect()
+          inputEvents.forEach((event) => input.removeEventListener(event, schedule))
+          output.removeEventListener('scroll', schedule)
+          input.ownerDocument.removeEventListener('selectionchange', onSelectionChange)
+          view.removeEventListener('resize', schedule)
+          fonts && fonts.removeEventListener('loadingdone', schedule)
+          if (typeof stopChange === 'function') stopChange()
+          if (typeof stopCursor === 'function') stopCursor()
+          selectionLayer.remove()
+          target.removeAttribute('data-endfield-input-owner')
+        }
+      },
+    }
+
     function BootSequence() {
       return React.createElement('div', { className: 'ef-boot', 'aria-hidden': true },
         React.createElement('div', { className: 'ef-boot-grid' }),
@@ -583,8 +863,13 @@ window.__ModuleLoader__.load({
       }
     }
 
-    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'remote', 'remote.goals']
+    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'shikitor', 'remote', 'remote.goals']
     function apply(ctx) {
+      ctx.effect(
+        () => ctx.shikitor.register('sender', endfieldComposerProjectionPlugin),
+        'endfield-ui: composer projection geometry',
+      )
+
       // Keep the native workbench off-stage until the Endfield boot sequence
       // finishes. This is a visual gate only: better-sidebar retains the
       // user's open/collapsed state and performs its own slide/layout push
@@ -648,7 +933,7 @@ window.__ModuleLoader__.load({
         // Keep the stylesheet URL release-addressable.  Electron/Chromium can
         // otherwise retain an older theme.css across local same-version
         // rebuilds, making visual hotfixes appear to have no effect.
-        link.href = '/endfield-ui/theme.css?v=0.9.1-no-open-unified-release'
+        link.href = '/endfield-ui/theme.css?v=0.9.2-composer-projection-preview2'
         link.dataset.plugin = '@rison/dsh-endfield-ui'
         document.head.appendChild(link)
         return () => { link.remove() }
@@ -697,7 +982,18 @@ window.__ModuleLoader__.load({
       ))
     }
 
-    module.exports = { inject, apply }
+    module.exports = {
+      inject,
+      apply,
+      __testing: {
+        collectProjectedBoundaries,
+        projectedBoundaryAtOffset,
+        projectedCaretPosition,
+        publishProjectedCaret,
+        projectedSelectionRects,
+        renderProjectedSelection,
+      },
+    }
     return module.exports
   },
 })

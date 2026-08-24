@@ -529,17 +529,48 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   -webkit-text-fill-color: #6b7378 !important;
 }
 
-/* Once Shikitor attaches, its textarea is the invisible keyboard/input
-   surface. The highlighted projection above it owns all visible glyphs, while
-   the native caret remains visible so long wrapped or scrolling prompts always
-   follow the textarea's real selection instead of a separately measured point.
-   Keeping the glyph color transparent still prevents `/goal`, `/compact`, ...
-   from being painted twice when completion activates. */
+/* Once Shikitor attaches, the textarea owns only value, selection, IME and
+   submission. All visible glyphs, selections and the local caret come from the
+   same projected coordinate system, so rich tokens cannot drift away from the
+   browser-native caret. */
 [data-slot="conversation"] textarea.shikitor-input--attached {
   color: transparent !important;
-  caret-color: #111417 !important;
+  caret-color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   background: transparent !important;
+}
+
+/* Chromium reapplies the page-level selection foreground even when the
+   textarea itself is transparent. Keep the native selection invisible; the
+   geometry-matched projection layer below is the only visible selection. */
+[data-slot="conversation"] textarea.shikitor-input--attached::selection,
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  .shikitor-input::selection {
+  color: transparent !important;
+  background: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+}
+
+.ef-shikitor-selection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ef-shikitor-selection {
+  position: absolute;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 244, 79, .34);
+  box-shadow: inset 0 0 0 1px rgba(126, 117, 0, .28);
+  pointer-events: none;
 }
 
 textarea.shikitor-input--attached::placeholder {
@@ -547,24 +578,60 @@ textarea.shikitor-input--attached::placeholder {
   -webkit-text-fill-color: transparent !important;
 }
 
-/* In a brand-new session Shikitor, not the textarea, paints the visible input
-   glyphs. Keep that projection paper-dark even when a saved syntax scheme or
-   the hero composer's light-on-dark tokens would otherwise wash it to grey. */
-[data-composer-card] .shikitor--attached {
+/* The projection uses semantic source-range hooks installed by Shikitor. Do
+   not blanket-color every descendant: the slash trigger intentionally stays
+   transparent underneath its icon, while file/session atoms have their own
+   light-surface palette. */
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] {
   --shikitor-fg-color: #111417 !important;
   --shikitor-native-fg-color: #111417 !important;
+  --shikitor-caret-color: #111417 !important;
   color: #111417 !important;
 }
 
-[data-composer-card] .shikitor--attached .shikitor-output-line,
-[data-composer-card] .shikitor--attached .shikitor-output-line * {
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] .shikitor-output-line,
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  [data-dsh-shikitor-source-kind="text"]:not(.dsh-shikitor-token-icon) {
   color: #111417 !important;
   opacity: 1 !important;
   -webkit-text-fill-color: #111417 !important;
   text-shadow: none !important;
 }
 
-[data-composer-card] .shikitor--attached .shikitor-placeholder {
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  .dsh-shikitor-token-icon {
+  color: transparent !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+}
+
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  .dsh-shikitor-token-icon > svg {
+  color: #424a4f !important;
+  opacity: 1 !important;
+}
+
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  :is(.dsh-shikitor-file-reference, .dsh-shikitor-session-reference) {
+  border: 1px solid rgba(126,117,0,.46) !important;
+  background: #eceeea !important;
+  color: #111417 !important;
+  -webkit-text-fill-color: #111417 !important;
+}
+
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  :is(.dsh-shikitor-file-reference__label, .dsh-shikitor-session-reference__label) {
+  color: #111417 !important;
+  -webkit-text-fill-color: #111417 !important;
+}
+
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+  :is(.dsh-shikitor-file-reference__icon, .dsh-shikitor-session-reference__icon) {
+  color: #4f575c !important;
+}
+
+[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] .shikitor-placeholder {
   color: #6b7378 !important;
   opacity: 1 !important;
   -webkit-text-fill-color: #6b7378 !important;
@@ -1752,19 +1819,14 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   box-shadow: 8px 8px 0 rgba(0,0,0,.32), 0 0 0 1px rgba(255,244,79,.06) !important;
 }
 
-/* Keep non-local/remote Shikitor cursors on the Endfield ink color, but hide
-   only the first (local) synthetic cursor. The browser-native textarea caret
-   above is the authoritative local cursor and remains accurate after soft
-   wrapping, auto-growth, and internal scrolling. */
-.shikitor--attached {
+/* Shikitor's projected caret is the only visible local caret. Its geometry is
+   published by the Endfield sender plugin after projection/layout settles. */
+.shikitor--attached[data-endfield-input-owner="shikitor"] {
   --shikitor-caret-color: #111417 !important;
 }
 
-.shikitor--attached .shikitor-cursors > .shikitor-cursor:first-child::after {
-  display: none !important;
-}
-
-.shikitor--attached .shikitor-cursors > .shikitor-cursor:not(:first-child)::after {
+.shikitor--attached[data-endfield-input-owner="shikitor"]
+  .shikitor-cursors > .shikitor-cursor:first-child::after {
   background-color: #111417 !important;
 }
 

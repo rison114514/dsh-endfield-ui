@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.9.1.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.9.2.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.9.1.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.9.2.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -183,18 +183,33 @@ async function main() {
         && !/\[data-slot="sidebar"\]\s*>\s*div\s*\{[^}]*isolation:\s*isolate/s.test(css.body)
         && /\[data-slot="sidebar"\]\s*>\s*div::after\s*\{[^}]*z-index:\s*0/s.test(css.body),
       '避免 fixed Settings dialog 被困在 56px sidebarCol 中')
-    ok('Shikitor 本地输入使用原生黑色光标，长文本位置不再依赖合成坐标',
+    ok('Shikitor 输入由单一投影坐标系绘制文字与黑色合成光标',
       css.ok
-        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*#111417\s*!important/s.test(css.body)
-        && /\.shikitor--attached \.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*display:\s*none\s*!important/s.test(css.body)
-        && /\.shikitor--attached \.shikitor-cursors > \.shikitor-cursor:not\(:first-child\)::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
-      '原生 caret 跟随真实 selection；仅隐藏本地合成光标，保留远端光标')
+        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*transparent\s*!important/s.test(css.body)
+        && /\.shikitor--attached\[data-endfield-input-owner="shikitor"\][\s\S]*?\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body)
+        && !/\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*display:\s*none\s*!important/s.test(css.body),
+      '原生 caret 完全透明，唯一可见本地 caret 使用投影几何')
+    ok('Shikitor 选择区域只由投影层绘制，不再显露原生 textarea 字形',
+      css.ok
+        && /textarea\.shikitor-input--attached::selection[\s\S]*?color:\s*transparent\s*!important[\s\S]*?background:\s*transparent\s*!important/s.test(css.body)
+        && /\.ef-shikitor-selection-layer\s*\{[^}]*z-index:\s*2/s.test(css.body)
+        && /\.ef-shikitor-selection\s*\{[^}]*background:\s*rgba\(255,\s*244,\s*79,\s*\.34\)/s.test(css.body)
+        && existsSync(join(PLUGIN_ROOT, 'client.js'))
+        && readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes('renderProjectedSelection(target, input, output, selectionLayer)'),
+      '鼠标选择仅显示一层与富文本投影几何一致的工业黄选区')
     ok('新建会话的 Shikitor 可见输入投影固定使用黑色字形',
       css.ok
-        && /\[data-composer-card\] \.shikitor--attached\s*\{[^}]*--shikitor-fg-color:\s*#111417\s*!important/s.test(css.body)
-        && /\[data-composer-card\] \.shikitor--attached \.shikitor-output-line,[\s\S]*?-webkit-text-fill-color:\s*#111417\s*!important/s.test(css.body)
-        && /\[data-composer-card\] \.shikitor--attached \.shikitor-placeholder\s*\{[^}]*color:\s*#6b7378\s*!important/s.test(css.body),
+        && /\[data-composer-card\] \.shikitor--attached\[data-endfield-input-owner="shikitor"\]\s*\{[^}]*--shikitor-fg-color:\s*#111417\s*!important/s.test(css.body)
+        && /data-dsh-shikitor-source-kind="text"\]:not\(\.dsh-shikitor-token-icon\)[\s\S]*?-webkit-text-fill-color:\s*#111417\s*!important/s.test(css.body)
+        && /\.dsh-shikitor-token-icon\s*\{[^}]*color:\s*transparent\s*!important/s.test(css.body)
+        && /\.shikitor-placeholder\s*\{[^}]*color:\s*#6b7378\s*!important/s.test(css.body),
       '白色 hero composer 中输入为黑色，占位提示保留中灰')
+    ok('技能、命令与富文本引用使用白底专用语义色',
+      css.ok
+        && /\.dsh-shikitor-token-icon > svg\s*\{[^}]*color:\s*#424a4f\s*!important/s.test(css.body)
+        && /\.dsh-shikitor-file-reference, \.dsh-shikitor-session-reference\)[\s\S]*?background:\s*#eceeea\s*!important/s.test(css.body)
+        && !/\.shikitor-output-line \*\s*\{[^}]*color:\s*#111417\s*!important/s.test(css.body),
+      '不再以 output-line * 覆盖图标和标签内部语义')
     ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
       css.ok
         && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
@@ -219,11 +234,13 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.9.1-no-open-unified-release'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.9.2-composer-projection-preview2'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
         && c.includes("faceOf('goal')") && c.includes('ctx.remote.goals.edit')
+        && c.includes("ctx.shikitor.register('sender', endfieldComposerProjectionPlugin)")
+        && c.includes('collectProjectedBoundaries') && c.includes('publishProjectedCaret')
         && !c.includes('JObwrW_root') && !/Math\.sin/.test(c)
     }
     ok('已安装 client.js 含注入逻辑 + 订阅官方 contextPressure 真实数据源（无 DOM 扒取/模拟）', clientOk, clientFile)
