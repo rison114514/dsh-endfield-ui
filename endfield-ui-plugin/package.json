@@ -1,6 +1,6 @@
 {
   "name": "@rison/dsh-endfield-ui",
-  "version": "0.9.2",
+  "version": "1.0.0",
   "description": "Endfield-inspired DSH workbench with sidebar, Shikitor input, and native Goal projection",
   "type": "module",
   "main": "./index.js",

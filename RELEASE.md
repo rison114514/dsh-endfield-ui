@@ -1,148 +1,82 @@
-# DSH 终末地风格工作台 — 发布说明（v0.9.1）
+# DSH 终末地风格工作台 — v1.0.0 正式版
 
-> **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
+> **非官方同人主题（Unofficial fan-made theme）**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-## 这是什么
+`v1.0.0` 是从 `v0.5.0` 标准插件化起，经过完整工作台整合、Vision 兼容与输入框架重构后的首个正式版。
 
-把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。插件是核心交付物；桌面 App 只是可选的运行入口。
+## 发布内容
 
-## 版本
+- 插件：`rison-dsh-endfield-ui-1.0.0.tgz`
+- macOS Apple Silicon 桌面 App：`DSH-Endfield-Workbench-1.0.0-macOS-arm64.zip`
+- Git tag / GitHub Release：`v1.0.0`
+- 目标环境：DSH `0.1.1-rc.2`、Node `>=22.19.0`
+- 精确依赖：`dsh-better-sidebar@0.15.2`、`dsh-shikitor@1.0.2`
 
-- 插件：`@rison/dsh-endfield-ui@0.9.1`
-- 桌面壳：`dsh-endfield-workbench@0.9.1`
-- 仓库 tag / GitHub Release：`v0.9.1`
+## 安装插件
 
-从本版起三者统一使用同一个 SemVer；不再为桌面 App 单独维护 `0.1.x` 编号。
-
-## 兼容的 dsh 版本
-
-- **目标并实测**：`dsh 0.1.1-rc.2`（桌面端使用 `dsh --profile web --host 127.0.0.1 --no-open --port 0`）。
-- 精确锁定 `dsh-better-sidebar@0.15.2` 与 `dsh-shikitor@1.0.2`；不允许使用 `latest`。Node 要求 `>=22.19.0`。
-- 桌面壳要求本机已安装可运行的 `dsh` 命令（0.1.x 系列）。
-
-## 安装与使用（Web 用户，推荐）
+下载 Release 中的 `.tgz` 后执行：
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.1.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz --allow-build=node-pty
 dsh web
 ```
 
-- 升级：`dsh plugin --profile web update @rison/dsh-endfield-ui`
-- 卸载：`dsh plugin --profile web remove @rison/dsh-endfield-ui`（恢复原生前端，用户数据不受影响）
+卸载只移除 Web Profile 中的插件依赖，不删除 Session、模型或用户设置：
 
-安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
+```bash
+dsh plugin --profile web remove @rison/dsh-endfield-ui
+```
 
-## 本次更新（v0.9.1）
+## 1.0.0 主要功能
 
-- **修复桌面端双写入风险**：此前 App 启动 DSH 时没有传入 `--no-open`，新版 DSH 会同时打开默认浏览器 Web UI，使 Electron 与浏览器成为两个前端写入者。
-- 桌面启动参数固定为 `--host 127.0.0.1 --no-open --port 0`：保留 Electron 必需的随机本地后端，不再额外拉起浏览器页面，也不向局域网暴露监听地址。
-- 构建验证新增桌面启动参数门禁；缺少 loopback、`--no-open` 或随机端口中的任一项都会失败。
-- **统一版本管理**：插件、桌面 App、Git tag、GitHub Release 和产物文件名全部使用 `0.9.1`。后续修复使用 `0.9.x`，出现兼容线或完整功能更新时递增次版本号。
-- 延续 v0.9.0 的原生 Vision 兼容、右栏滚动隔离、完整 better-sidebar 工作台与输入可读性修复。
+- 终末地风格开屏、DeepSeek Harness 品牌插图、工业网格、等高线侧栏、旋转仪表圆环和黄灰工业组件。
+- better-sidebar 完整右侧工作台：文件、编辑器、浏览器、终端、Git、任务与子代理；支持折叠和宽度拖拽。
+- Shikitor 输入增强：`@文件`、`#会话`、`$ Skills`、`/命令`补全，以及中央编辑器。
+- DSH 原生 Goal projection 的 `OBJECTIVE` 页面，与 `/goal` 和 GoalBar 共用状态。
+- DSH 官方 Vision 附件链路，可将图片直接交给声明支持图片的 DeepSeek 模型。
+- macOS 桌面壳：自动发现 DSH、自动装载内置插件、单实例、私有随机端口、退出时回收子进程。
+- 可选 GitHub MCP 连接器：远端 Bearer 与本地 stdio + OAuth 两种方式。
 
-## 历史更新（v0.9.0）
+## 重点修复
 
-- **修复视觉模型兼容性**：解决选择 DeepSeek Vision 模型后仍提示“当前模型不支持图片”的问题。
-- 升级到 DSH `0.1.1-rc.2`，使用 `deepseek-official` 原生附件服务和多模态请求链路，不再依赖第三方视觉理解插件。
-- 清理旧 `image-understanding` 活动配置与 rc.6 依赖残留，Vision 模型明确声明 `inputModalities: [text, image]`。
-- 工作台依赖升级为 `dsh-better-sidebar@0.15.2` + `dsh-shikitor@1.0.2`，保留终末地外观、开屏、右侧工作台、Goal 投影与输入修复。
-- 修复右栏滚轮穿透导致整个页面下移错位：锁定页面根滚动，将 better-sidebar portal 固定于视口，并在内部滚动区边界截断滚动链。
-- 真实图片回归通过：`DeepSeek-V4-Flash Vision` 正确识别图标图形、颜色和风格；隔离 Profile 验证 `35/35` 通过。
+- **输入文字、光标与选区统一投影**：彻底修复斜杠命令重影、技能名浅黄、长文本光标上移/左移、软换行漂移，以及鼠标选中后的双层文字。
+- **浅色表面可读性**：修复普通会话、新会话、用户消息、审批、设置与问卷卡片中的白底白字、白底浅灰字和浅黄字。
+- **右栏几何与交互**：修复右栏掉到页面下方、无法折叠/拖拽、App 顶部按钮失效，以及滚动右栏带动整页下移。
+- **开屏黑框与右栏泄漏**：动画期间完整隐藏右栏宿主、fixed 面板与占位尺寸，移除黑色接力擦除层和半透明罩层。
+- **桌面端单写入**：使用 `--host 127.0.0.1 --no-open --port 0`，不再自动打开第二个浏览器前端。
+- **插件归档与依赖完整性**：App 内置真实 `.tgz`，启动前检查 better-sidebar 与 Shikitor，避免 pnpm link 缺少传递依赖。
+- **Vision 误判**：移除旧视觉理解插件残留，改走 DSH 官方多模态路径，解决视觉模型仍拒绝图片的问题。
 
-## 历史更新（v0.8.5）
+## 版本演进
 
-- 修复“等待审批”卡片的浅黄/浅灰文字：标题、提权原因、命令内容与操作按钮在白色卡片上统一使用深色字；样式限定在稳定的 `data-approval-key` 容器内，不影响深色对话区。
-- 修复初始“新会话”输入框仍显示浅灰文字：Shikitor 可见投影固定为深墨色，原生 textarea 背景保持透明，避免白色渐变覆盖投影；占位符维持可读中灰。
-- 保持输入光标为黑色，并保留 `/goal`、`/compact` 等斜杠命令只绘制一层字形的修复。
-- 主题资源地址升级为 `0.8.5` 缓存标记，避免 WebView/Electron 继续复用旧 CSS。
-- 隔离 Profile 的完整安装、资源、依赖锁定和卸载验证扩展至 34 项。
+- `0.5.0`：标准 `dsh.bundle`，一条命令安装并自动生效。
+- `0.6.0`：工业网格、等高线侧栏、黄色命令按钮、真实上下文进度环。
+- `0.7.x`：品牌开屏与浅色界面可读性修复。
+- `0.8.x`：better-sidebar、Shikitor、原生 Goal 完整整合；集中修复布局、开屏和 App 交互。
+- `0.9.0`：官方 Vision 链路与右栏滚动隔离。
+- `0.9.1`：桌面端单写入和统一版本管理。
+- `0.9.2`：输入投影框架与 App 内置插件归档。
+- `1.0.0`：汇总并正式发布以上能力。
 
-## 历史更新（v0.8.4）
+## macOS App 说明
 
-- 新增开屏工作台门禁：动画期间右栏完全离场、主对话保持全宽。
-- 修复桌面 App 自绘标题拖拽区覆盖右栏顶部的问题；加号、收放、底部面板/终端按钮恢复点击，右栏宽度拖拽不再被窗口拖动抢占。
-- 移除右栏 Ardot 纹理层的半透明黑色渐变，改为极低透明度的 screen 提亮混合；开屏期间同步隐藏纹理层。
-- 删除开屏动画延迟出现的 `#080a0b` 黑色全屏擦除层，改为容器跟随黄色擦除前沿裁切，直接露出主界面。
-- 开屏门禁增加 better-sidebar 宿主的内联 `display:none!important` 与 MutationObserver，覆盖插件延迟挂载的时序窗口；释放后触发尺寸重算。
-- 开屏期间将 `--dsh-sidebar-width/height` 临时覆盖为 `0`，防止对话背景按已隐藏右栏的宽度裁空，消除黄色扫屏时的等宽黑色空槽。
-- 针对 better-sidebar 实际渲染的 fixed 面板节点增加第二层门禁，使用内联宽度、定位几何和 `新建标签页` 语义标记识别，不依赖可变哈希类名。
-- 动画结束后释放 better-sidebar 原生滑入与布局过渡，不改写用户保存的展开/折叠状态。
-- `prefers-reduced-motion` 下门禁缩短到 80ms，避免无动画时仍等待 3.65 秒。
+1. 解压 `DSH-Endfield-Workbench-1.0.0-macOS-arm64.zip`。
+2. 本机需已安装可运行的 DSH `0.1.x` 和 Node 22。
+3. 双击 App 后会复用 `~/.dsh` 中的会话、模型和插件配置。
+4. App 只启动一个私有 DSH 服务，不额外打开浏览器页面。
 
-## 视觉动效恢复（v0.8.2）
+当前 App 使用 **ad-hoc 签名**，尚未进行 Apple Developer ID 签名与公证。首次运行可能需要在 Finder 中右键选择“打开”，或在“系统设置 → 隐私与安全性”中确认。Intel x64 构建未做实机验收，本次只发布 Apple Silicon arm64。
 
-- 恢复 0.7.x 对话背景上的 CSS 旋转仪表圆环，并保留 32 秒低速旋转节奏。
-- 圆环随 `--dsh-sidebar-width` 裁切和横向定位，只覆盖对话栏，不进入 better-sidebar。
-- 尊重 `prefers-reduced-motion`，系统关闭动效时圆环保持静态。
+## 已知限制
 
-## 布局修复（v0.8.1）
+- 内嵌浏览器受目标网站 CSP / `X-Frame-Options` 限制时，请使用“在外部浏览器打开”。
+- 终端依赖 `node-pty`，安装命令只为该依赖授权构建；失败时其他工作台页面仍可使用。
+- DSH 大版本升级可能改变 DOM 或插件接口；本版只承诺上述目标版本兼容线。
+- 视觉素材与字体按仓库现有许可说明分发；本项目不主张原游戏商标或官方素材权利。
 
-- 修复终末地适配层覆盖 better-sidebar 面板 `position: fixed`、导致右栏落入页面下方的问题。
-- 恢复上游原生的右栏拖拽宽度、折叠按钮、布局占位与底栏独立开关。
-- 工业纹理只绘制在 `--dsh-sidebar-width` 对应的右侧工作台区域，不再改变上游面板几何结构。
+## SHA-256
 
-## 工作台整合（v0.8.0）
+- `DSH-Endfield-Workbench-1.0.0-macOS-arm64.zip`：`9dbabd1b5711465796a0203464f5a1dac50fc2b685a2be5688f3b36e669d84ba`
+- `rison-dsh-endfield-ui-1.0.0.tgz`：`b0dbb2240159e166a4af7919541ec63cf7334f723313f5fd22e69f3f5eddc080`
 
-- 一条插件安装命令自动挂载 better-sidebar、Shikitor 和终末地适配层。
-- 新增右侧完整工作台：Explorer、快速编辑、浏览器、终端、Git、任务与子代理。
-- Shikitor 提供 `@/#/$//` 补全和中央编辑器，不改写用户外观或自动保存偏好。
-- 新增 `OBJECTIVE` 页面，复用 DSH 原生 Goal projection 与 Remote RPC，不建第二份 Goal 状态。
-- better-sidebar 样式只使用稳定根标记 `[data-dsh-better-sidebar]`，不依赖上游 CSS Module 哈希名。
-
-## 历史更新（v0.7.1）
-
-在 v0.7.0 基础上，仅针对 dsh 的**用户问卷 / 计划确认卡片**（模型轮询页，class 前缀 `Mbwy4a_`）做了可读性修复，并严格限定作用域，不影响 AI 气泡与全局对话区配色：
-
-- **问卷卡片文字改黑（不加粗）**：`.Mbwy4a_card` 内部的前置小标签（eyebrow）、主问句（title）、选项名（optionLabel）统一改为深墨色 `#111417`；选项描述降为可读中灰 `#5d656a`。
-- **选项序号改明黄**：`1/2/3…` 数字使用终末地主色 `#FFF44F`，并配深色圆底 + 明黄描边衬托（浅底上纯明黄不可见，需深色衬托才浮得出来）。
-- **作用域安全**：本次修复**仅命中 `.Mbwy4a_card` 这一个浅色卡片**，使用具体 `color` 属性，未触碰任何 `--dsw-alias-label-*` 全局 token，因此**不会**导致此前「统一治理」误伤的「AI 回答深底深字 / 背景错乱」问题。
-
-## 历史更新（v0.7.0）
-
-基于 v0.6.0 的视觉基线，针对侧栏纹理与输入可读性做了两处修正：
-
-- **侧栏条纹字纹理（`endfield-stripes-texture.svg`）透明化并收窄作用域**：
-  - 素材去掉白底，只保留由均匀同向束状条纹构成的 END FIELD 竖排字母；叠在纸白边栏上只显灰条纹。
-  - 作用域从「整条侧栏铺满」收紧到「会话列表区（工作区卡片下方）」——不透明的 workspace 卡片会自然遮住纹理顶部，使其读作「工作区之下」。
-  - 恢复固定原尺寸 `160×1280`，不再做百分比动态缩放；超出列表高度的部分由容器裁掉（放得下就放下，放不下就算了）。
-- **主输入框文字可读性修复**：对话区主输入框（hero 与非 hero 模式）统一强制深色文字（`#111417`）+ 深色光标 + 灰色占位符（`#6b7378`），解决浅色底 + 浅色字几乎不可见的问题。此前仅 hero 模式被显式覆盖，正常对话模式下占位符/文本会退回 dsh 默认浅色。
-- **Shikitor 合成光标修复**：Shikitor 会主动隐藏 textarea 原生 caret 并绘制 `.shikitor-cursor::after`；该合成光标现在在白色输入区固定为 `#111417`。主题链接增加 `0.8.4-caret-fix` 构建标记，避免 Electron/Chromium 复用旧 CSS。
-- **设置页完整显示修复**：移除左侧栏根节点的 `isolation:isolate`，避免原生 fixed Settings 对话框被困在折叠栏的 56px 区域；左栏装饰纹理仍保留。
-
-## 桌面 App（macOS）
-
-- `DSH-Endfield-Workbench-0.9.1-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
-- 双击启动 → 自动发现 dsh → 装载插件 → 打开窗口；用户数据复用 `~/.dsh`。
-- `0.1.5` 起仅在内置插件版本更新时覆盖安装，禁止旧 App 将用户已安装的新版本降级；`0.1.6` 起首次安装会精确授权 `node-pty` 构建。
-- 无 dsh 时显示引导页，可手动选择 dsh 可执行文件或源码目录。
-- 公开分发需 Developer ID 签名 + 公证（见 `HANDOFF.md` 4.7），当前构建未做。
-
-## 素材与许可证
-
-- 视觉层不修改 dsh 核心源码；用户数据位于 `~/.dsh`。
-- 第三方字体：Harmony（思源/鸿蒙系衍生）、Novecento、Space Grotesk —— 分发时保留各自许可证文件。
-- 图片素材含参考游戏视觉生成的内容与两张用户提供的素材（`chat-grid-bg.jpg` 工业网格背景、`contour-texture.png` 等高线纹理）；**公开发布前需逐项确认授权**：对无法确认授权的官方角色图、Logo、职业图标，应替换为原创或可再分发素材。
-- 全部素材随包分发：`operator-xaihi.png` 实际被旋转圆圈（`.ef-atmosphere-operator`）使用；`workbench-logo.png` 暂未被代码引用，按用户要求保留不清理；`endfield-sidebar-texture.png` 为历史保留版本（字母方向有误），不在 theme.css 使用，但随包保留。
-
-## 已知问题
-
-1. `workbench-logo.png` 在视觉层未引用，仍随包分发（按用户要求保留，未清理）。
-2. 桌面壳 `pack:mac:x64` 仅完成构建练习，尚无 Intel 实机/CI 验证，暂不宣称 x64 可用。
-3. 当前仅 ad-hoc 签名，未做 Developer ID 签名与公证，不能直接对外公开下载。
-4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
-5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
-
-## 验收摘要（实测 35/35 通过）
-
-隔离 `DSH_HOME` 真实使用级校验全部通过：
-
-- `plugin add` 成功，`profiles/web/package.json` 出现依赖；`dsh.profile.bundles` 自动包含 `@rison/dsh-endfield-ui`。
-- `dsh --profile web` **未带 `--patch`** 启动；首屏 200 且含 endfield 字样。
-- `GET /endfield-ui/theme.css` → 200，含终末地标记、网格背景、等高线纹理、圆形进度环与命令按钮样式。
-- 插件 client 入口经首屏 manifest 暴露为带 `rev` 的 `/plugins/@rison/dsh-endfield-ui/client.js` 路由 → 200，且含 `ContextRing` 注入逻辑。
-- better-sidebar 与 Shikitor 的声明版本、实际安装版本均严格匹配 `0.15.2` / `1.0.2`，三层 patch 顺序正确。
-- `OBJECTIVE` 注册、原生 Goal projection 订阅与官方 Goal Remote 调用均进入安装包；页面层另有错误边界，不会拖垮右栏。
-- 全部 19 个运行时与保留素材（含 Ardot 工业网格）均 200 且为图片/字体。
-- 卸载后 profile 中不残留主插件依赖或组合层。
-
-详见 `HANDOFF.md`（目标定义、实施顺序、完成定义）与 `endfield-ui-plugin/README.md`。
+完整功能、历史修复与开发说明见仓库 `README.md`、`endfield-ui-plugin/README.md` 和 `HANDOFF.md`。

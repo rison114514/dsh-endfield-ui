@@ -4,7 +4,7 @@
 
 `@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 工作台插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端使用官方 Theme Token、会话 projection 和公开插件服务构建终末地工业风外观。
 
-0.9.1 面向 **DSH 0.1.1-rc.2** 兼容线：精确集成 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`，保留 0.9.0 的视觉模型原生图片链路、右栏滚动隔离和完整工作台能力。从本版起，插件、桌面 App、仓库 tag 与 GitHub Release 统一使用同一个 SemVer。
+1.0.0 面向 **DSH 0.1.1-rc.2** 兼容线：精确集成 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`，提供视觉模型原生图片链路、右栏滚动隔离、完整工作台，以及统一投影坐标系的输入文字、光标与鼠标选区。插件、桌面 App、仓库 tag 与 GitHub Release 使用同一个 SemVer。
 
 0.6.0 起逐步形成当前视觉基线：右侧对话栏使用低透明度 Ardot 工业网格，白色侧栏加入等高线纹理，输入区「命令」按钮改为柠檬黄，右下角改为读取 dsh 原生 projection 的上下文进度环。
 
@@ -12,26 +12,10 @@
 
 ## 安装（一条命令，自动生效）
 
-需要用户本机已安装 dsh。选择一个发布源：
-
-**1. 从 npm（稳定后推荐）**
+需要用户本机已安装 dsh。从 GitHub Release 下载插件 tarball 后执行：
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
-dsh web
-```
-
-**2. 从 GitHub Release 的 tarball（首个公开测试版推荐）**
-
-```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.1.tgz --allow-build=node-pty
-dsh web
-```
-
-**3. 从 GitHub 仓库固定 tag**
-
-```bash
-dsh plugin --profile web add github:rison114514/dsh-endfield-ui#v0.9.1 --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz --allow-build=node-pty
 dsh web
 ```
 
@@ -46,11 +30,11 @@ dsh plugin --profile web update @rison/dsh-endfield-ui
 # 卸载（恢复 dsh 原生前端，用户数据不受影响）
 dsh plugin --profile web remove @rison/dsh-endfield-ui
 
-# 重新安装
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
+# 重新安装（在 tarball 所在目录执行）
+dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz --allow-build=node-pty
 ```
 
-## 0.9.1 工作台能力
+## 1.0.0 工作台能力
 
 - 右侧 better-sidebar：文件管理、快速编辑、内嵌浏览器、终端、Git、任务与子代理。新会话默认只打开 Explorer，其余页面从 `+` 菜单打开。
 - Shikitor 输入层：`@` 文件、`#` 会话、`$` Skills、`/` 命令补全，及中央工作区编辑器。
@@ -62,7 +46,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
 - 右侧工作台内部列表保持独立滚动，滚到边界后不再把滚轮事件传给整页；页面根容器和工作台 portal 固定在视口内，避免整体下移错位。
 - Electron App 的窗口拖拽标题条会自动避让右侧工作台；页面加号、收放、底部面板/终端及宽度拖拽在 App 中保持可交互。
 - Shikitor 接管输入框后隐藏原生 textarea 字形，`/goal`、`/compact` 等斜杠命令只绘制一层高亮文本，不再出现首行重影。
-- 新会话首页的可见文字由 Shikitor 投影统一绘制为深墨色；其原生 textarea 字形保持透明，不再用白色渐变遮住投影；本地插入光标改回浏览器原生黑色 caret，长文本自动换行或滚动后仍跟随真实输入位置。
+- 新会话首页和普通会话的可见文字由 Shikitor 投影统一绘制为深墨色；原生 textarea 的字形、caret 与 selection 完全透明，投影层负责黑色合成光标和工业黄选区，长文本自动换行、滚动、技能/命令与文件/会话标签均使用同一坐标系。
 - “等待审批”浅色卡片使用稳定的 `data-approval-key` 作用域覆盖深色标题、原因、命令与按钮文字，不改写深色对话区的全局颜色 token。
 
 ### 上游限制
@@ -78,7 +62,7 @@ dsh plugin --profile web add @rison/dsh-endfield-ui@0.9.1 --allow-build=node-pty
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.9.1.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
@@ -102,8 +86,8 @@ dsh --profile web
 | 已有对话 | 用户气泡白底黑字、助手内容可读、代码块正常 |
 | 工作区 | 活动工作区灰黑卡片清晰，文件夹图标不与背景混色 |
 | 设置 | 浅色、深色、跟随系统三种设置均无白底白字，折叠左栏时对话框仍完整显示 |
-| 输入光标 | 白色输入区使用 textarea 原生黑色 caret；长文本自动换行、增高和滚动后位置仍准确，Shikitor 本地合成光标隐藏 |
-| 斜杠命令 | 输入 `/goal`、`/compact` 时只有一层字形，补全弹层和实际输入保持同步 |
+| 输入光标与选区 | 白色输入区使用 Shikitor 黑色合成光标与投影选区；长文本自动换行、增高、滚动、鼠标拖选后位置仍准确且没有重影 |
+| 斜杠命令 | 输入 `/goal`、`/compact` 或长技能名时只有一层字形，补全弹层、投影文字、光标和选区保持同步 |
 | 开屏 | 无人物图；Deepseek Harness 品牌正确；约 3.5 秒退场正常 |
 | 窄窗口 | 980×640 不遮挡输入、侧栏和操作按钮 |
 | 刷新/HMR | 不重复添加 `<link>`，不出现双开屏 |
@@ -119,4 +103,4 @@ dsh --profile web
 
 ## 兼容性
 
-0.9.1 只对 **DSH 0.1.1-rc.2 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 精确锁定 `0.15.2`，`dsh-shikitor` 精确锁定 `1.0.2`，避免 rc.6/rc.8/0.1.1 之间的 peer 依赖遮蔽。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记和公开尺寸变量，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。Vision 模型必须在 `llm-deepseek.models` 中声明 `inputModalities: [text, image]`，由新版 DSH 原生附件服务发送图片。
+1.0.0 只对 **DSH 0.1.1-rc.2 + Node >=22.19.0** 做发布验证。`dsh-better-sidebar` 精确锁定 `0.15.2`，`dsh-shikitor` 精确锁定 `1.0.2`，避免 rc.6/rc.8/0.1.1 之间的 peer 依赖遮蔽。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` 根标记和公开尺寸变量，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。Vision 模型必须在 `llm-deepseek.models` 中声明 `inputModalities: [text, image]`，由新版 DSH 原生附件服务发送图片。

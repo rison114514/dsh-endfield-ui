@@ -4,7 +4,7 @@
 
 轻量桌面壳：后台启动本机 DeepSeek Harness，自动装载随 App 携带的终末地 UI 插件（标准 bundle，无需 `--patch`），并在原生 Electron 窗口中打开。
 
-从 `0.9.1` 起，桌面 App、终末地插件、仓库 tag 和 GitHub Release 使用同一个 SemVer，不再单独维护 App 的 `0.1.x` 版本线。
+从 `0.9.1` 起，桌面 App、终末地插件、仓库 tag 和 GitHub Release 使用同一个 SemVer，不再单独维护 App 的 `0.1.x` 版本线。当前正式版为 `1.0.0`。
 
 ## 运行（开发模式）
 

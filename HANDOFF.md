@@ -1,10 +1,14 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
 > 最后更新：2026-08-24
-> 当前统一版本：`0.9.1`（插件、桌面 App、Git tag、GitHub Release）
+> 当前统一版本：`1.0.0`（插件、桌面 App、Git tag、GitHub Release）
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 0.9.1 单写入桌面端与统一版本交接（当前基线）
+## 1.0.0 正式版交接（当前基线）
+
+1.0.0 汇总 0.5.0 以来的标准插件化、终末地视觉层、better-sidebar、Shikitor、原生 Goal、Vision 图片链路和桌面单写入能力。输入框不再混用原生 textarea 与富文本投影两套可见坐标：textarea 只负责输入、IME 和 selection 数据，Shikitor 投影负责文字、黑色合成光标与工业黄选区。桌面 App 必须携带当前版本 `.tgz` 并检查 better-sidebar / Shikitor 依赖完整性。GitHub Release 只发布 Apple Silicon arm64 的 ad-hoc 签名构建；公开可信分发仍需 Developer ID 与公证。
+
+## 0.9.1 单写入桌面端与统一版本交接（历史基线）
 
 0.9.1 延续 0.9.0 的原生 Vision 兼容与右栏滚动隔离，并修复桌面 App 启动时额外打开默认浏览器的问题。Electron 仍需要本地 DSH 后端，但启动参数必须固定为 `--host 127.0.0.1 --no-open --port 0`，避免默认浏览器成为第二个会话写入者。从本版起插件、桌面 App、Git tag、GitHub Release 和产物文件名统一使用同一个 SemVer。`endfield-ui-plugin/package.json` 精确依赖 `dsh-better-sidebar@0.15.2` 和 `dsh-shikitor@1.0.2`。
 

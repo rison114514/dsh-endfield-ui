@@ -933,7 +933,7 @@ window.__ModuleLoader__.load({
         // Keep the stylesheet URL release-addressable.  Electron/Chromium can
         // otherwise retain an older theme.css across local same-version
         // rebuilds, making visual hotfixes appear to have no effect.
-        link.href = '/endfield-ui/theme.css?v=0.9.2-composer-projection-preview2'
+        link.href = '/endfield-ui/theme.css?v=1.0.0'
         link.dataset.plugin = '@rison/dsh-endfield-ui'
         document.head.appendChild(link)
         return () => { link.remove() }
