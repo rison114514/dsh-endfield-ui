@@ -510,14 +510,15 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   -webkit-text-fill-color: #6b7378 !important;
 }
 
-/* Once Shikitor attaches, its textarea is only the invisible keyboard/input
-   surface. The highlighted projection above it owns all visible glyphs.
-   Keeping our generic white-composer ink override on that hidden textarea
-   makes slash commands paint twice (`/goal`, `/compact`, ...), producing the
-   folded first-line ghost seen when completion activates. */
-textarea.shikitor-input--attached {
+/* Once Shikitor attaches, its textarea is the invisible keyboard/input
+   surface. The highlighted projection above it owns all visible glyphs, while
+   the native caret remains visible so long wrapped or scrolling prompts always
+   follow the textarea's real selection instead of a separately measured point.
+   Keeping the glyph color transparent still prevents `/goal`, `/compact`, ...
+   from being painted twice when completion activates. */
+[data-slot="conversation"] textarea.shikitor-input--attached {
   color: transparent !important;
-  caret-color: transparent !important;
+  caret-color: #111417 !important;
   -webkit-text-fill-color: transparent !important;
   background: transparent !important;
 }
@@ -1714,15 +1715,19 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   box-shadow: 8px 8px 0 rgba(0,0,0,.32), 0 0 0 1px rgba(255,244,79,.06) !important;
 }
 
-/* Shikitor intentionally makes the native textarea caret transparent and
-   paints its own cursor in `.shikitor-cursor::after`.  On the paper-white
-   composer that synthetic caret must stay dark, independent of the global
-   dark UI tokens and the user's syntax theme. */
+/* Keep non-local/remote Shikitor cursors on the Endfield ink color, but hide
+   only the first (local) synthetic cursor. The browser-native textarea caret
+   above is the authoritative local cursor and remains accurate after soft
+   wrapping, auto-growth, and internal scrolling. */
 .shikitor--attached {
   --shikitor-caret-color: #111417 !important;
 }
 
-.shikitor--attached .shikitor-cursor::after {
+.shikitor--attached .shikitor-cursors > .shikitor-cursor:first-child::after {
+  display: none !important;
+}
+
+.shikitor--attached .shikitor-cursors > .shikitor-cursor:not(:first-child)::after {
   background-color: #111417 !important;
 }
 

@@ -176,11 +176,12 @@ async function main() {
         && !/\[data-slot="sidebar"\]\s*>\s*div\s*\{[^}]*isolation:\s*isolate/s.test(css.body)
         && /\[data-slot="sidebar"\]\s*>\s*div::after\s*\{[^}]*z-index:\s*0/s.test(css.body),
       '避免 fixed Settings dialog 被困在 56px sidebarCol 中')
-    ok('Shikitor 合成输入光标在白色输入区固定为黑色',
+    ok('Shikitor 本地输入使用原生黑色光标，长文本位置不再依赖合成坐标',
       css.ok
-        && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*#111417\s*!important/s.test(css.body)
-        && /\.shikitor--attached \.shikitor-cursor::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
-      '原生 textarea caret 透明时，覆盖 Shikitor 绘制的闪烁光标')
+        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*#111417\s*!important/s.test(css.body)
+        && /\.shikitor--attached \.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*display:\s*none\s*!important/s.test(css.body)
+        && /\.shikitor--attached \.shikitor-cursors > \.shikitor-cursor:not\(:first-child\)::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
+      '原生 caret 跟随真实 selection；仅隐藏本地合成光标，保留远端光标')
     ok('新建会话的 Shikitor 可见输入投影固定使用黑色字形',
       css.ok
         && /\[data-composer-card\] \.shikitor--attached\s*\{[^}]*--shikitor-fg-color:\s*#111417\s*!important/s.test(css.body)
@@ -189,7 +190,7 @@ async function main() {
       '白色 hero composer 中输入为黑色，占位提示保留中灰')
     ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
       css.ok
-        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
+        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
         && /body:has\(textarea\[placeholder="描述你想要构建的内容"\]\) textarea\[placeholder="描述你想要构建的内容"\]:not\(\.shikitor-input--attached\)/.test(css.body)
         && /\[data-slot="conversation"\] textarea:not\(\.shikitor-input--attached\)/.test(css.body),
       '避免 /goal、/compact 双字形，并防止 hero textarea 白色渐变遮住 Shikitor 黑字')
@@ -210,7 +211,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.5'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.5-native-caret-fix3'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
