@@ -1,4 +1,4 @@
-# DSH 终末地风格工作台 — 发布说明（v0.8.4）
+# DSH 终末地风格工作台 — 发布说明（v0.8.5）
 
 > **非官方同人主题（Unofficial fan-made theme）**：本插件与游戏开发商及 DeepSeek 官方均无关联，不暗示任何合作或授权。
 
@@ -8,8 +8,8 @@
 
 ## 版本
 
-- 插件：`@rison/dsh-endfield-ui@0.8.4`
-- 桌面壳：`dsh-endfield-workbench@0.1.10`
+- 插件：`@rison/dsh-endfield-ui@0.8.5`
+- 桌面壳：`dsh-endfield-workbench@0.1.11`
 
 ## 兼容的 dsh 版本
 
@@ -20,7 +20,7 @@
 ## 安装与使用（Web 用户，推荐）
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.4.tgz --allow-build=node-pty   # 或 npm / GitHub tag
+dsh plugin --profile web add ./rison-dsh-endfield-ui-0.8.5.tgz --allow-build=node-pty   # 或 npm / GitHub tag
 dsh web
 ```
 
@@ -29,7 +29,15 @@ dsh web
 
 安装后普通 `dsh web` 即自动加载终末地风格，无需复制 CSS、改 `~/.dsh` 或追加 `--patch`。
 
-## 本次更新（v0.8.4）
+## 本次更新（v0.8.5）
+
+- 修复“等待审批”卡片的浅黄/浅灰文字：标题、提权原因、命令内容与操作按钮在白色卡片上统一使用深色字；样式限定在稳定的 `data-approval-key` 容器内，不影响深色对话区。
+- 修复初始“新会话”输入框仍显示浅灰文字：Shikitor 可见投影固定为深墨色，原生 textarea 背景保持透明，避免白色渐变覆盖投影；占位符维持可读中灰。
+- 保持输入光标为黑色，并保留 `/goal`、`/compact` 等斜杠命令只绘制一层字形的修复。
+- 主题资源地址升级为 `0.8.5` 缓存标记，避免 WebView/Electron 继续复用旧 CSS。
+- 隔离 Profile 的完整安装、资源、依赖锁定和卸载验证扩展至 34 项。
+
+## 历史更新（v0.8.4）
 
 - 新增开屏工作台门禁：动画期间右栏完全离场、主对话保持全宽。
 - 修复桌面 App 自绘标题拖拽区覆盖右栏顶部的问题；加号、收放、底部面板/终端按钮恢复点击，右栏宽度拖拽不再被窗口拖动抢占。
@@ -83,7 +91,7 @@ dsh web
 
 ## 桌面 App（macOS）
 
-- `DSH 终末地工作台-darwin-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
+- `DSH-Endfield-Workbench-0.1.11-macOS-arm64.zip`（ad-hoc 签名，仅本人/受信 Mac 自用）。
 - 双击启动 → 自动发现 dsh → 装载插件 → 打开窗口；用户数据复用 `~/.dsh`。
 - `0.1.5` 起仅在内置插件版本更新时覆盖安装，禁止旧 App 将用户已安装的新版本降级；`0.1.6` 起首次安装会精确授权 `node-pty` 构建。
 - 无 dsh 时显示引导页，可手动选择 dsh 可执行文件或源码目录。
@@ -104,7 +112,7 @@ dsh web
 4. dsh 大版本升级可能需同步维护 CSS 特征选择器；升级 dsh 后若主题异常，先卸载插件确认原生页面正常。
 5. 桌面壳首次启动安装插件最多等待 120 秒；若超时请检查 dsh 版本与网络。
 
-## 验收摘要（实测 31/31 通过）
+## 验收摘要（实测 34/34 通过）
 
 隔离 `DSH_HOME` 真实使用级校验全部通过：
 

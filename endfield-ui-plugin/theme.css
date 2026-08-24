@@ -465,7 +465,7 @@ textarea[placeholder="描述你想要构建的内容"]:focus {
   box-shadow: none !important;
 }
 
-body:has(textarea[placeholder="描述你想要构建的内容"]) textarea[placeholder="描述你想要构建的内容"] {
+body:has(textarea[placeholder="描述你想要构建的内容"]) textarea[placeholder="描述你想要构建的内容"]:not(.shikitor-input--attached) {
   background: linear-gradient(110deg, rgba(255,255,255,.98), rgba(247,247,242,.92)) !important;
 }
 
@@ -519,11 +519,72 @@ textarea.shikitor-input--attached {
   color: transparent !important;
   caret-color: transparent !important;
   -webkit-text-fill-color: transparent !important;
+  background: transparent !important;
 }
 
 textarea.shikitor-input--attached::placeholder {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
+}
+
+/* In a brand-new session Shikitor, not the textarea, paints the visible input
+   glyphs. Keep that projection paper-dark even when a saved syntax scheme or
+   the hero composer's light-on-dark tokens would otherwise wash it to grey. */
+[data-composer-card] .shikitor--attached {
+  --shikitor-fg-color: #111417 !important;
+  --shikitor-native-fg-color: #111417 !important;
+  color: #111417 !important;
+}
+
+[data-composer-card] .shikitor--attached .shikitor-output-line,
+[data-composer-card] .shikitor--attached .shikitor-output-line * {
+  color: #111417 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #111417 !important;
+  text-shadow: none !important;
+}
+
+[data-composer-card] .shikitor--attached .shikitor-placeholder {
+  color: #6b7378 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #6b7378 !important;
+}
+
+/* Approval composer takeover uses a paper-white card while the Endfield
+   conversation shell exports light-on-dark label tokens. Scope a dark ink
+   palette to the component's stable request key so the warning title, reason,
+   shell command, and actions remain readable without changing dark chat rows. */
+[data-approval-key] > div {
+  color: #111417 !important;
+  --dsw-alias-label-primary: #111417;
+  --dsw-alias-label-primary-dimmed: #33383c;
+  --dsw-alias-label-secondary: #41484d;
+  --dsw-alias-label-tertiary: #5d656a;
+  --dsw-alias-label-caption: #687177;
+}
+
+[data-approval-key] > div > div:first-child {
+  color: #302a00 !important;
+}
+
+[data-approval-key] > div > div:first-child > span:first-child {
+  background: #302a00 !important;
+}
+
+[data-approval-key] [data-approval-scroll],
+[data-approval-key] [data-approval-scroll] > * {
+  color: #111417 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+[data-approval-key] [data-approval-scroll] > :last-child:not(:first-child) {
+  color: #4d555b !important;
+}
+
+[data-approval-key] button {
+  color: #111417 !important;
+  -webkit-text-fill-color: #111417 !important;
 }
 
 /* 用户问卷 / 计划确认卡片（模型轮询页，class 前缀 Mbwy4a_）。

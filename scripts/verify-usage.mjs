@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.4.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-0.8.5.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.4.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-0.8.5.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -181,11 +181,24 @@ async function main() {
         && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*#111417\s*!important/s.test(css.body)
         && /\.shikitor--attached \.shikitor-cursor::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body),
       '原生 textarea caret 透明时，覆盖 Shikitor 绘制的闪烁光标')
+    ok('新建会话的 Shikitor 可见输入投影固定使用黑色字形',
+      css.ok
+        && /\[data-composer-card\] \.shikitor--attached\s*\{[^}]*--shikitor-fg-color:\s*#111417\s*!important/s.test(css.body)
+        && /\[data-composer-card\] \.shikitor--attached \.shikitor-output-line,[\s\S]*?-webkit-text-fill-color:\s*#111417\s*!important/s.test(css.body)
+        && /\[data-composer-card\] \.shikitor--attached \.shikitor-placeholder\s*\{[^}]*color:\s*#6b7378\s*!important/s.test(css.body),
+      '白色 hero composer 中输入为黑色，占位提示保留中灰')
     ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
       css.ok
-        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important/s.test(css.body)
+        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
+        && /body:has\(textarea\[placeholder="描述你想要构建的内容"\]\) textarea\[placeholder="描述你想要构建的内容"\]:not\(\.shikitor-input--attached\)/.test(css.body)
         && /\[data-slot="conversation"\] textarea:not\(\.shikitor-input--attached\)/.test(css.body),
-      '避免 /goal、/compact 激活投影时原生字形与高亮字形重叠')
+      '避免 /goal、/compact 双字形，并防止 hero textarea 白色渐变遮住 Shikitor 黑字')
+    ok('等待审批浅色卡片使用深色标题、原因、命令与按钮文字',
+      css.ok
+        && /\[data-approval-key\] > div\s*\{[^}]*--dsw-alias-label-primary:\s*#111417/s.test(css.body)
+        && /\[data-approval-key\] \[data-approval-scroll\],[\s\S]*?color:\s*#111417\s*!important/s.test(css.body)
+        && /\[data-approval-key\] button\s*\{[^}]*color:\s*#111417\s*!important/s.test(css.body),
+      '审批卡片以 data-approval-key 稳定锚点隔离，不修改对话区全局 token')
 
     // 8. 插件 client 入口经包名路由暴露
     const clientRoute = await get(`${url}/@rison/dsh-endfield-ui/client.js`)
@@ -197,7 +210,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.4-slash-fix'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=0.8.5'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")

@@ -2,9 +2,15 @@
 
 > **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本为 `0.8.4`，桌面 App 版本为 `0.1.10`；插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
+这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。当前插件版本为 `0.8.5`，桌面 App 版本为 `0.1.11`；插件已声明标准 `dsh.bundle`，可用一条命令安装并自动生效。
 
-## v0.8.4 更新与修复
+## v0.8.5 更新与修复
+
+- 修复“等待审批”白色卡片中的浅色文字，标题、原因、命令与按钮统一改为深色，并严格限制在审批组件作用域内。
+- 修复初始“新会话”输入区文字仍为浅灰的问题；Shikitor 的可见输入投影改为深墨色，原生输入层保持透明，黑色光标和中灰占位符继续保留。
+- 保留 `/goal`、`/compact` 等斜杠命令的单层绘制修复，并更新主题缓存标记，确保 Web 与 App 加载本次样式。
+
+### v0.8.4 完整工作台更新
 
 - 整合 `dsh-better-sidebar@0.12.3` 与 `dsh-shikitor@1.0.2`：右侧工作台包含 Explorer、编辑器、浏览器、终端、Git、任务与子代理页面，输入框支持 `@/#/$//` 补全。
 - 接入 DSH 原生 Goal projection 的 `OBJECTIVE` 页面，与 `/goal` 和 GoalBar 共用同一份状态。
@@ -32,7 +38,7 @@
 ## 方式一：只装插件（推荐 Web 用户）
 
 ```bash
-dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.4 --allow-build=node-pty
+dsh plugin --profile web add @rison/dsh-endfield-ui@0.8.5 --allow-build=node-pty
 dsh web
 ```
 
@@ -51,11 +57,11 @@ npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签�
 
 桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**），含单实例锁、30s 启动超时与「复制诊断信息」、退出/崩溃可靠回收子进程。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.1.10`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`0.1.11`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
 
 ## 开发状态
 
-- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `32/32` 通过。✅
-- **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.10`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证，`dist:mac:local` 5/5 通过。✅
+- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `34/34` 通过。✅
+- **阶段 2（桌面壳消费标准插件）**：当前 App `0.1.11`，完成 dsh 自动发现、开屏门禁、桌面按钮命中区修复、ad-hoc 签名与验证，`dist:mac:local` 5/5 通过。✅
 - 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
 - 详见 `HANDOFF.md`。
