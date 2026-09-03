@@ -1,5 +1,6 @@
 desktop-app/node_modules/
 desktop-app/release/
+desktop-app/.build-resources/
 .DS_Store
 .qa-artifacts/
 rison-dsh-endfield-ui-*.tgz

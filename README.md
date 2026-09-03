@@ -1,90 +1,60 @@
 # DSH × 终末地风格工作台
 
-> **非官方同人主题**：与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
+> **非官方同人主题**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-![DSH 终末地风格工作台 1.0.0](./cover/dsh-endfield-workbench-readme-banner-5x2.png)
+![DSH 终末地风格工作台 1.0.1](./cover/dsh-endfield-workbench-readme-banner-5x2.png)
 
-这个项目把终末地工业风视觉系统封装为 DeepSeek Harness 的独立 Cordis 插件，并提供可选的 Electron 桌面壳。`1.0.0` 是从 `0.5.0` 标准插件化开始、经过完整工作台整合与多轮稳定性修复后的首个正式版。插件、桌面 App、Git tag 与 GitHub Release 使用同一个 SemVer。
+为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 制作的终末地工业风界面插件，同时提供 Windows 和 macOS 桌面端。插件通过 DSH 标准 Cordis Bundle 加载，不修改 DSH 核心文件。
 
-## 1.0.0 正式版亮点
+## 主要功能
 
-- **一条命令安装并自动生效**：标准 `dsh.bundle` + Cordis Patch，不修改 DSH 核心文件，不要求手工复制 CSS，也不需要追加 `--patch`。
-- **终末地完整视觉层**：DeepSeek Harness 品牌开屏、黄色扫屏动画、暗色工业网格、左栏等高线纹理、低透明度旋转仪表圆环、黄灰工业边框、状态标签与灰黑选中卡片。
-- **完整右侧工作台**：集成 `dsh-better-sidebar@0.15.2`，包含 Explorer、快速编辑、内嵌浏览器、终端、Git、任务与子代理页面；支持折叠和自由拖拽宽度。
-- **增强输入与编辑**：集成 `dsh-shikitor@1.0.2`，支持 `@文件`、`#会话`、`$ Skills`、`/命令`补全，以及右栏快速编辑与中央深度编辑双入口。
-- **原生 Goal 工作台**：`OBJECTIVE` 直接订阅 DSH 原生 Goal projection，与 `/goal` 和 GoalBar 共用同一份状态，支持编辑、暂停、恢复和清除，不建立第二套 Goal Store。
-- **视觉模型原生兼容**：基于 DSH `0.1.1-rc.2` 的官方附件链路向 DeepSeek Vision 模型发送图片，不再依赖旧视觉理解插件。
-- **独立桌面 App**：macOS arm64 Electron 壳自动发现本机 DSH、装载内置插件、启动私有随机端口，并以单实例方式运行。
-- **可选 GitHub 连接器**：仓库同时提供远端 Bearer 与本地 stdio + OAuth 两种 GitHub MCP 连接方式。
+- 终末地风格开屏、工业网格、等高线侧栏与黄灰组件。
+- better-sidebar 右侧工作台：文件、编辑器、浏览器、终端、Git、任务和子代理。
+- `OBJECTIVE` 直接使用 DSH 原生 Goal，与 `/goal` 和 GoalBar 同步。
+- 兼容 DSH 官方 Vision 附件链路，适配三种外观模式。
+- 桌面端支持环境诊断、可选一键配置、单实例和私有本地服务。
 
-## 1.0.0 重点错误修正
+## 安装插件
 
-- **输入框重影与光标漂移**：原生 `textarea` 只保留输入、IME 与 selection 数据；可见文字、黑色光标和鼠标选区统一由 Shikitor 投影层绘制。修复 `/goal`、`/compact`、长技能名、`@文件`、`#会话`、中英文混排、多行软换行和内部滚动中的重复字形、光标上移/左移与选区重影。
-- **浅色界面可读性**：修复普通会话、新会话首页、用户消息、等待审批、设置页、问卷/计划确认卡片中的白底白字、白底浅灰字和浅黄色文字；技能名、命令图标、光标和占位符均使用明确的浅色表面配色。
-- **右栏布局与滚动**：修复适配层覆盖上游 `position: fixed` 导致右栏掉到页面下方；恢复折叠、拖拽与顶部按钮交互，并阻断右栏滚动穿透导致整页下移错位。
-- **开屏期间右栏泄漏**：动画期间同时门禁 better-sidebar 宿主、fixed 面板和布局变量，清除黄色扫屏右侧的黑色矩形、半透明罩层和纹理残影；动画结束后恢复用户保存的展开状态。
-- **桌面端按钮失效**：标题栏拖拽区域主动避让右侧工作台，修复加号、缩放/折叠、终端和宽度拖拽在 App 中无法点击的问题。
-- **桌面端双写入**：启动参数固定为 `--host 127.0.0.1 --no-open --port 0`，不再额外打开浏览器 Web UI，避免 Electron 与浏览器同时写入同一会话。
-- **插件打包缺依赖**：App 内置可安装的插件 `.tgz`，并校验 better-sidebar 与 Shikitor 的实际安装版本，避免 pnpm 源码链接未物化传递依赖而导致启动失败。
-- **视觉模型误拒绝图片**：移除旧 `image-understanding` 适配残留，改走 DSH 官方多模态链路，解决 Vision 模型仍提示“当前模型不支持图片”。
-- **会话数据安全**：插件卸载与升级只作用于 Web Profile 的插件依赖，不清理 `~/.dsh` 中的 Session、模型或用户设置；桌面壳退出时可靠回收它启动的唯一 DSH 子进程。
-
-## 结构
-
-- `endfield-ui-plugin/`：双端 dsh 插件。**核心交付物**。Host 端提供素材，Client 端加载视觉外壳。
-- `github-connector/`：按插件形式安装的 **GitHub 连接器（远端 + Bearer）**。纯 Patch 层，自动生效。
-- `github-connector-local/`：**GitHub 连接器（本地 stdio + OAuth）** —— 无需 PAT，服务器自己走 OAuth，体验更接近 WorkBuddy/Codex。纯 Patch 层。
-- `desktop-app/`：Electron 桌面入口（可选）。自动启动本地 dsh、装载插件并打开窗口。
-- `cover/`：封面图素材。
-- `dsh-packaged-final.jpg` / `dsh-settings-final.jpg`：界面预览。
-
-## 方式一：只装插件（推荐 Web 用户）
+目标环境：DSH `0.1.2-alpha.5`、Node.js `>=22.19.0`。
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.0.tgz --allow-build=node-pty
+dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.1.tgz --allow-build=node-pty
 dsh web
 ```
 
-安装后普通 `dsh web` 自动加载终末地风格，无需手动复制 CSS、改 `~/.dsh` 或追加 `--patch`。
-升级 / 卸载：`dsh plugin --profile web update|remove @rison/dsh-endfield-ui`。
-详见 `endfield-ui-plugin/README.md`。
+安装后普通启动 `dsh web` 即可自动加载主题，无需手动复制 CSS 或追加 `--patch`。
 
-## 方式二：桌面 App（喜欢原生窗口的用户）
+卸载插件：
 
 ```bash
-cd desktop-app
-npm install
-npm run pack:mac        # 构建 darwin-arm64 .app
-npm run dist:mac:local  # 语法检查 + npm pack 校验 + 打包 + ad-hoc 签名 + 校验
+dsh plugin --profile web remove @rison/dsh-endfield-ui
 ```
 
-桌面壳已改为消费标准插件：自动发现 `dsh`（`DSH_BIN`→用户选择→常见目录→`PATH`），未发现时显示终末地风格引导页（可选 dsh 可执行文件 / 源码目录），以标准 bundle 启动（**不再传 `--patch`**）；通过 `--no-open` 禁止额外打开浏览器，并保留单实例锁、30s 启动超时、「复制诊断信息」及退出/崩溃可靠回收子进程。
+卸载只会移除 Web Profile 的插件依赖，不删除 `.dsh` 中的会话、模型或用户设置。
 
-打包产物：`desktop-app/release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`（`1.0.0`，ad-hoc 签名，适用于 Apple Silicon Mac 本地使用）。
+## 桌面端
 
-## 方式三：GitHub 连接器（插件形式安装）
+- **Windows x64**：`DSH-Endfield-Workbench-Setup-1.0.1-x64.exe` 或需完整解压的 `DSH-Endfield-Workbench-Portable-1.0.1-x64.zip`。
+- **macOS Apple Silicon**：`DSH-Endfield-Workbench-1.0.1-macOS-arm64.zip`（ad-hoc 签名）。
 
-**偏好本地 stdio + OAuth（无需 PAT，推荐）**：
+桌面端需要本机已安装 Node.js。首次启动会检测 Node、npm、pnpm、DSH 和终末地插件；检测到 Node 后，可由用户确认自动安装推荐版本的 DSH 与 pnpm。
 
-```bash
-brew install github-mcp-server
-dsh plugin --profile web add @rison/dsh-connector-github-local
-dsh web        # 首次会自动弹浏览器做 GitHub OAuth 授权
-```
+桌面端会复用现有 `.dsh` 数据，不会迁移或清理会话。启动参数固定包含 `--no-open`，不会额外打开浏览器前端。
 
-**或远端服务器 + Bearer token**：
+## 1.0.1 更新
 
-```bash
-dsh plugin --profile web add @rison/dsh-connector-github
-export GITHUB_TOKEN="github_pat_..."
-dsh web
-```
+- 适配 DSH `0.1.2-alpha.5` 和 better-sidebar `0.18.0-alpha.0`，增加 Windows/macOS 首次启动诊断。
+- 新增 Windows Setup.exe 与便携 ZIP，并修复 DSH 0.1.2 桌面鉴权。
+- 修复长文本、换行、斜杠命令和鼠标选区中的重影、卡顿与光标偏移。
+- 修复右栏布局与交互、开屏黑框，并完善输入框、审批页和设置页的可读性。
+- 移除旧视觉插件残留，恢复 DSH 官方附件链路；桌面包仅携带当前插件归档。
 
-两者安装后普通 `dsh web` 即自动挂上 GitHub 工具（`mcp__github__*`）。差异与 caveat 见各连接器 `README.md`（本地 OAuth 的 token 只在服务器进程内存、dsh 重启需重新授权）。验证：`node scripts/smoke-connector.mjs <dir>`（隔离 DSH_HOME，8/8 通过）。
+## 已知限制
 
-## 开发状态
+- 内嵌浏览器仍受目标网站 CSP 和 `X-Frame-Options` 限制。
+- better-sidebar 终端依赖 `node-pty`；构建失败时，其他工作台页面仍可使用。
+- `dsh-shikitor@1.0.2` 的浏览器模块尚未完全适配 DSH 0.1.2，当前输入补全优先使用 DSH 原生能力。
+- 桌面测试包尚未进行正式商业代码签名。
 
-- **阶段 1（标准整合插件）**：`dsh.bundle.patch` 已声明，better-sidebar、Shikitor、Goal projection 与终末地适配层已整合，隔离 Profile 验证 `37/37` 通过。✅
-- **阶段 2（桌面壳消费标准插件）**：当前 App 与内置插件统一为 `1.0.0`，完成 dsh 自动发现、浏览器禁开、开屏门禁、桌面按钮命中区修复、输入投影修复、ad-hoc 签名与验证。✅
-- 发布说明见 `RELEASE.md`；素材许可证与已知问题见该文件。
-- 详见 `HANDOFF.md`。
+更完整的技术与维护说明见 [`HANDOFF.md`](./HANDOFF.md)，发布清单见 [`RELEASE.md`](./RELEASE.md)。

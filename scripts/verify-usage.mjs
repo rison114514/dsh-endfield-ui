@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.0.0.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.0.1.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.0.0.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.0.1.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
@@ -40,20 +40,24 @@ const ok = (name, cond, detail = '') => {
 }
 
 function runDsh(args, env) {
-  const r = spawnSync(DSH_BIN, args, { env, encoding: 'utf8', timeout: 60000, killSignal: 'SIGTERM' })
+  // A clean DSH 0.1.2 profile performs supply-chain checks and may need more
+  // than one minute before pnpm materializes native dependencies.
+  const r = spawnSync(DSH_BIN, args, { env, encoding: 'utf8', timeout: 180000, killSignal: 'SIGTERM' })
   return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '' }
 }
 
 function startServer(env) {
   return new Promise((resolve) => {
-    const child = spawn(DSH_BIN, ['--profile', 'web', '--port', '0'], { env, stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawn(DSH_BIN, ['--profile', 'web', '--no-open', '--port', '0'], { env, stdio: ['ignore', 'pipe', 'pipe'] })
     let buf = ''
     let settled = false
-    const finish = (url, stderr) => { if (!settled) { settled = true; resolve({ url, child, stderr }) } }
+    const finish = (url, stderr, authenticatedUrl = null) => {
+      if (!settled) { settled = true; resolve({ url, authenticatedUrl, child, stderr }) }
+    }
     const onData = (chunk) => {
       buf += chunk.toString()
-      const m = buf.match(/http:\/\/127\.0\.0\.1:(\d+)/)
-      if (m) finish(`http://127.0.0.1:${m[1]}`, '')
+      const m = buf.match(/dsh web:\s+(http:\/\/127\.0\.0\.1:(\d+)\/[^\s]*)/)
+      if (m) finish(`http://127.0.0.1:${m[2]}`, '', m[1])
     }
     child.stdout.on('data', onData)
     child.stderr.on('data', onData)
@@ -62,14 +66,28 @@ function startServer(env) {
   })
 }
 
-async function get(url) {
+async function get(url, cookie = '') {
   try {
-    const res = await fetch(url, { method: 'GET' })
+    const res = await fetch(url, { method: 'GET', headers: cookie ? { cookie } : undefined })
     const text = await res.text()
     return { status: res.status, ct: res.headers.get('content-type') || '', body: text, ok: res.ok }
   } catch (e) {
     return { status: -1, ct: '', body: '', ok: false, error: String(e) }
   }
+}
+
+async function exchangeWebToken(authenticatedUrl, cleanUrl) {
+  if (!authenticatedUrl) return { page: await get(cleanUrl), cookie: '' }
+  const handoff = await fetch(authenticatedUrl, { redirect: 'manual' })
+  if (handoff.status === 200) {
+    return {
+      page: { status: 200, ct: handoff.headers.get('content-type') || '', body: await handoff.text(), ok: true },
+      cookie: '',
+    }
+  }
+  const cookie = (handoff.headers.get('set-cookie') || '').split(';', 1)[0]
+  const destination = new URL(handoff.headers.get('location') || '/', authenticatedUrl).href
+  return { page: await get(destination, cookie), cookie }
 }
 
 async function main() {
@@ -100,11 +118,11 @@ async function main() {
   ok('插件 package.json：dsh.client.immediately = true', pluginPkg.dsh?.client?.immediately === true, JSON.stringify(pluginPkg.dsh?.client))
   ok('插件 package.json：dsh.client.inject 非空', Array.isArray(pluginPkg.dsh?.client?.inject) && pluginPkg.dsh.client.inject.length > 0, JSON.stringify(pluginPkg.dsh?.client?.inject))
   ok('插件 package.json：dsh.bundle.patch = ./cordis.patch.yml', pluginPkg.dsh?.bundle?.patch === './cordis.patch.yml', String(pluginPkg.dsh?.bundle?.patch))
-  ok('better-sidebar 精确锁定 0.15.2', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.15.2', JSON.stringify(pluginPkg.dependencies))
+  ok('better-sidebar 精确锁定 0.18.0-alpha.0', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.18.0-alpha.0', JSON.stringify(pluginPkg.dependencies))
   ok('dsh-shikitor 精确锁定 1.0.2', pluginPkg.dependencies?.['dsh-shikitor'] === '1.0.2', JSON.stringify(pluginPkg.dependencies))
 
   const pluginRequire = createRequire(pluginPkgPath)
-  for (const [name, expected] of [['dsh-better-sidebar', '0.15.2'], ['dsh-shikitor', '1.0.2']]) {
+  for (const [name, expected] of [['dsh-better-sidebar', '0.18.0-alpha.0'], ['dsh-shikitor', '1.0.2']]) {
     let actual = null
     try {
       actual = JSON.parse(readFileSync(pluginRequire.resolve(`${name}/package.json`), 'utf8')).version
@@ -126,12 +144,12 @@ async function main() {
   ok('cordis.patch.yml 按 better-sidebar → Shikitor → Endfield 顺序注册', patchOk, patchOk ? patchPath : 'missing/order mismatch')
 
   // 5. 启动
-  const { url, child, stderr } = await startServer(env)
+  const { url, authenticatedUrl, child, stderr } = await startServer(env)
   ok('dsh --profile web 启动（无 --patch）', !!url, url ? url : stderr.trim().split('\n').slice(-5).join(' '))
 
   if (url) {
     // 6. 首屏
-    const idx = await get(`${url}/`)
+    const { page: idx, cookie } = await exchangeWebToken(authenticatedUrl, `${url}/`)
     ok('GET / → 200 且为 html', idx.status === 200 && /html/.test(idx.ct), `status=${idx.status} ct=${idx.ct}`)
     ok('首屏 HTML 含 endfield 字样（bundle 已激活）', /endfield/i.test(idx.body), `len=${idx.body.length}`)
 
@@ -148,7 +166,8 @@ async function main() {
       css.ok
         && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*mix-blend-mode:\s*screen/s.test(css.body)
         && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*opacity:\s*\.1/s.test(css.body)
-        && /body\[data-endfield-booting\] \[data-dsh-better-sidebar\]\s*\{[^}]*visibility:\s*hidden\s*!important/s.test(css.body)
+        && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar],')
+        && /body\[data-endfield-booting\] \[data-dsh-panel-host\]\s*\{[^}]*visibility:\s*hidden\s*!important/s.test(css.body)
         && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar]::before')
         && !/\[data-dsh-better-sidebar\]::before\s*\{[^}]*linear-gradient/s.test(css.body),
       '仅保留低透明度提亮网格，开屏期间完整 portal host 不参与绘制')
@@ -156,7 +175,7 @@ async function main() {
       css.ok
         && css.body.includes('width: var(--dsh-sidebar-width, 0px)')
         && !/\[data-dsh-better-sidebar\]\s*>\s*\*\s*\{[^}]*position\s*:/s.test(css.body),
-      '右栏几何结构完全交还 better-sidebar 0.15.2')
+      '右栏几何结构完全交还 better-sidebar 0.18.0-alpha.0')
     ok('右栏滚动链隔离，整页不再跟随下滚',
       css.ok
         && /html,\s*\nbody\s*\{[^}]*overflow:\s*hidden\s*!important[^}]*overscroll-behavior:\s*none/s.test(css.body)
@@ -183,33 +202,55 @@ async function main() {
         && !/\[data-slot="sidebar"\]\s*>\s*div\s*\{[^}]*isolation:\s*isolate/s.test(css.body)
         && /\[data-slot="sidebar"\]\s*>\s*div::after\s*\{[^}]*z-index:\s*0/s.test(css.body),
       '避免 fixed Settings dialog 被困在 56px sidebarCol 中')
-    ok('Shikitor 输入由单一投影坐标系绘制文字与黑色合成光标',
+    ok('Shikitor 输入由单一原生投影坐标系绘制文字与黑色合成光标',
       css.ok
         && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*transparent\s*!important/s.test(css.body)
-        && /\.shikitor--attached\[data-endfield-input-owner="shikitor"\][\s\S]*?\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*background-color:\s*#111417\s*!important/s.test(css.body)
+        && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
+        && /\.shikitor--attached\s+\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*background-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
         && !/\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*display:\s*none\s*!important/s.test(css.body),
-      '原生 caret 完全透明，唯一可见本地 caret 使用投影几何')
-    ok('Shikitor 选择区域只由投影层绘制，不再显露原生 textarea 字形',
+      '原生 caret 完全透明，唯一可见本地 caret 由 Shikitor 自身维护')
+    ok('Shikitor 选择区域复用原生单层实现，不再叠加 Endfield 几何层',
       css.ok
-        && /textarea\.shikitor-input--attached::selection[\s\S]*?color:\s*transparent\s*!important[\s\S]*?background:\s*transparent\s*!important/s.test(css.body)
-        && /\.ef-shikitor-selection-layer\s*\{[^}]*z-index:\s*2/s.test(css.body)
-        && /\.ef-shikitor-selection\s*\{[^}]*background:\s*rgba\(255,\s*244,\s*79,\s*\.34\)/s.test(css.body)
+        && /textarea\.shikitor-input--attached::selection\s*\{[^}]*color:\s*transparent\s*!important[^}]*background:\s*var\(--ef-selection-fill\)\s*!important/s.test(css.body)
+        && /\.dsh-shikitor-selection\s*\{[^}]*background:\s*var\(--ef-selection-fill\)\s*!important/s.test(css.body)
+        && !css.body.includes('.ef-shikitor-selection-layer')
+        && !css.body.includes('.ef-shikitor-selection')
+        && /\[data-composer-card\]::after\s*\{[^}]*background:\s*rgba\(17,\s*20,\s*23,\s*\.38\)\s*!important/s.test(css.body)
         && existsSync(join(PLUGIN_ROOT, 'client.js'))
-        && readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes('renderProjectedSelection(target, input, output, selectionLayer)'),
-      '鼠标选择仅显示一层与富文本投影几何一致的工业黄选区')
+        && readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes('function connectComposerReflowSync()')
+        && readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes("output.dispatchEvent(new view.Event('scroll'))")
+        && !readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes('collectProjectedBoundaries')
+        && !readFileSync(join(PLUGIN_ROOT, 'client.js'), 'utf8').includes("style.setProperty('--shikitor-cursor-t'"),
+      '普通文字与富文本 atom 使用 Shikitor 自带选择态；兼容层只触发重排后的原生重测')
     ok('新建会话的 Shikitor 可见输入投影固定使用黑色字形',
       css.ok
-        && /\[data-composer-card\] \.shikitor--attached\[data-endfield-input-owner="shikitor"\]\s*\{[^}]*--shikitor-fg-color:\s*#111417\s*!important/s.test(css.body)
-        && /data-dsh-shikitor-source-kind="text"\]:not\(\.dsh-shikitor-token-icon\)[\s\S]*?-webkit-text-fill-color:\s*#111417\s*!important/s.test(css.body)
+        && /\[data-composer-card\] \.shikitor--attached\s*\{[^}]*--shikitor-fg-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
+        && /data-dsh-shikitor-source-kind="text"\]:not\(\.dsh-shikitor-token-icon\)[\s\S]*?-webkit-text-fill-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
         && /\.dsh-shikitor-token-icon\s*\{[^}]*color:\s*transparent\s*!important/s.test(css.body)
-        && /\.shikitor-placeholder\s*\{[^}]*color:\s*#6b7378\s*!important/s.test(css.body),
+        && /\.shikitor-placeholder\s*\{[^}]*color:\s*var\(--ef-composer-ink-tertiary\)\s*!important/s.test(css.body),
       '白色 hero composer 中输入为黑色，占位提示保留中灰')
     ok('技能、命令与富文本引用使用白底专用语义色',
       css.ok
-        && /\.dsh-shikitor-token-icon > svg\s*\{[^}]*color:\s*#424a4f\s*!important/s.test(css.body)
-        && /\.dsh-shikitor-file-reference, \.dsh-shikitor-session-reference\)[\s\S]*?background:\s*#eceeea\s*!important/s.test(css.body)
+        && /\.dsh-shikitor-token-icon > svg\s*\{[^}]*color:\s*var\(--ef-composer-ink-secondary\)\s*!important/s.test(css.body)
+        && /\.dsh-shikitor-file-reference, \.dsh-shikitor-session-reference\)[\s\S]*?background:\s*var\(--ef-composer-surface-muted\)\s*!important/s.test(css.body)
         && !/\.shikitor-output-line \*\s*\{[^}]*color:\s*#111417\s*!important/s.test(css.body),
       '不再以 output-line * 覆盖图标和标签内部语义')
+    ok('DSH 浅色、深色与跟随系统模式使用独立可读色板',
+      css.ok
+        && /body\[data-ds-dark-theme\]\s*\{[^}]*--ef-composer-surface:/s.test(css.body)
+        && /\[data-slot="conversation"\]\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-chat-ink\)/s.test(css.body)
+        && /\[data-slot="conversation"\] \[data-composer-card\]\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-composer-ink\)[^}]*background:\s*var\(--ef-composer-surface\)\s*!important/s.test(css.body)
+        && /\[data-dsh-better-sidebar\]\s*\{[^}]*--dsw-alias-label-primary:\s*#eef0ed/s.test(css.body)
+        && /\.dsh-shikitor-editor,[\s\S]*?--dsw-alias-label-primary:\s*#eef0ed/s.test(css.body),
+      '官方 data-ds-dark-theme 标记驱动色板，深色对话与浅色输入表面分区隔离')
+    ok('设置页根卡片、派生弹窗与菜单共享暗色高对比语义色',
+      css.ok
+        && /\[data-endfield-settings-surface\]\s*\{[^}]*--dsw-alias-label-primary:\s*#f3f4ef[^}]*--dsw-alias-label-secondary:\s*#b9bfbd[^}]*--dsw-alias-label-error:\s*#ff8585/s.test(css.body)
+        && /\[data-endfield-settings-surface="derived"\]\s*\{[^}]*background:\s*#15191d\s*!important/s.test(css.body)
+        && /\[data-endfield-settings-surface="popup"\]\s*\{[^}]*background:\s*#20252a\s*!important/s.test(css.body)
+        && /\[data-endfield-settings-surface\] :is\(input, textarea, select\)\s*\{[^}]*-webkit-text-fill-color:\s*var\(--dsw-alias-label-primary\)\s*!important/s.test(css.body)
+        && !/settings\.header[^}]+\) button\s*\{\s*color:\s*inherit/s.test(css.body),
+      '不再用 blanket button 规则破坏反色按钮；portal surface 由运行时标记继承同一色板')
     ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
       css.ok
         && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
@@ -225,7 +266,7 @@ async function main() {
 
     // 8. 新版 Harness 会在首屏 manifest 中为 client 入口生成带 rev 的路由。
     const clientPath = idx.body.match(/"id":"@rison\/dsh-endfield-ui","url":"([^"]+)"/)?.[1]
-    const clientRoute = clientPath ? await get(new URL(clientPath, url).href) : { status: -1, ct: '', body: '', ok: false }
+    const clientRoute = clientPath ? await get(new URL(clientPath, url).href, cookie) : { status: -1, ct: '', body: '', ok: false }
     ok('首屏 manifest 中的 Endfield client 路由 → 200', !!clientPath && clientRoute.status === 200, `path=${clientPath || 'missing'} status=${clientRoute.status} ct=${clientRoute.ct}`)
 
     // 9. 已安装 client.js 内容（运行时注入逻辑可加载）
@@ -234,13 +275,16 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.0.0'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.0.1-better-sidebar-0.18'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
         && c.includes("faceOf('goal')") && c.includes('ctx.remote.goals.edit')
-        && c.includes("ctx.shikitor.register('sender', endfieldComposerProjectionPlugin)")
-        && c.includes('collectProjectedBoundaries') && c.includes('publishProjectedCaret')
+        && c.includes('function connectComposerReflowSync()')
+        && c.includes("output.dispatchEvent(new view.Event('scroll'))")
+        && c.includes("'data-endfield-settings-surface'")
+        && c.includes("'endfield-ui: settings surface contrast'")
+        && !c.includes('collectProjectedBoundaries') && !c.includes('publishProjectedCaret')
         && !c.includes('JObwrW_root') && !/Math\.sin/.test(c)
     }
     ok('已安装 client.js 含注入逻辑 + 订阅官方 contextPressure 真实数据源（无 DOM 扒取/模拟）', clientOk, clientFile)

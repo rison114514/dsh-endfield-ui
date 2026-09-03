@@ -1,0 +1,34 @@
+appId: io.github.rison114514.dsh-endfield-workbench
+productName: DSH 终末地工作台
+asar: true
+npmRebuild: false
+directories:
+  output: release
+files:
+  - main.cjs
+  - preload.cjs
+  - onboarding.html
+  - onboarding.css
+  - onboarding.js
+  - app.config.json
+  - package.json
+extraResources:
+  - from: .build-resources/endfield-ui-plugin
+    to: endfield-ui-plugin
+artifactName: DSH-Endfield-Workbench-Portable-${version}-${arch}.${ext}
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+nsis:
+  artifactName: DSH-Endfield-Workbench-Setup-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: DSH 终末地工作台

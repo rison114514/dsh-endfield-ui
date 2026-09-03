@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:">
+  <title>DSH 环境配置</title>
+  <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+  <div class="scanline" aria-hidden="true"></div>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">DSH / ENDfield WORKBENCH</p>
+        <h1>桌面环境配置</h1>
+        <p class="lead">应用会检测本机工具，仅在你确认后安装 DSH、pnpm 与终末地插件。不会移动或清理 <code>.dsh</code> 会话数据。</p>
+      </div>
+      <div class="version">APP / 1.0.1</div>
+    </header>
+
+    <section class="status-grid" id="statusGrid" aria-live="polite"></section>
+
+    <section class="notice hidden" id="versionNotice">
+      <strong>检测到未验证的 DSH 版本</strong>
+      <span id="versionNoticeText"></span>
+    </section>
+
+    <section class="actions">
+      <button id="install" class="primary">自动配置推荐环境</button>
+      <button id="nodeDownload" class="primary hidden">安装 Node.js</button>
+      <button id="continue" class="warning hidden">继续使用当前版本</button>
+      <button id="redetect">重新检测</button>
+      <button id="pickDsh">手动选择 DSH</button>
+      <button id="officialDocs">查看 DSH 官方说明</button>
+      <button id="pickRepo" class="developer">选择 DSH 源码目录</button>
+    </section>
+
+    <section class="progress hidden" id="progress">
+      <div class="progress-head">
+        <strong id="progressTitle">正在准备…</strong>
+        <button id="copyLog" class="text-button">复制日志</button>
+      </div>
+      <pre id="log"></pre>
+    </section>
+
+    <footer>
+      <span>推荐：Node.js ≥22.19 · DSH 0.1.2-alpha.5 · pnpm 11.7.0</span>
+      <span>LOCAL CORE / NO EXTERNAL WEB WINDOW</span>
+    </footer>
+  </main>
+  <script src="onboarding.js"></script>
+</body>
+</html>

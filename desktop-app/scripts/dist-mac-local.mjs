@@ -11,7 +11,8 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { rmSync, existsSync, readFileSync } from 'node:fs'
+import { rmSync, existsSync, readFileSync, readdirSync } from 'node:fs'
+import { homedir, tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -23,13 +24,34 @@ const OUT_DIR = join(APP_DIR, 'release')
 const APP_PATH = join(OUT_DIR, `${APP_NAME}-darwin-${ARCH}`, `${APP_NAME}.app`)
 const PLUGIN_VERSION = JSON.parse(readFileSync(join(PLUGIN_DIR, 'package.json'), 'utf8')).version
 const PLUGIN_ARCHIVE = `rison-dsh-endfield-ui-${PLUGIN_VERSION}.tgz`
+const ELECTRON_VERSION = JSON.parse(readFileSync(join(APP_DIR, 'node_modules', 'electron', 'package.json'), 'utf8')).version
+const npmCache = join(tmpdir(), 'dsh-endfield-npm-cache')
+const buildEnv = { ...process.env, npm_config_cache: npmCache }
+
+function findCachedElectronZipDir() {
+  const filename = `electron-v${ELECTRON_VERSION}-darwin-${ARCH}.zip`
+  const cacheRoot = join(homedir(), 'Library', 'Caches', 'electron')
+  if (!existsSync(cacheRoot)) return null
+  if (existsSync(join(cacheRoot, filename))) return cacheRoot
+  for (const entry of readdirSync(cacheRoot, { withFileTypes: true })) {
+    if (entry.isDirectory() && existsSync(join(cacheRoot, entry.name, filename))) {
+      return join(cacheRoot, entry.name)
+    }
+  }
+  return null
+}
 
 const results = []
 const ok = (name, cond, detail = '') => {
   results.push({ name, pass: !!cond })
   console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${detail ? '  — ' + detail : ''}`)
 }
-const run = (cmd, args, opts = {}) => spawnSync(cmd, args, { cwd: APP_DIR, encoding: 'utf8', ...opts })
+const run = (cmd, args, opts = {}) => spawnSync(cmd, args, {
+  cwd: APP_DIR,
+  env: buildEnv,
+  encoding: 'utf8',
+  ...opts,
+})
 
 console.log(`[dist] 目标架构 = ${ARCH}`)
 
@@ -47,7 +69,9 @@ const mainSource = readFileSync(mainFile, 'utf8')
 ok('桌面入口仅启动私有 no-open 服务',
   mainSyntax.status === 0
     && /const DSH_START_ARGS = \[[\s\S]*'--host', '127\.0\.0\.1'[\s\S]*'--no-open'[\s\S]*'--port', '0'[\s\S]*\]/.test(mainSource)
-    && /spawn\(executable, DSH_START_ARGS,/.test(mainSource)
+    && /spawnDsh\(executable, DSH_START_ARGS,/.test(mainSource)
+    && /function authenticatedWebUrlFrom\(output\)/.test(mainSource)
+    && /mainWindow\.loadURL\(authenticatedUrl\)/.test(mainSource)
     && /bundledPluginInstallTarget\(\)/.test(mainSource)
     && /\['dsh-better-sidebar', 'dsh-shikitor'\]/.test(mainSource),
   mainSyntax.stderr.trim())
@@ -70,10 +94,19 @@ ok('生成当前版本插件归档',
   materialize.status === 0 && existsSync(join(PLUGIN_DIR, PLUGIN_ARCHIVE)),
   PLUGIN_ARCHIVE)
 
+const stage = run('npm', ['run', 'prepare:embedded-plugin'])
+ok('桌面包仅暂存当前插件归档',
+  stage.status === 0
+    && existsSync(join(APP_DIR, '.build-resources', 'endfield-ui-plugin', PLUGIN_ARCHIVE)),
+  stage.stderr.trim())
+
 // 3. 清理并生成 .app
 rmSync(join(OUT_DIR, `${APP_NAME}-darwin-${ARCH}`), { recursive: true, force: true })
 const packCmd = ARCH === 'x64' ? 'pack:mac:x64' : 'pack:mac'
-const build = run('npm', ['run', packCmd])
+const electronZipDir = findCachedElectronZipDir()
+const buildArgs = ['run', packCmd]
+if (electronZipDir) buildArgs.push('--', `--electron-zip-dir=${electronZipDir}`)
+const build = run('npm', buildArgs)
 ok('electron-packager 构建 .app', build.status === 0 && existsSync(APP_PATH), build.stderr.trim().split('\n').slice(-3).join(' '))
 ok('App 内含当前版本插件归档',
   existsSync(join(APP_PATH, 'Contents', 'Resources', 'endfield-ui-plugin', PLUGIN_ARCHIVE)),

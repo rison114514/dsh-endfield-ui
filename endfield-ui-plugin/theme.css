@@ -35,6 +35,37 @@
   --ef-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 5px 6px 0 rgba(0,0,0,.55), 7px 8px 0 rgba(255,244,79,.12), 0 18px 36px rgba(0,0,0,.3);
 }
 
+/* DSH's official theme presenter exposes the resolved scheme with the stable
+   body[data-ds-dark-theme] attribute (`system` has already resolved to one of
+   these modes). Endfield uses a dark conversation plate and a paper composer
+   in every mode, so those two surfaces get explicit semantic contrast rather
+   than inheriting whichever global label token happens to be active. */
+body {
+  --ef-chat-ink: #f3f5f1;
+  --ef-chat-ink-secondary: #c0c6c3;
+  --ef-chat-ink-tertiary: #929b9f;
+  --ef-composer-surface: #f8f9f5;
+  --ef-composer-surface-muted: #ecefea;
+  --ef-composer-ink: #111417;
+  --ef-composer-ink-secondary: #4d555b;
+  --ef-composer-ink-tertiary: #60696f;
+  --ef-selection-fill: rgba(126, 117, 0, .22);
+  --ef-selection-edge: rgba(83, 76, 0, .38);
+}
+
+body[data-ds-dark-theme] {
+  --ef-chat-ink: #f5f6f2;
+  --ef-chat-ink-secondary: #c7cbc6;
+  --ef-chat-ink-tertiary: #92999e;
+  --ef-composer-surface: #f5f6f2;
+  --ef-composer-surface-muted: #e9ece7;
+  --ef-composer-ink: #111417;
+  --ef-composer-ink-secondary: #4f575c;
+  --ef-composer-ink-tertiary: #60696f;
+  --ef-selection-fill: rgba(126, 117, 0, .24);
+  --ef-selection-edge: rgba(83, 76, 0, .42);
+}
+
 html,
 body,
 #root {
@@ -217,6 +248,22 @@ code {
    the terrain relief, radial instrument markings and yellow locator accents. */
 [data-slot="conversation"] {
   --dsw-alias-bg-base: transparent;
+  --dsw-alias-label-primary: var(--ef-chat-ink);
+  --dsw-alias-label-primary-bluish: var(--ef-yellow);
+  --dsw-alias-label-primary-dimmed: var(--ef-chat-ink-secondary);
+  --dsw-alias-label-secondary: var(--ef-chat-ink-secondary);
+  --dsw-alias-label-tertiary: var(--ef-chat-ink-tertiary);
+  --dsw-alias-label-caption: #7f898e;
+  --dsw-alias-markdown-code-block-banner: #171b1f;
+  --dsw-alias-markdown-code-block: #0b0e10;
+  --dsw-alias-markdown-inline-code: #20252a;
+  --dsw-alias-markdown-placeholder: #14181b;
+  --dsw-alias-markdown-tag: #1d2226;
+  --dsw-specific-bubble: rgba(22, 27, 31, .92);
+  --dsw-specific-bubble-highlight: rgba(45, 51, 56, .94);
+  --dsw-specific-input-major: var(--ef-composer-surface);
+  --dsw-specific-tip: rgba(22, 27, 31, .96);
+  color: var(--ef-chat-ink);
 }
 
 /* The slot host itself is a zero-size Cordis anchor in dsh rc.6. Paint the
@@ -226,6 +273,53 @@ code {
   background:
     linear-gradient(rgba(4,6,7,.48), rgba(4,6,7,.62)),
     url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / 100% 100% no-repeat !important;
+  color: var(--ef-chat-ink);
+}
+
+/* The composer is intentionally a light instrument panel even when DSH is in
+   dark mode. Re-scope every token consumed by the native composer and its
+   Shikitor projection so text, controls, placeholders and refs stay readable
+   under light, dark and system preferences. */
+[data-slot="conversation"] [data-composer-card] {
+  --dsw-alias-label-primary: var(--ef-composer-ink);
+  --dsw-alias-label-primary-bluish: #302a00;
+  --dsw-alias-label-primary-dimmed: #30363a;
+  --dsw-alias-label-primary-foreground: #111417;
+  --dsw-alias-label-primary-inverted: #111417;
+  --dsw-alias-label-secondary: var(--ef-composer-ink-secondary);
+  --dsw-alias-label-tertiary: var(--ef-composer-ink-tertiary);
+  --dsw-alias-label-caption: var(--ef-composer-ink-tertiary);
+  --dsw-alias-label-dimmed: #a4aaa8;
+  --dsw-alias-bg-base: var(--ef-composer-surface);
+  --dsw-alias-bg-layer-1: var(--ef-composer-surface);
+  --dsw-alias-bg-layer-2: var(--ef-composer-surface-muted);
+  --dsw-alias-bg-overlay: #ffffff;
+  --dsw-alias-border-l1: rgba(17, 20, 23, .12);
+  --dsw-alias-border-l2-darkmode-thin: rgba(17, 20, 23, .2);
+  --dsw-alias-border-l2: rgba(17, 20, 23, .24);
+  --dsw-alias-border-l3: rgba(17, 20, 23, .36);
+  --dsw-alias-border-l4: rgba(17, 20, 23, .48);
+  --dsw-alias-interactive-bg-hover: rgba(17, 20, 23, .06);
+  --dsw-alias-interactive-bg-hover-solid: #e1e5e0;
+  --dsw-alias-state-warn-label: #665f00;
+  --dsw-specific-input-major: var(--ef-composer-surface);
+  --dsw-specific-selector: #e4e7e2;
+  color: var(--ef-composer-ink) !important;
+  background: var(--ef-composer-surface) !important;
+}
+
+/* When no workspace is selected DSH adds a dashed mask to this card. Some
+   Windows Chromium/GPU combinations flatten that SVG mask into one solid
+   fluorescent horizontal strip. Keep the native clickable state but render
+   its mask with neutral ink; the command button remains the yellow affordance. */
+[data-slot="conversation"] [data-composer-card]::after {
+  background: rgba(17, 20, 23, .38) !important;
+}
+
+[data-slot="conversation"] [data-composer-card] button,
+[data-slot="conversation"] [data-composer-card] [role="button"] {
+  color: var(--ef-composer-ink) !important;
+  -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
 
 /* Command ("命令") toggle in the composer: lemon-yellow so it stands out from
@@ -399,31 +493,97 @@ button[aria-label="Commands"]:hover {
 }
 
 /* Settings is a dark industrial module regardless of the host appearance
-   preference. This also closes the white-active-cell token gap. */
-[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) {
+   preference. The data marker is also applied to dialogs and menus portaled
+   outside the root, which otherwise fall back to light-mode labels while
+   retaining dark card surfaces. Keep this list aligned with the public token
+   vocabulary consumed by Settings, Models, Plugins, Presets and Shikitor. */
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]),
+[data-endfield-settings-surface] {
+  --dsw-alias-bg-base: #0d1013;
+  --dsw-alias-bg-layer-1: #111418;
+  --dsw-alias-bg-layer-2: #181c20;
+  --dsw-alias-bg-layer-3: #20252a;
+  --dsw-alias-bg-module-platform: #181c20;
+  --dsw-alias-bg-multi-select: #22272c;
+  --dsw-alias-bg-overlay: #242a2f;
+  --dsw-alias-border-inverted: rgba(255,255,255,.1);
+  --dsw-alias-border-inverted2: rgba(255,255,255,.14);
+  --dsw-alias-border-l1: rgba(255,244,79,.12);
+  --dsw-alias-border-l2-darkmode-thin: rgba(255,255,255,.14);
+  --dsw-alias-border-l2: rgba(255,255,255,.2);
+  --dsw-alias-border-l3: rgba(255,244,79,.36);
+  --dsw-alias-border-l4: rgba(255,244,79,.58);
+  --dsw-alias-brand-primary: #fff44f;
+  --dsw-alias-brand-primary-invert: #111417;
+  --dsw-alias-brand-text: #fff44f;
+  --dsw-alias-label-primary: #f3f4ef;
+  --dsw-alias-label-primary-bluish: #fff44f;
+  --dsw-alias-label-primary-dimmed: #d2d6d3;
+  --dsw-alias-label-primary-foreground: #111417;
+  --dsw-alias-label-primary-inverted: #111417;
+  --dsw-alias-label-secondary: #b9bfbd;
+  --dsw-alias-label-tertiary: #969fa3;
+  --dsw-alias-label-caption: #899297;
+  --dsw-alias-label-dimmed: #6f787d;
+  --dsw-alias-label-quaternary: #747d82;
+  --dsw-alias-label-error: #ff8585;
+  --dsw-alias-fill-tsp-secondary: rgba(255,255,255,.09);
+  --dsw-alias-button-primary-fill: #fff44f;
+  --dsw-alias-button-primary-hover: #e2d800;
+  --dsw-alias-button-primary-dimmed: #4b4a29;
+  --dsw-alias-button-elevated-fill: #24292e;
+  --dsw-alias-button-floating-fill: #20252a;
+  --dsw-alias-button-floating-hover: #30363c;
+  --dsw-alias-interactive-bg-active: rgba(255,244,79,.16);
+  --dsw-alias-interactive-bg-hover: rgba(255,244,79,.08);
+  --dsw-alias-interactive-bg-hover-accent: rgba(255,244,79,.15);
+  --dsw-alias-interactive-bg-hover-solid: #2b3035;
+  --dsw-alias-interactive-bg-hover-danger: rgba(255,90,90,.14);
+  --dsw-alias-state-business-primary: #fff44f;
+  --dsw-alias-state-business-tertiary: rgba(255,244,79,.13);
+  --dsw-alias-state-error-primary: #ff7777;
+  --dsw-alias-state-error-secondary: #ff9a9a;
+  --dsw-alias-state-success-primary: #8eef5b;
+  --dsw-alias-state-success-secondary: #65bd3c;
+  --dsw-alias-state-success-tertiary: rgba(142,239,91,.12);
+  --dsw-alias-state-warn-label: #ffe66b;
+  --dsw-alias-state-warn-primary: #fff44f;
+  --dsw-alias-state-warn-secondary: #d9cd00;
+  --dsw-alias-state-warn-tertiary: rgba(255,244,79,.12);
+  --dsw-alias-scrollbar-bg-l2: #545557;
+  --dsw-alias-scrollbar-hover-l2: #65676b;
+  --dsw-specific-menu: #20252a;
+  --dsw-specific-selector: #20252a;
+  --dsw-specific-input-major: #181c20;
+  --dsw-shadow-lv1: 0 2px 8px rgba(0,0,0,.34);
+  color: var(--dsw-alias-label-primary) !important;
+  color-scheme: dark;
+}
+
+[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]),
+[data-endfield-settings-surface="root"] {
   border: 1px solid rgba(255,244,79,.48) !important;
   border-radius: 2px !important;
-  color: #f3f4ef !important;
   background:
     linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
     linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
     linear-gradient(125deg, #181c20, #0d1013) !important;
   background-size: 44px 44px, 44px 44px, auto !important;
   box-shadow: 10px 12px 0 rgba(0,0,0,.44), 12px 14px 0 rgba(255,244,79,.12), 0 28px 72px rgba(0,0,0,.6) !important;
-  --dsw-alias-label-primary: #f3f4ef;
-  --dsw-alias-label-primary-dimmed: #c1c7c5;
-  --dsw-alias-label-secondary: #99a1a6;
-  --dsw-alias-label-tertiary: #747d82;
-  --dsw-alias-border-l1: rgba(255,244,79,.12);
-  --dsw-alias-border-l2: rgba(255,244,79,.24);
-  --dsw-alias-bg-layer-1: #15191d;
-  --dsw-alias-bg-layer-2: #181c20;
-  --dsw-alias-bg-layer-3: #20252a;
-  --dsw-alias-bg-module-platform: #20252a;
-  --dsw-alias-button-elevated-fill: #24292e;
-  --dsw-alias-interactive-bg-hover: rgba(255,244,79,.08);
   --dsw-specific-sidebar-nav-item-active: rgba(255,244,79,.16);
   --dsw-specific-sidebar-nav-item-hover: rgba(255,244,79,.07);
+}
+
+[data-endfield-settings-surface="derived"] {
+  border: 1px solid rgba(255,244,79,.32) !important;
+  background: #15191d !important;
+  box-shadow: 8px 10px 0 rgba(0,0,0,.34), 0 22px 60px rgba(0,0,0,.58) !important;
+}
+
+[data-endfield-settings-surface="popup"] {
+  border-color: rgba(255,244,79,.25) !important;
+  background: #20252a !important;
+  box-shadow: 6px 8px 24px rgba(0,0,0,.48) !important;
 }
 
 [role="dialog"][aria-modal="true"]:has([data-slot="settings.header"])::before {
@@ -459,13 +619,34 @@ button[aria-label="Commands"]:hover {
   box-shadow: 4px 4px 0 rgba(255,244,79,.13);
 }
 
-[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) button {
-  color: inherit;
-}
-
 [role="dialog"][aria-modal="true"]:has([data-slot="settings.header"]) button[aria-pressed="true"] {
   border-color: var(--ef-yellow) !important;
   background: rgba(255,244,79,.12) !important;
+}
+
+/* Never force one colour onto every Settings button: plugin save badges and
+   card status controls intentionally invert foreground/background. Form text
+   does need an explicit local palette because native controls do not always
+   inherit CSS variables consistently across Chromium platforms. */
+[data-endfield-settings-surface] :is(input, textarea, select) {
+  color: var(--dsw-alias-label-primary) !important;
+  caret-color: var(--dsw-alias-label-primary) !important;
+  -webkit-text-fill-color: var(--dsw-alias-label-primary) !important;
+}
+
+[data-endfield-settings-surface] :is(input, textarea)::placeholder {
+  color: var(--dsw-alias-label-tertiary) !important;
+  opacity: 1;
+  -webkit-text-fill-color: var(--dsw-alias-label-tertiary) !important;
+}
+
+[data-endfield-settings-surface] select option {
+  color: #f3f4ef;
+  background: #181c20;
+}
+
+[data-endfield-settings-surface] :is(a, [role="link"]) {
+  color: #fff44f;
 }
 
 textarea[placeholder="描述你想要构建的内容"]:not(.shikitor-input--attached) {
@@ -517,16 +698,16 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
    textarea[placeholder="描述你想要构建的内容"] rule above. */
 [data-slot="conversation"] textarea:not(.shikitor-input--attached),
 [data-slot="conversation"] input {
-  color: #111417 !important;
-  caret-color: #111417 !important;
-  -webkit-text-fill-color: #111417 !important;
+  color: var(--ef-composer-ink) !important;
+  caret-color: var(--ef-composer-ink) !important;
+  -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
 
 [data-slot="conversation"] textarea:not(.shikitor-input--attached)::placeholder,
 [data-slot="conversation"] input::placeholder {
-  color: #6b7378 !important;
+  color: var(--ef-composer-ink-tertiary) !important;
   opacity: 1;
-  -webkit-text-fill-color: #6b7378 !important;
+  -webkit-text-fill-color: var(--ef-composer-ink-tertiary) !important;
 }
 
 /* Once Shikitor attaches, the textarea owns only value, selection, IME and
@@ -540,37 +721,19 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
   background: transparent !important;
 }
 
-/* Chromium reapplies the page-level selection foreground even when the
-   textarea itself is transparent. Keep the native selection invisible; the
-   geometry-matched projection layer below is the only visible selection. */
-[data-slot="conversation"] textarea.shikitor-input--attached::selection,
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
-  .shikitor-input::selection {
+/* Keep Shikitor's native selection background visible for ordinary text. Its
+   foreground remains transparent so only the projected glyphs are painted.
+   Shikitor switches to its own projected selection layer for inline atoms. */
+[data-slot="conversation"] textarea.shikitor-input--attached::selection {
   color: transparent !important;
-  background: transparent !important;
+  background: var(--ef-selection-fill) !important;
   -webkit-text-fill-color: transparent !important;
   text-shadow: none !important;
 }
 
-.ef-shikitor-selection-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  pointer-events: none;
-  user-select: none;
-}
-
-.ef-shikitor-selection {
-  position: absolute;
-  display: block;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 2px;
-  background: rgba(255, 244, 79, .34);
-  box-shadow: inset 0 0 0 1px rgba(126, 117, 0, .28);
-  pointer-events: none;
+.shikitor--attached .dsh-shikitor-selection {
+  background: var(--ef-selection-fill) !important;
+  box-shadow: inset 0 0 0 1px var(--ef-selection-edge);
 }
 
 textarea.shikitor-input--attached::placeholder {
@@ -582,59 +745,57 @@ textarea.shikitor-input--attached::placeholder {
    not blanket-color every descendant: the slash trigger intentionally stays
    transparent underneath its icon, while file/session atoms have their own
    light-surface palette. */
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] {
-  --shikitor-fg-color: #111417 !important;
-  --shikitor-native-fg-color: #111417 !important;
-  --shikitor-caret-color: #111417 !important;
-  color: #111417 !important;
+[data-composer-card] .shikitor--attached {
+  --shikitor-fg-color: var(--ef-composer-ink) !important;
+  --shikitor-native-fg-color: var(--ef-composer-ink) !important;
+  --shikitor-caret-color: var(--ef-composer-ink) !important;
+  color: var(--ef-composer-ink) !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] .shikitor-output-line,
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+[data-composer-card] .shikitor--attached .shikitor-output-line,
+[data-composer-card] .shikitor--attached
   [data-dsh-shikitor-source-kind="text"]:not(.dsh-shikitor-token-icon) {
-  color: #111417 !important;
+  color: var(--ef-composer-ink) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #111417 !important;
+  -webkit-text-fill-color: var(--ef-composer-ink) !important;
   text-shadow: none !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
-  .dsh-shikitor-token-icon {
+[data-composer-card] .shikitor--attached .dsh-shikitor-token-icon {
   color: transparent !important;
   opacity: 1 !important;
   -webkit-text-fill-color: transparent !important;
   text-shadow: none !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
-  .dsh-shikitor-token-icon > svg {
-  color: #424a4f !important;
+[data-composer-card] .shikitor--attached .dsh-shikitor-token-icon > svg {
+  color: var(--ef-composer-ink-secondary) !important;
   opacity: 1 !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+[data-composer-card] .shikitor--attached
   :is(.dsh-shikitor-file-reference, .dsh-shikitor-session-reference) {
   border: 1px solid rgba(126,117,0,.46) !important;
-  background: #eceeea !important;
-  color: #111417 !important;
-  -webkit-text-fill-color: #111417 !important;
+  background: var(--ef-composer-surface-muted) !important;
+  color: var(--ef-composer-ink) !important;
+  -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+[data-composer-card] .shikitor--attached
   :is(.dsh-shikitor-file-reference__label, .dsh-shikitor-session-reference__label) {
-  color: #111417 !important;
-  -webkit-text-fill-color: #111417 !important;
+  color: var(--ef-composer-ink) !important;
+  -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"]
+[data-composer-card] .shikitor--attached
   :is(.dsh-shikitor-file-reference__icon, .dsh-shikitor-session-reference__icon) {
-  color: #4f575c !important;
+  color: var(--ef-composer-ink-secondary) !important;
 }
 
-[data-composer-card] .shikitor--attached[data-endfield-input-owner="shikitor"] .shikitor-placeholder {
-  color: #6b7378 !important;
+[data-composer-card] .shikitor--attached .shikitor-placeholder {
+  color: var(--ef-composer-ink-tertiary) !important;
   opacity: 1 !important;
-  -webkit-text-fill-color: #6b7378 !important;
+  -webkit-text-fill-color: var(--ef-composer-ink-tertiary) !important;
 }
 
 /* Approval composer takeover uses a paper-white card while the Endfield
@@ -1431,8 +1592,10 @@ textarea.shikitor-input--attached::placeholder {
 }
 
 /* ======================================================================
-   DSH Better Sidebar 0.15.2 — stable public root only.
+   DSH Better Sidebar 0.18.x — stable public root only.
    The upstream CSS-module class names are intentionally never referenced.
+   Layout contract (0.15 through 0.18): [data-dsh-better-sidebar],
+   [data-dsh-panel-host], [data-dsh-panel], --dsh-sidebar-width/height.
    ====================================================================== */
 
 /* Opening choreography: while the Endfield boot overlay is active, keep the
@@ -1454,6 +1617,7 @@ html:has(> body[data-endfield-booting]) {
 
 body[data-endfield-booting] #root {
   margin-right: 0 !important;
+  width: 100% !important;
 }
 
 /* Hide the COMPLETE portal host, not just today's known panel children.
@@ -1462,7 +1626,8 @@ body[data-endfield-booting] #root {
    of those surfaces composited as a translucent rectangle over the boot
    animation. Host-level visibility is inherited by every current/future
    surface and cannot paint a box. */
-body[data-endfield-booting] [data-dsh-better-sidebar] {
+body[data-endfield-booting] [data-dsh-better-sidebar],
+body[data-endfield-booting] [data-dsh-panel-host] {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
@@ -1498,10 +1663,24 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   --dsw-alias-bg-layer-3: rgba(32, 38, 43, .97);
   --dsw-alias-border-l1: rgba(255, 244, 79, .16);
   --dsw-alias-border-l2: rgba(255, 244, 79, .28);
+  --dsw-alias-border-l2-darkmode-thin: rgba(255, 244, 79, .22);
+  --dsw-alias-border-l3: rgba(255, 244, 79, .4);
+  --dsw-alias-label-primary: #eef0ed;
+  --dsw-alias-label-primary-bluish: var(--ef-yellow);
+  --dsw-alias-label-primary-dimmed: #c7cbc6;
+  --dsw-alias-label-secondary: #aeb4b8;
+  --dsw-alias-label-tertiary: #858c92;
+  --dsw-alias-label-caption: #747d82;
+  --dsw-alias-label-dimmed: #555c62;
   --dsw-alias-brand-primary: var(--ef-yellow);
   --dsw-alias-state-business-primary: var(--ef-yellow);
   --dsw-alias-interactive-bg-active: rgba(255, 244, 79, .14);
   --dsw-alias-interactive-bg-hover: rgba(255, 244, 79, .075);
+  --dsw-alias-interactive-bg-hover-solid: #2b3035;
+  --dsw-specific-input-major: #171b1f;
+  --dsw-specific-selector: #20252a;
+  --dsw-specific-menu: #1b2024;
+  --dsw-specific-tip: #1b2024;
   color: #eef0ed;
   font-family: "EF Harmony", sans-serif;
 }
@@ -1817,20 +1996,27 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   background:
     linear-gradient(180deg, rgba(27,31,35,.98), rgba(12,15,18,.99)) !important;
   box-shadow: 8px 8px 0 rgba(0,0,0,.32), 0 0 0 1px rgba(255,244,79,.06) !important;
+  color: #eef0ed !important;
+  --dsw-alias-label-primary: #eef0ed;
+  --dsw-alias-label-secondary: #c1c6c4;
+  --dsw-alias-label-tertiary: #92999e;
 }
 
-/* Shikitor's projected caret is the only visible local caret. Its geometry is
-   published by the Endfield sender plugin after projection/layout settles. */
-.shikitor--attached[data-endfield-input-owner="shikitor"] {
-  --shikitor-caret-color: #111417 !important;
+/* Shikitor is the sole owner of the visible local caret. Endfield only supplies
+   its readable paper-surface color and never publishes geometry variables. */
+.shikitor--attached {
+  --shikitor-caret-color: var(--ef-composer-ink) !important;
 }
 
-.shikitor--attached[data-endfield-input-owner="shikitor"]
+.shikitor--attached
   .shikitor-cursors > .shikitor-cursor:first-child::after {
-  background-color: #111417 !important;
+  background-color: var(--ef-composer-ink) !important;
 }
 
-.shikitor--attached .shikitor-completion-item { border-radius: 0 !important; }
+.shikitor--attached .shikitor-completion-item {
+  border-radius: 0 !important;
+  color: #eef0ed !important;
+}
 .shikitor--attached .shikitor-completion-item:hover,
 .shikitor--attached .shikitor-completion-item.selected {
   background: rgba(255,244,79,.11) !important;
@@ -1850,6 +2036,15 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   background:
     linear-gradient(rgba(9,11,13,.93), rgba(9,11,13,.96)),
     url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat !important;
+  color: #eef0ed !important;
+  --dsw-alias-bg-base: #090b0d;
+  --dsw-alias-bg-layer-1: #111418;
+  --dsw-alias-bg-layer-2: #181c20;
+  --dsw-alias-label-primary: #eef0ed;
+  --dsw-alias-label-primary-dimmed: #c7cbc6;
+  --dsw-alias-label-secondary: #aeb4b8;
+  --dsw-alias-label-tertiary: #858c92;
+  --dsw-alias-label-caption: #747d82;
 }
 
 .dsh-shikitor-editor__toolbar {

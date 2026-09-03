@@ -1,0 +1,38 @@
+name: Windows desktop artifacts
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - desktop-app/**
+      - endfield-ui-plugin/**
+      - .github/workflows/windows-desktop.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: desktop-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: npm
+          cache-dependency-path: desktop-app/package-lock.json
+      - run: npm ci
+      - run: npm run test:bootstrap
+      - run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DSH-Endfield-Workbench-1.0.1-Windows-x64
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            desktop-app/release/DSH-Endfield-Workbench-Setup-1.0.1-x64.exe
+            desktop-app/release/DSH-Endfield-Workbench-Portable-1.0.1-x64.zip

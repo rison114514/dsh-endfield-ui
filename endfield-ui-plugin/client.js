@@ -4,359 +4,212 @@ window.__ModuleLoader__.load({
     const module = { exports: {} }
     const React = require('react')
 
-    const pair = (value) => ({ light: value, dark: value })
+    const pair = (light, dark = light) => ({ light, dark })
     const tokens = {
-      '--dsw-alias-bg-base': pair('#090b0d'),
-      '--dsw-alias-bg-layer-1': pair('#111418'),
-      '--dsw-alias-bg-layer-2': pair('#181c20'),
-      '--dsw-alias-bg-layer-3': pair('#20252a'),
-      '--dsw-alias-bg-module-platform': pair('#171b1f'),
-      '--dsw-alias-bg-multi-select': pair('#22272c'),
-      '--dsw-alias-bg-overlay': pair('#22272c'),
-      '--dsw-alias-bg-mask-1': pair('rgba(0, 0, 0, 0.62)'),
-      '--dsw-alias-bg-mask-2': pair('rgba(0, 0, 0, 0.34)'),
+      // DSH resolves `system` to one of these two palettes before applying the
+      // override. Keep genuine light/dark pairs here: repeating the old dark
+      // values for both modes made portal surfaces inherit light text on a
+      // light card (or dark text over the Endfield conversation plate).
+      '--dsw-alias-bg-base': pair('#eef0eb', '#090b0d'),
+      '--dsw-alias-bg-layer-1': pair('#fafbf7', '#111418'),
+      '--dsw-alias-bg-layer-2': pair('#f1f3ee', '#181c20'),
+      '--dsw-alias-bg-layer-3': pair('#e7eae5', '#20252a'),
+      '--dsw-alias-bg-module-platform': pair('#e9ece7', '#171b1f'),
+      '--dsw-alias-bg-multi-select': pair('#dfe3de', '#22272c'),
+      '--dsw-alias-bg-overlay': pair('#ffffff', '#22272c'),
+      '--dsw-alias-bg-mask-1': pair('rgba(9, 11, 13, 0.34)', 'rgba(0, 0, 0, 0.62)'),
+      '--dsw-alias-bg-mask-2': pair('rgba(9, 11, 13, 0.18)', 'rgba(0, 0, 0, 0.34)'),
       '--dsw-alias-bg-mask-3': pair('rgba(0, 0, 0, 0.76)'),
-      '--dsw-alias-border-inverted': pair('rgba(255, 244, 79, 0.16)'),
-      '--dsw-alias-border-inverted2': pair('rgba(255, 244, 79, 0.1)'),
-      '--dsw-alias-border-l1': pair('rgba(255, 244, 79, 0.18)'),
-      '--dsw-alias-border-l2-darkmode-thin': pair('rgba(255, 244, 79, 0.22)'),
-      '--dsw-alias-border-l2': pair('rgba(255, 244, 79, 0.28)'),
-      '--dsw-alias-border-l3': pair('rgba(255, 244, 79, 0.42)'),
-      '--dsw-alias-border-l4': pair('#fff44f'),
-      '--dsw-alias-brand-primary': pair('#fff44f'),
+      '--dsw-alias-border-inverted': pair('rgba(17, 20, 23, 0.14)', 'rgba(255, 244, 79, 0.16)'),
+      '--dsw-alias-border-inverted2': pair('rgba(17, 20, 23, 0.08)', 'rgba(255, 244, 79, 0.1)'),
+      '--dsw-alias-border-l1': pair('rgba(17, 20, 23, 0.11)', 'rgba(255, 244, 79, 0.18)'),
+      '--dsw-alias-border-l2-darkmode-thin': pair('rgba(17, 20, 23, 0.16)', 'rgba(255, 244, 79, 0.22)'),
+      '--dsw-alias-border-l2': pair('rgba(17, 20, 23, 0.2)', 'rgba(255, 244, 79, 0.28)'),
+      '--dsw-alias-border-l3': pair('rgba(17, 20, 23, 0.34)', 'rgba(255, 244, 79, 0.42)'),
+      '--dsw-alias-border-l4': pair('rgba(17, 20, 23, 0.48)', '#fff44f'),
+      '--dsw-alias-brand-primary': pair('#665f00', '#fff44f'),
       '--dsw-alias-brand-primary-invert': pair('#090b0d'),
-      '--dsw-alias-brand-text': pair('#fff44f'),
-      '--dsw-alias-label-primary': pair('#f5f6f2'),
-      '--dsw-alias-label-primary-bluish': pair('#fff44f'),
-      '--dsw-alias-label-primary-dimmed': pair('#c7cbc6'),
+      '--dsw-alias-brand-text': pair('#665f00', '#fff44f'),
+      '--dsw-alias-label-primary': pair('#111417', '#f5f6f2'),
+      '--dsw-alias-label-primary-bluish': pair('#302a00', '#fff44f'),
+      '--dsw-alias-label-primary-dimmed': pair('#2f3539', '#c7cbc6'),
       '--dsw-alias-label-primary-foreground': pair('#090b0d'),
       '--dsw-alias-label-primary-inverted': pair('#090b0d'),
-      '--dsw-alias-label-secondary': pair('#aeb4b8'),
-      '--dsw-alias-label-tertiary': pair('#858c92'),
-      '--dsw-alias-label-caption': pair('#6f777d'),
-      '--dsw-alias-label-dimmed': pair('#555c62'),
+      '--dsw-alias-label-secondary': pair('#4d555b', '#aeb4b8'),
+      '--dsw-alias-label-tertiary': pair('#687177', '#858c92'),
+      '--dsw-alias-label-caption': pair('#7b848a', '#6f777d'),
+      '--dsw-alias-label-dimmed': pair('#a8afad', '#555c62'),
       '--dsw-alias-button-primary-fill': pair('#fff44f'),
       '--dsw-alias-button-primary-hover': pair('#e2d800'),
-      '--dsw-alias-button-primary-dimmed': pair('#4b4a29'),
-      '--dsw-alias-button-contrast-fill': pair('#f5f6f2'),
-      '--dsw-alias-button-elevated-fill': pair('#23282d'),
-      '--dsw-alias-button-floating-fill': pair('#20252a'),
-      '--dsw-alias-button-floating-hover': pair('#30363c'),
-      '--dsw-alias-button-ghost-active-border': pair('#fff44f'),
+      '--dsw-alias-button-primary-dimmed': pair('#d8d7af', '#4b4a29'),
+      '--dsw-alias-button-contrast-fill': pair('#333a3f', '#f5f6f2'),
+      '--dsw-alias-button-elevated-fill': pair('#fafbf7', '#23282d'),
+      '--dsw-alias-button-floating-fill': pair('#ecefea', '#20252a'),
+      '--dsw-alias-button-floating-hover': pair('#dfe3de', '#30363c'),
+      '--dsw-alias-button-ghost-active-border': pair('#665f00', '#fff44f'),
       '--dsw-alias-button-ghost-active-fill': pair('rgba(255, 244, 79, 0.12)'),
       '--dsw-alias-button-ghost-active-hover': pair('rgba(255, 244, 79, 0.18)'),
       '--dsw-alias-button-info-fill': pair('#fff44f'),
       '--dsw-alias-button-info-hover': pair('#e2d800'),
       '--dsw-alias-interactive-bg-active': pair('rgba(255, 244, 79, 0.16)'),
       '--dsw-alias-interactive-bg-hover-accent': pair('rgba(255, 244, 79, 0.18)'),
-      '--dsw-alias-interactive-bg-hover-solid': pair('#2b3035'),
+      '--dsw-alias-interactive-bg-hover-solid': pair('#dfe3de', '#2b3035'),
       '--dsw-alias-interactive-bg-hover': pair('rgba(255, 244, 79, 0.08)'),
-      '--dsw-alias-markdown-code-block-banner': pair('#161a1e'),
-      '--dsw-alias-markdown-code-block': pair('#0b0e10'),
-      '--dsw-alias-markdown-inline-code': pair('#20252a'),
-      '--dsw-alias-markdown-placeholder': pair('#14181b'),
-      '--dsw-alias-markdown-tag': pair('#1d2226'),
-      '--dsw-alias-scrollbar-bg-l1': pair('#fff44f'),
-      '--dsw-alias-scrollbar-bg-l2': pair('#fff44f'),
-      '--dsw-alias-scrollbar-hover-l1': pair('#ffffff'),
-      '--dsw-alias-scrollbar-hover-l2': pair('#ffffff'),
-      '--dsw-alias-state-business-primary': pair('#fff44f'),
-      '--dsw-alias-state-business-tertiary': pair('rgba(255, 244, 79, 0.13)'),
-      '--dsw-alias-state-success-primary': pair('#8eef5b'),
-      '--dsw-alias-state-success-secondary': pair('#65bd3c'),
-      '--dsw-alias-state-success-tertiary': pair('rgba(142, 239, 91, 0.12)'),
-      '--dsw-alias-state-warn-label': pair('#fff44f'),
-      '--dsw-alias-state-warn-primary': pair('#fff44f'),
-      '--dsw-alias-state-warn-secondary': pair('#d9cd00'),
-      '--dsw-alias-state-warn-tertiary': pair('rgba(255, 244, 79, 0.12)'),
-      '--dsw-alias-toast-bg': pair('#20252a'),
-      '--dsw-alias-tooltip-bg': pair('#111418'),
-      '--dsw-specific-menu': pair('#1b2024'),
-      '--dsw-specific-sidebar-fill': pair('#0d1013'),
-      '--dsw-specific-sidebar-nav-item-active-accent': pair('rgba(255, 244, 79, 0.18)'),
-      '--dsw-specific-sidebar-nav-item-active': pair('rgba(255, 244, 79, 0.12)'),
-      '--dsw-specific-sidebar-nav-item-hover': pair('rgba(255, 244, 79, 0.07)'),
-      '--dsw-specific-tip': pair('#1b2024'),
+      '--dsw-alias-markdown-code-block-banner': pair('#e7eae5', '#161a1e'),
+      '--dsw-alias-markdown-code-block': pair('#f5f6f2', '#0b0e10'),
+      '--dsw-alias-markdown-inline-code': pair('#e5e8e3', '#20252a'),
+      '--dsw-alias-markdown-placeholder': pair('#ecefea', '#14181b'),
+      '--dsw-alias-markdown-tag': pair('#e4e7e2', '#1d2226'),
+      '--dsw-alias-scrollbar-bg-l1': pair('#9da5a2', '#fff44f'),
+      '--dsw-alias-scrollbar-bg-l2': pair('#aab1ae', '#fff44f'),
+      '--dsw-alias-scrollbar-hover-l1': pair('#60696e', '#ffffff'),
+      '--dsw-alias-scrollbar-hover-l2': pair('#60696e', '#ffffff'),
+      '--dsw-alias-state-business-primary': pair('#665f00', '#fff44f'),
+      '--dsw-alias-state-business-tertiary': pair('rgba(126, 117, 0, 0.14)', 'rgba(255, 244, 79, 0.13)'),
+      '--dsw-alias-state-success-primary': pair('#2e7324', '#8eef5b'),
+      '--dsw-alias-state-success-secondary': pair('#477f34', '#65bd3c'),
+      '--dsw-alias-state-success-tertiary': pair('rgba(46, 115, 36, 0.12)', 'rgba(142, 239, 91, 0.12)'),
+      '--dsw-alias-state-warn-label': pair('#665f00', '#fff44f'),
+      '--dsw-alias-state-warn-primary': pair('#716800', '#fff44f'),
+      '--dsw-alias-state-warn-secondary': pair('#8a8000', '#d9cd00'),
+      '--dsw-alias-state-warn-tertiary': pair('rgba(126, 117, 0, 0.13)', 'rgba(255, 244, 79, 0.12)'),
+      '--dsw-alias-toast-bg': pair('#333a3f', '#20252a'),
+      '--dsw-alias-tooltip-bg': pair('#20252a', '#111418'),
+      '--dsw-specific-menu': pair('#ffffff', '#1b2024'),
+      '--dsw-specific-sidebar-fill': pair('#e9ece7', '#0d1013'),
+      '--dsw-specific-sidebar-nav-item-active-accent': pair('rgba(126, 117, 0, 0.18)', 'rgba(255, 244, 79, 0.18)'),
+      '--dsw-specific-sidebar-nav-item-active': pair('rgba(126, 117, 0, 0.13)', 'rgba(255, 244, 79, 0.12)'),
+      '--dsw-specific-sidebar-nav-item-hover': pair('rgba(17, 20, 23, 0.06)', 'rgba(255, 244, 79, 0.07)'),
+      '--dsw-specific-tip': pair('#f5f6f2', '#1b2024'),
+      '--dsw-specific-input-major': pair('#f8f9f5', '#20252a'),
+      '--dsw-specific-selector': pair('#e7eae5', '#2b3035'),
+      '--dsw-specific-bubble': pair('#e8ecf2', '#20252a'),
+      '--dsw-specific-bubble-highlight': pair('#d8dee8', '#30363c'),
     }
 
-    // --------------------------------------------------------------------
-    // Composer projection/caret compatibility.
+    // Shikitor 1.0.2 remains the sole owner of sender projection, selection
+    // and caret coordinates. Its inline-token plugin measures immediately
+    // after rewriting a line, though, while the browser can finish wrapping
+    // that line one layout later. This is observable when a long soft-wrapped
+    // paragraph is split with Shift+Enter: the cached Y coordinate omits the
+    // visual rows above it until another edit happens.
     //
-    // DSH owns the textarea value, selection, IME and submission. Shikitor
-    // owns the visible projection, including inline command icons and the
-    // compact file/session references. Those projected atoms do not have the
-    // same width as their raw textarea source, so a browser-native textarea
-    // caret can never stay aligned with them. Keep one visual coordinate
-    // system: derive the local Shikitor caret from the rendered projection.
-    // --------------------------------------------------------------------
-    const SHIKITOR_SOURCE_SELECTOR = '[data-dsh-shikitor-source-start]'
-    const SHIKITOR_TOKEN_CLASS = 'dsh-shikitor-token-icon'
+    // Do not add a second geometry engine here. Observe only the rendered line
+    // boxes and invalidate Shikitor through its existing output-scroll path
+    // after their size/structure settles. Shikitor then remeasures and
+    // publishes its own cursor variables from the final layout.
+    function connectComposerReflowSync() {
+      const attached = new Map()
 
-    function numericData(element, key) {
-      const value = Number(element.dataset[key])
-      return Number.isFinite(value) ? value : undefined
-    }
-
-    function textNodeOf(element) {
-      return Array.from(element.childNodes).find((node) => node.nodeType === Node.TEXT_NODE)
-    }
-
-    function collapsedBoundaryRect(node, character) {
-      const range = node.ownerDocument.createRange()
-      range.setStart(node, character)
-      range.collapse(true)
-      const collapsed = range.getBoundingClientRect()
-      if (collapsed.height > 0) return collapsed
-
-      const fallback = node.ownerDocument.createRange()
-      if (character === 0) {
-        fallback.setStart(node, 0)
-        fallback.setEnd(node, Math.min(1, node.length))
-        return fallback.getBoundingClientRect()
-      }
-      fallback.setStart(node, character - 1)
-      fallback.setEnd(node, character)
-      const rect = fallback.getBoundingClientRect()
-      return new DOMRect(rect.right, rect.top, 0, rect.height)
-    }
-
-    function collectProjectedBoundaries(output, lineHeight) {
-      const boundaries = []
-      output.querySelectorAll(SHIKITOR_SOURCE_SELECTOR).forEach((element) => {
-        const start = numericData(element, 'dshShikitorSourceStart')
-        const end = numericData(element, 'dshShikitorSourceEnd')
-        if (start === undefined || end === undefined) return
-        const line = element.closest('.shikitor-output-line')
-        if (!line) return
-        const lineRect = line.getBoundingClientRect()
-        const normalize = (rect, offset, x, atomic) => {
-          const row = Math.max(0, Math.round((rect.top - lineRect.top) / lineHeight))
-          const top = lineRect.top + row * lineHeight
-          boundaries.push({
-            offset,
-            x,
-            top,
-            bottom: top + lineHeight,
-            atomicStart: atomic ? start : undefined,
-            atomicEnd: atomic ? end : undefined,
-          })
-        }
-        const kind = element.dataset.dshShikitorSourceKind
-        const atomic = kind === 'file' || kind === 'session' || element.classList.contains(SHIKITOR_TOKEN_CLASS)
-        if (atomic) {
-          const rect = element.getBoundingClientRect()
-          normalize(rect, start, rect.left, true)
-          normalize(rect, end, rect.right, true)
-          return
-        }
-        if (kind === 'placeholder') {
-          const rect = element.getBoundingClientRect()
-          normalize(rect, start, rect.left, false)
-          return
-        }
-        const node = textNodeOf(element)
-        if (!node) return
-        for (let character = 0; character <= node.length; character += 1) {
-          const rect = collapsedBoundaryRect(node, character)
-          normalize(rect, start + character, rect.left, false)
-        }
-      })
-      return boundaries
-    }
-
-    function projectedBoundaryAtOffset(boundaries, offset) {
-      const exact = boundaries.find((boundary) => boundary.offset === offset)
-      if (exact) return exact
-      const atomic = boundaries.find((boundary) => (
-        boundary.atomicStart !== undefined
-        && offset > boundary.atomicStart
-        && offset < boundary.atomicEnd
-      ))
-      if (!atomic) return undefined
-      const start = boundaries.find((boundary) => (
-        boundary.offset === atomic.atomicStart
-        && boundary.atomicStart === atomic.atomicStart
-        && boundary.atomicEnd === atomic.atomicEnd
-      ))
-      const end = boundaries.find((boundary) => (
-        boundary.offset === atomic.atomicEnd
-        && boundary.atomicStart === atomic.atomicStart
-        && boundary.atomicEnd === atomic.atomicEnd
-      ))
-      if (!start || !end) return undefined
-      return offset - atomic.atomicStart <= atomic.atomicEnd - offset ? start : end
-    }
-
-    function projectedCaretPosition(target, input, output) {
-      const container = target.querySelector('.shikitor-container')
-      if (!container) return undefined
-      const lineHeight = Number.parseFloat(getComputedStyle(input).lineHeight) || 22
-      const focus = input.selectionDirection === 'backward' ? input.selectionStart : input.selectionEnd
-      const boundary = projectedBoundaryAtOffset(collectProjectedBoundaries(output, lineHeight), focus)
-      if (!boundary) return undefined
-      const containerRect = container.getBoundingClientRect()
-      return {
-        x: boundary.x - containerRect.left + output.scrollLeft,
-        y: boundary.top - containerRect.top + output.scrollTop,
-      }
-    }
-
-    function publishProjectedCaret(target, input, output) {
-      const position = projectedCaretPosition(target, input, output)
-      if (!position) return false
-      const top = `${position.y}px`
-      const left = `${position.x}px`
-      // 1.0.2 consumes root-scoped variables. Newer Shikitor cores scope them
-      // to the cursor layer to avoid restyling the whole projection.
-      const cursorLayer = target.querySelector('.shikitor-cursors')
-      for (const host of [target, cursorLayer]) {
-        if (!host) continue
-        if (host.style.getPropertyValue('--shikitor-cursor-t') !== top) {
-          host.style.setProperty('--shikitor-cursor-t', top)
-        }
-        if (host.style.getPropertyValue('--shikitor-cursor-l') !== left) {
-          host.style.setProperty('--shikitor-cursor-l', left)
-        }
-      }
-      return true
-    }
-
-    function projectedSelectionRects(target, input, output) {
-      const container = target.querySelector('.shikitor-container')
-      if (!container) return []
-      const selectionStart = Math.min(input.selectionStart, input.selectionEnd)
-      const selectionEnd = Math.max(input.selectionStart, input.selectionEnd)
-      if (selectionStart === selectionEnd) return []
-      const containerRect = container.getBoundingClientRect()
-      const rects = []
-      output.querySelectorAll(SHIKITOR_SOURCE_SELECTOR).forEach((element) => {
-        const start = numericData(element, 'dshShikitorSourceStart')
-        const end = numericData(element, 'dshShikitorSourceEnd')
-        if (start === undefined || end === undefined || end <= selectionStart || start >= selectionEnd) return
-        const kind = element.dataset.dshShikitorSourceKind
-        if (kind === 'placeholder') return
-        const atomic = kind === 'file' || kind === 'session' || element.classList.contains(SHIKITOR_TOKEN_CLASS)
-        const clientRects = []
-        if (atomic) {
-          clientRects.push(element.getBoundingClientRect())
-        } else {
-          const node = textNodeOf(element)
-          if (!node) return
-          const from = Math.max(0, selectionStart - start)
-          const to = Math.min(node.length, selectionEnd - start)
-          if (from >= to) return
-          const range = node.ownerDocument.createRange()
-          range.setStart(node, from)
-          range.setEnd(node, to)
-          clientRects.push(...range.getClientRects())
-        }
-        for (const rect of clientRects) {
-          if (rect.width <= 0 || rect.height <= 0) continue
-          rects.push({
-            left: rect.left - containerRect.left,
-            top: rect.top - containerRect.top,
-            width: rect.width,
-            height: rect.height,
-          })
-        }
-      })
-      return rects
-    }
-
-    function renderProjectedSelection(target, input, output, layer) {
-      const rects = projectedSelectionRects(target, input, output)
-      const fragment = input.ownerDocument.createDocumentFragment()
-      for (const rect of rects) {
-        const highlight = input.ownerDocument.createElement('i')
-        highlight.className = 'ef-shikitor-selection'
-        highlight.style.left = `${rect.left}px`
-        highlight.style.top = `${rect.top}px`
-        highlight.style.width = `${rect.width}px`
-        highlight.style.height = `${rect.height}px`
-        fragment.appendChild(highlight)
-      }
-      layer.replaceChildren(fragment)
-      layer.toggleAttribute('data-active', rects.length > 0)
-      return rects
-    }
-
-    const endfieldComposerProjectionPlugin = {
-      name: 'endfield-composer-projection',
-      inject: ['shikitor'],
-      apply(pluginCtx) {
-        const shikitor = pluginCtx.shikitor
-        const target = shikitor && shikitor.element
-        const input = shikitor && shikitor.inputElement
+      const attach = (target) => {
+        if (!(target instanceof HTMLElement) || attached.has(target)) return
         const output = target && target.querySelector('.shikitor-output')
-        const container = target && target.querySelector('.shikitor-container')
-        const view = input && input.ownerDocument && input.ownerDocument.defaultView
-        const MutationObserverClass = view && view.MutationObserver
-        if (!target || !input || !output || !container || !view || !MutationObserverClass) return
+        const lineStack = target && target.querySelector('.shikitor-output-lines')
+        const view = output && output.ownerDocument && output.ownerDocument.defaultView
+        const ResizeObserverClass = typeof ResizeObserver === 'function' ? ResizeObserver : undefined
+        const MutationObserverClass = MutationObserver
+        if (!output || !lineStack || !view || !MutationObserverClass) return
 
-        target.setAttribute('data-endfield-input-owner', 'shikitor')
-        const selectionLayer = input.ownerDocument.createElement('div')
-        selectionLayer.className = 'ef-shikitor-selection-layer'
-        selectionLayer.setAttribute('aria-hidden', 'true')
-        container.appendChild(selectionLayer)
-        let frame
+        target.setAttribute('data-endfield-composer-reflow-sync', 'ready')
         let disposed = false
-        const refresh = () => {
-          frame = undefined
-          if (disposed) return
-          publishProjectedCaret(target, input, output)
-          renderProjectedSelection(target, input, output, selectionLayer)
+        let invalidateFrame
+        let checkFrame
+
+        const layoutSignature = () => {
+          const stackRect = lineStack.getBoundingClientRect()
+          const rows = Array.from(lineStack.querySelectorAll('.shikitor-output-line'))
+            .map((line) => {
+              const rect = line.getBoundingClientRect()
+              return `${Math.round(rect.width * 4)}/${Math.round(rect.height * 4)}`
+            })
+          return `${Math.round(stackRect.width * 4)}:${rows.join(',')}`
         }
-        const schedule = () => {
-          if (disposed || frame !== undefined) return
-          frame = view.requestAnimationFrame(refresh)
+        let previousLayout = layoutSignature()
+
+        const invalidate = () => {
+          if (disposed || invalidateFrame !== undefined) return
+          // ResizeObserver already runs after layout. One animation frame lets
+          // React/Shiki finish the same edit transaction before asking the
+          // built-in token plugin to refresh its cached boundaries.
+          invalidateFrame = view.requestAnimationFrame(() => {
+            invalidateFrame = undefined
+            if (disposed) return
+            target.setAttribute('data-endfield-composer-reflow-sync', 'invalidated')
+            output.dispatchEvent(new view.Event('scroll'))
+          })
         }
-        const onSelectionChange = () => {
-          if (input.ownerDocument.activeElement === input) schedule()
+
+        const checkLayout = () => {
+          if (disposed || checkFrame !== undefined) return
+          checkFrame = view.requestAnimationFrame(() => {
+            checkFrame = undefined
+            if (disposed) return
+            const nextLayout = layoutSignature()
+            if (nextLayout === previousLayout) return
+            previousLayout = nextLayout
+            invalidate()
+          })
         }
-        const observer = new MutationObserverClass(schedule)
-        observer.observe(output, {
-          attributes: true,
+
+        // Shikitor rewrites inline spans for ordinary edits. Watching the
+        // subtree is safe because those mutations only schedule an O(lines)
+        // box signature check; its expensive character-boundary refresh runs
+        // only when wrapping or explicit line structure actually changed.
+        const mutationObserver = new MutationObserverClass(checkLayout)
+        mutationObserver.observe(lineStack, {
           characterData: true,
           childList: true,
           subtree: true,
         })
-        const ResizeObserverClass = view.ResizeObserver
-        const resizeObserver = ResizeObserverClass ? new ResizeObserverClass(schedule) : undefined
-        resizeObserver && resizeObserver.observe(input)
-        resizeObserver && resizeObserver.observe(output)
-
-        const inputEvents = ['input', 'select', 'keyup', 'click', 'scroll', 'compositionend']
-        inputEvents.forEach((event) => input.addEventListener(event, schedule))
-        output.addEventListener('scroll', schedule)
-        input.ownerDocument.addEventListener('selectionchange', onSelectionChange)
-        view.addEventListener('resize', schedule)
-        const fonts = input.ownerDocument.fonts
-        fonts && fonts.addEventListener('loadingdone', schedule)
-        fonts && fonts.ready.then(schedule)
-        const stopChange = typeof pluginCtx.on === 'function'
-          ? pluginCtx.on('shikitor/change', schedule)
+        const resizeObserver = ResizeObserverClass
+          ? new ResizeObserverClass(checkLayout)
           : undefined
-        const stopCursor = typeof pluginCtx.on === 'function'
-          ? pluginCtx.on('shikitor/cursor-change', schedule)
-          : undefined
-        schedule()
+        resizeObserver && resizeObserver.observe(lineStack)
+        view.addEventListener('resize', checkLayout)
 
-        return () => {
+        // Correct a sender that mounted after its first wrapped render before
+        // any later input/resize mutation occurs.
+        invalidate()
+
+        const dispose = () => {
           disposed = true
-          if (frame !== undefined) view.cancelAnimationFrame(frame)
-          observer.disconnect()
+          mutationObserver.disconnect()
           resizeObserver && resizeObserver.disconnect()
-          inputEvents.forEach((event) => input.removeEventListener(event, schedule))
-          output.removeEventListener('scroll', schedule)
-          input.ownerDocument.removeEventListener('selectionchange', onSelectionChange)
-          view.removeEventListener('resize', schedule)
-          fonts && fonts.removeEventListener('loadingdone', schedule)
-          if (typeof stopChange === 'function') stopChange()
-          if (typeof stopCursor === 'function') stopCursor()
-          selectionLayer.remove()
-          target.removeAttribute('data-endfield-input-owner')
+          view.removeEventListener('resize', checkLayout)
+          if (invalidateFrame !== undefined) view.cancelAnimationFrame(invalidateFrame)
+          if (checkFrame !== undefined) view.cancelAnimationFrame(checkFrame)
+          target.removeAttribute('data-endfield-composer-reflow-sync')
         }
-      },
+        attached.set(target, dispose)
+      }
+
+      const scan = (root) => {
+        if (root instanceof Element) {
+          const owner = root.matches('.shikitor--attached')
+            ? root
+            : root.closest('.shikitor--attached')
+          if (owner) attach(owner)
+        }
+        if (root && typeof root.querySelectorAll === 'function') {
+          root.querySelectorAll('.shikitor--attached').forEach(attach)
+        }
+        for (const [target, dispose] of attached) {
+          if (target.isConnected) continue
+          dispose()
+          attached.delete(target)
+        }
+      }
+
+      scan(document.body)
+      const documentObserver = new MutationObserver((records) => {
+        for (const record of records) record.addedNodes.forEach(scan)
+      })
+      documentObserver.observe(document.body, { childList: true, subtree: true })
+      return () => {
+        documentObserver.disconnect()
+        for (const dispose of attached.values()) dispose()
+        attached.clear()
+      }
     }
 
     function BootSequence() {
@@ -600,6 +453,17 @@ window.__ModuleLoader__.load({
     // There is deliberately no Goal store here. Every render and mutation
     // reads the authoritative, session-scoped `goal` projection. Mutations
     // use the same CAS ref ({id, revision}) and Remote service as GoalBar.
+    // 0.18 publishes the same `betterSidebar` service; resolve through
+    // `ctx.get` first so fiber inject order cannot hide it from this adapter.
+    function sidebarOf(ctx) {
+      try {
+        if (typeof ctx.get === 'function') {
+          const service = ctx.get('betterSidebar')
+          if (service) return service
+        }
+      } catch (e) {}
+      return ctx.betterSidebar
+    }
     // --------------------------------------------------------------------
     const objectiveBadgeBySession = new Map()
 
@@ -822,17 +686,18 @@ window.__ModuleLoader__.load({
         const phase = goal && goal.phase
         objectiveBadgeBySession.set(currentId, phase && phase !== 'complete' ? phase.toUpperCase() : null)
         try {
-          const snapshot = ctx.betterSidebar.getSnapshot()
+          const sidebar = sidebarOf(ctx)
+          const snapshot = sidebar.getSnapshot()
           const hasTab = snapshot && snapshot.state && JSON.stringify(snapshot.state).includes('endfield:objective')
-          if (hasTab && ctx.betterSidebar.features.includes('updateTab')) {
-            ctx.betterSidebar.updateTab('endfield:objective', { meta: { phase: phase || null } })
+          if (hasTab && sidebar.features.includes('updateTab')) {
+            sidebar.updateTab('endfield:objective', { meta: { phase: phase || null } })
           }
         } catch (e) {}
         if (!goal || !['active', 'paused', 'blocked'].includes(phase)) return
         if (openedGoalBySession.get(currentId) === goal.id) return
         openedGoalBySession.set(currentId, goal.id)
         try {
-          ctx.betterSidebar.openTab(
+          sidebarOf(ctx).openTab(
             { type: 'endfield:objective', title: 'OBJECTIVE' },
             { sessionId: currentId },
           )
@@ -863,11 +728,11 @@ window.__ModuleLoader__.load({
       }
     }
 
-    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'shikitor', 'remote', 'remote.goals']
+    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'remote', 'remote.goals']
     function apply(ctx) {
       ctx.effect(
-        () => ctx.shikitor.register('sender', endfieldComposerProjectionPlugin),
-        'endfield-ui: composer projection geometry',
+        connectComposerReflowSync,
+        'endfield-ui: composer reflow synchronization',
       )
 
       // Keep the native workbench off-stage until the Endfield boot sequence
@@ -877,7 +742,7 @@ window.__ModuleLoader__.load({
       ctx.effect(() => {
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         const gatedHosts = new Set()
-        const panelSelector = 'div[style*="width"]:has(button[aria-label="新建标签页"])'
+        const panelSelector = 'div[style*="width"]:has(button[aria-label="新建标签页"]), [data-dsh-panel-host]'
         const gateHost = (host) => {
           if (!(host instanceof HTMLElement) || gatedHosts.has(host)) return
           host.style.setProperty('display', 'none', 'important')
@@ -886,15 +751,20 @@ window.__ModuleLoader__.load({
         }
         const gatePanel = (panel) => {
           if (!(panel instanceof HTMLElement) || gatedHosts.has(panel)) return
+          if (panel.hasAttribute('data-dsh-panel-host')) {
+            gateHost(panel)
+            return
+          }
           const style = window.getComputedStyle(panel)
           if (style.position !== 'fixed' || style.right !== '0px' || style.bottom !== '0px') return
           gateHost(panel)
         }
         const scanHosts = (root) => {
           if (root instanceof Element && root.matches('[data-dsh-better-sidebar]')) gateHost(root)
+          if (root instanceof Element && root.matches('[data-dsh-panel-host]')) gateHost(root)
           if (root instanceof Element && root.matches(panelSelector)) gatePanel(root)
           if (root && typeof root.querySelectorAll === 'function') {
-            root.querySelectorAll('[data-dsh-better-sidebar]').forEach(gateHost)
+            root.querySelectorAll('[data-dsh-better-sidebar], [data-dsh-panel-host]').forEach(gateHost)
             root.querySelectorAll(panelSelector).forEach(gatePanel)
           }
         }
@@ -927,13 +797,67 @@ window.__ModuleLoader__.load({
         }
       }, 'endfield-ui: boot workbench gate')
 
+      // Settings owns a deliberately dark Endfield surface even when DSH is
+      // in light/system-light mode.  Its secondary dialogs and menus are
+      // portaled to <body>, so CSS inheritance alone cannot carry the local
+      // palette into them. Mark the root and every modal/list surface that is
+      // alive while Settings is open; theme.css then applies one coherent
+      // semantic palette without depending on CSS-module hash class names.
+      ctx.effect(() => {
+        const rootSelector = '[role="dialog"][aria-modal="true"]:has([data-slot="settings.header"])'
+        const portalSelector = '[role="dialog"], [role="listbox"], [role="menu"]'
+        const attribute = 'data-endfield-settings-surface'
+        const marked = new Set()
+        let settingsRoot
+
+        const mark = (element, kind) => {
+          if (!(element instanceof HTMLElement)) return
+          element.setAttribute(attribute, kind)
+          marked.add(element)
+        }
+        const clear = () => {
+          for (const element of marked) {
+            if (element.getAttribute(attribute) !== null) element.removeAttribute(attribute)
+          }
+          marked.clear()
+        }
+        const sync = () => {
+          const nextRoot = document.querySelector(rootSelector)
+          if (!(nextRoot instanceof HTMLElement)) {
+            settingsRoot = undefined
+            clear()
+            return
+          }
+          if (settingsRoot && settingsRoot !== nextRoot) clear()
+          settingsRoot = nextRoot
+          mark(settingsRoot, 'root')
+
+          // A modal settings shell blocks interaction with unrelated app
+          // surfaces, therefore every live dialog/menu during its lifetime is
+          // either a descendant or a portal derived from this settings flow.
+          document.querySelectorAll(portalSelector).forEach((surface) => {
+            if (surface === settingsRoot) return
+            const role = surface.getAttribute('role')
+            mark(surface, role === 'dialog' ? 'derived' : 'popup')
+          })
+        }
+
+        sync()
+        const observer = new MutationObserver(sync)
+        observer.observe(document.body, { childList: true, subtree: true })
+        return () => {
+          observer.disconnect()
+          clear()
+        }
+      }, 'endfield-ui: settings surface contrast')
+
       ctx.effect(() => {
         const link = document.createElement('link')
         link.rel = 'stylesheet'
         // Keep the stylesheet URL release-addressable.  Electron/Chromium can
         // otherwise retain an older theme.css across local same-version
         // rebuilds, making visual hotfixes appear to have no effect.
-        link.href = '/endfield-ui/theme.css?v=1.0.0'
+        link.href = '/endfield-ui/theme.css?v=1.0.1-better-sidebar-0.18'
         link.dataset.plugin = '@rison/dsh-endfield-ui'
         document.head.appendChild(link)
         return () => { link.remove() }
@@ -953,7 +877,7 @@ window.__ModuleLoader__.load({
         'endfield-ui: context ring',
       )
 
-      ctx.effect(() => ctx.betterSidebar.registerTab({
+      ctx.effect(() => sidebarOf(ctx).registerTab({
         id: 'endfield:objective',
         title: 'OBJECTIVE',
         order: 5,
@@ -982,18 +906,7 @@ window.__ModuleLoader__.load({
       ))
     }
 
-    module.exports = {
-      inject,
-      apply,
-      __testing: {
-        collectProjectedBoundaries,
-        projectedBoundaryAtOffset,
-        projectedCaretPosition,
-        publishProjectedCaret,
-        projectedSelectionRects,
-        renderProjectedSelection,
-      },
-    }
+    module.exports = { inject, apply }
     return module.exports
   },
 })

@@ -1,12 +1,12 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
-> 最后更新：2026-08-24
-> 当前统一版本：`1.0.0`（插件、桌面 App、Git tag、GitHub Release）
+> 最后更新：2026-09-03
+> 当前统一版本：`1.0.1`（插件与桌面 App；发布前再同步 Git tag、GitHub Release）
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 1.0.0 正式版交接（当前基线）
+## 1.0.1 兼容版交接（当前基线）
 
-1.0.0 汇总 0.5.0 以来的标准插件化、终末地视觉层、better-sidebar、Shikitor、原生 Goal、Vision 图片链路和桌面单写入能力。输入框不再混用原生 textarea 与富文本投影两套可见坐标：textarea 只负责输入、IME 和 selection 数据，Shikitor 投影负责文字、黑色合成光标与工业黄选区。桌面 App 必须携带当前版本 `.tgz` 并检查 better-sidebar / Shikitor 依赖完整性。GitHub Release 只发布 Apple Silicon arm64 的 ad-hoc 签名构建；公开可信分发仍需 Developer ID 与公证。
+1.0.1 将兼容基线更新为 DSH `0.1.2-alpha.5` 与 `dsh-better-sidebar@0.18.0-alpha.0`。终末地 client 不再 inject 已从 DSH 0.1.2 删除的 `@deepseek-ai/dsh-client-runtime`，也不等待仍声明该 runtime 的 Shikitor 浏览器模块；Shikitor 宿主半继续保留。better-sidebar 必须只由本插件的 Cordis patch 挂载，禁止再单独执行 `dsh plugin add dsh-better-sidebar`，否则会双挂载。桌面 App 必须携带当前版本 `.tgz` 并检查 better-sidebar / Shikitor 依赖完整性；不再使用 `--import` 兼容启动器。
 
 ## 0.9.1 单写入桌面端与统一版本交接（历史基线）
 
@@ -16,11 +16,11 @@
 
 关键兼容规则：
 
-- 目标 DSH 固定为 `0.1.1-rc.2`；better-sidebar 固定 `0.15.2`，禁止用 `latest`。Vision 模型必须声明 `inputModalities: [text, image]`。
+- 目标 DSH 固定为 `0.1.2-alpha.5`；better-sidebar 固定 `0.18.0-alpha.0`，禁止用 `latest`。Vision 模型必须声明 `inputModalities: [text, image]`。
 - Shikitor 固定 `1.0.2`，要求 Node `>=22.19.0`。它负责输入框 `@/#/$//` 补全与中央编辑页。
 - better-sidebar 保留自己的右栏快速编辑器。Shikitor 没有公开可嵌入 better-sidebar 的 React 组件，因此不要用 DOM 搬运或 fork 上游的方式强行合并；当前产品定义是“右栏快速编辑 + 中央深度编辑”。
 - 内嵌浏览器受目标站点 CSP / `X-Frame-Options` 限制，被拒绝时走上游自带的外部打开入口。
-- pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.15.2 会降级挂载并只禁用终端。
+- pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.18 alpha 会降级挂载并只禁用终端。
 
 Goal 适配规则：
 
@@ -301,12 +301,12 @@ dsh --profile web
 `desktop-app/main.cjs` 当前会：
 
 1. 创建 Electron 原生窗口。
-2. 找到随 App 携带的 `endfield-ui-plugin`。
-3. 检查插件是否已链接进用户的 `~/.dsh/profiles/web`。
-4. 必要时执行 `dsh plugin --profile web add <pluginDir> --allow-build=node-pty`。
-5. 使用 `--host 127.0.0.1 --no-open --port 0` 启动仅供 Electron 使用的随机本地服务；禁止额外打开系统浏览器。
-6. 从日志中识别 `http://127.0.0.1:<port>` 并加载。
-7. 窗口关闭时向 dsh 子进程发送 `SIGTERM`。
+2. 诊断 Node、npm、pnpm、DSH 和内置插件；仅在用户确认后安装固定版本 DSH/pnpm。
+3. 检测到未验证 DSH 版本时警告，允许用户记住该版本并继续。
+4. 必要时执行 `dsh plugin --profile web add <plugin.tgz> --allow-build=node-pty`。
+5. 使用 `--host 127.0.0.1 --no-open --port 0` 启动仅供 Electron 使用的随机本地服务。
+6. 加载 DSH 输出的完整 token 鉴权 URL，完成 Cookie 交换。
+7. 窗口关闭时只回收 App 自己启动的安装/服务子进程。
 
 这套结构可以保留，重点是消除硬编码路径和完善发布链。
 
@@ -314,9 +314,9 @@ dsh --profile web
 
 第一阶段不要把整个 dsh、Node 和包管理器都塞进 App。推荐约定：
 
-- 用户已经安装并能正常运行 dsh。
+- 用户只需预先安装 Node `>=22.19.0`。
 - App 自带终末地 UI 插件。
-- App 自动查找 dsh 命令或由用户首次选择 dsh 安装位置。
+- App 自动查找 dsh；缺失时可在用户确认后通过 npm 安装推荐 DSH/pnpm，也可手动选择。
 - App 复用 `~/.dsh`。
 
 优点是体积较小、更新简单、不会复制用户数据。缺点是首次启动要检测本机 dsh 环境。
@@ -333,12 +333,17 @@ dsh --profile web
 
 首次检测失败时显示终末地风格的引导页，提供：
 
+- Node/npm/pnpm/DSH/插件的版本和路径诊断；
+- 缺少 Node 时打开官方下载页；
+- Node 存在时的可选一键安装、实时日志与重试；
+- 当前 DSH 版本不匹配时的“安装推荐版本 / 继续使用”选择；
 - “选择 dsh 可执行文件”；
 - “选择 deepseek-harness 源码目录”；
 - “重新检测”；
 - 清晰的安装说明。
 
 选择结果保存到 Electron `app.getPath('userData')` 下，不要修改项目内的 `app.config.json`。
+一键安装不调用 `sudo`、winget 或 brew，不移动、清空或重建 `~/.dsh`。
 
 ### 4.4 桌面壳启动逻辑调整
 
@@ -393,6 +398,8 @@ codesign --verify --deep --strict \
 ```bash
 npm run dist:mac:local
 ```
+
+Windows 正式产物使用 GitHub Actions `windows-latest`，执行 `npm run dist:win` 后生成 NSIS Setup.exe 和 portable ZIP。便携版必须保留完整目录结构。工作流只上传待测试 Artifact，不自动发布 Release。构建前的 staging 目录只放当前版本插件 `.tgz` 和其 `package.json`，不携带历史归档。
 
 该命令应依次完成：
 
@@ -451,7 +458,7 @@ ad-hoc 签名只适合本机自用。公开下载需要：
 | 双击启动 | 无需终端，自动出现开屏并进入 dsh |
 | 用户数据 | 能看到原 `~/.dsh` 会话、工作区和模型配置 |
 | 插件加载 | 使用 App Resources 中的插件，版本与发布清单一致 |
-| 无 dsh | 出现可操作引导，不崩溃、不显示空白窗口 |
+| 无 dsh | Node 存在时可确认一键安装；无 Node 时引导官方安装，不崩溃 |
 | 无 pnpm | 给出明确修复路径，或自包含版无需 pnpm |
 | 重复启动 | 第二次双击聚焦已有窗口，不启动第二个服务 |
 | 关闭 App | dsh 子进程在限定时间内退出，不残留监听端口 |

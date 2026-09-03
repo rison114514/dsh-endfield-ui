@@ -1,20 +1,26 @@
 {
   "name": "dsh-endfield-workbench",
   "productName": "DSH 终末地工作台",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Endfield-inspired desktop shell for DeepSeek Harness",
+  "author": "rison114514",
   "main": "main.cjs",
   "private": true,
   "scripts": {
     "start": "electron .",
     "install-plugin": "node scripts/install-plugin.mjs",
-    "pack:mac": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=arm64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin",
-    "pack:mac:x64": "electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=x64 --out=release --overwrite --prune=true --extra-resource=../endfield-ui-plugin",
+    "prepare:embedded-plugin": "node scripts/stage-plugin.mjs",
+    "test:bootstrap": "node scripts/verify-bootstrap.mjs",
+    "pack:mac": "npm run prepare:embedded-plugin && electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=arm64 --out=release --overwrite --prune=true --extra-resource=.build-resources/endfield-ui-plugin",
+    "pack:mac:x64": "npm run prepare:embedded-plugin && electron-packager . \"DSH 终末地工作台\" --platform=darwin --arch=x64 --out=release --overwrite --prune=true --extra-resource=.build-resources/endfield-ui-plugin",
+    "build:win": "npm run prepare:embedded-plugin && electron-builder --win nsis zip --x64 --publish never",
     "sign:mac:local": "codesign --force --deep --sign - \"release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app\" && codesign --verify --deep --strict \"release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app\"",
-    "dist:mac:local": "node scripts/dist-mac-local.mjs"
+    "dist:mac:local": "node scripts/dist-mac-local.mjs",
+    "dist:win": "node scripts/dist-win-local.mjs"
   },
   "devDependencies": {
     "@electron/packager": "20.0.4",
-    "electron": "43.2.0"
+    "electron": "43.2.0",
+    "electron-builder": "26.0.12"
   }
 }
