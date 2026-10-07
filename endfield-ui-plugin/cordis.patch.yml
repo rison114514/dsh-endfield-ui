@@ -1,11 +1,11 @@
-# Endfield workbench for DSH 0.1.2-alpha.5 + dsh-better-sidebar 0.18.0-alpha.0.
-# Keep this order: the public services must mount before the Endfield adapter.
-# better-sidebar is a nested dependency of this package; do not also
-# `dsh plugin add dsh-better-sidebar` or the host half will double-mount.
+# Endfield visual adapter for DSH 0.1.2-alpha.5.
+#
+# dsh-better-sidebar is deliberately NOT mounted from this bundle. DSH scans
+# client modules from root profile entries, so mounting a transitive dependency
+# here only works accidentally with pnpm's hoisted linker. Install the pinned
+# sidebar as a direct profile plugin in the same `dsh plugin add` command. The
+# Endfield client attaches its OBJECTIVE integration when the public
+# `betterSidebar` service becomes available and otherwise degrades cleanly.
 - insert:
-    - id: better-sidebar
-      name: 'dsh-better-sidebar'
-    - id: dsh-shikitor
-      name: 'dsh-shikitor'
     - id: endfield-ui
       name: '@rison/dsh-endfield-ui'

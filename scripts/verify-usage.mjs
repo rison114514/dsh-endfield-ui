@@ -16,21 +16,24 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.0.1.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.0.2.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname, isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createRequire } from 'node:module'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.0.1.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.0.2.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
+const SIDEBAR_NAME = 'dsh-better-sidebar'
+const SIDEBAR_VERSION = '0.18.0-alpha.0'
+const NODE_LINKER = process.env.DSH_TEST_NODE_LINKER || 'isolated'
+const WITH_SIDEBAR = process.env.DSH_TEST_WITH_SIDEBAR !== '0'
 const PORT_TIMEOUT_MS = 30000
 
 const results = []
@@ -96,11 +99,25 @@ async function main() {
   console.log(`[verify] 隔离 DSH_HOME = ${DSH_HOME}`)
   console.log(`[verify] 安装目标      = ${TARGET}`)
   console.log(`[verify] dsh 可执行     = ${DSH_BIN}`)
+  console.log(`[verify] pnpm nodeLinker = ${NODE_LINKER}`)
+  console.log(`[verify] install sidebar  = ${WITH_SIDEBAR}`)
 
   const PLUGIN_ROOT = join(DSH_HOME, 'profiles', 'web', 'node_modules', PLUGIN_NAME)
+  const PROFILE_ROOT = join(DSH_HOME, 'profiles', 'web')
+
+  // Pre-create only the pnpm policy. DSH still owns the profile manifest and
+  // patch files, while this lets the same test exercise both supported linker
+  // layouts without touching the user's real profile.
+  mkdirSync(PROFILE_ROOT, { recursive: true })
+  writeFileSync(join(PROFILE_ROOT, 'pnpm-workspace.yaml'), `packages:\n  - .\n\nnodeLinker: ${NODE_LINKER}\nautoInstallPeers: false\nallowBuilds:\n  node-pty: true\n`)
 
   // 1. 安装
-  const add = runDsh(['plugin', '--profile', 'web', 'add', TARGET, '--allow-build=node-pty'], env)
+  const addTargets = WITH_SIDEBAR
+    ? [`${SIDEBAR_NAME}@${SIDEBAR_VERSION}`, TARGET]
+    : [TARGET]
+  const add = runDsh([
+    'plugin', '--profile', 'web', 'add', ...addTargets, '--allow-build=node-pty',
+  ], env)
   ok('plugin add 退出码为 0', add.status === 0, add.stderr.trim().split('\n').slice(-3).join(' '))
 
   // 2. profile 清单：依赖 + bundles
@@ -108,8 +125,15 @@ async function main() {
   const pkg = JSON.parse(readFileSync(profilePkgPath, 'utf8'))
   const deps = { ...(pkg.dependencies || {}), ...(pkg.optionalDependencies || {}) }
   ok('插件依赖进入 profiles/web/package.json', !!deps[PLUGIN_NAME], `deps=${JSON.stringify(deps)}`)
+  ok(WITH_SIDEBAR ? 'better-sidebar 是 profile 直接依赖' : '降级测试未安装 better-sidebar',
+    WITH_SIDEBAR ? !!deps[SIDEBAR_NAME] : !deps[SIDEBAR_NAME],
+    `deps=${JSON.stringify(deps)}`)
   const bundles = pkg.dsh?.profile?.bundles || pkg.profile?.bundles || []
   ok('dsh.profile.bundles 自动包含插件', Array.isArray(bundles) && bundles.includes(PLUGIN_NAME), `bundles=${JSON.stringify(bundles)}`)
+  ok(WITH_SIDEBAR ? 'better-sidebar 与 Endfield 都是唯一根级 bundle（顺序无关）' : 'Endfield 可作为唯一扩展 bundle 降级启动',
+    (WITH_SIDEBAR ? bundles.filter((name) => name === SIDEBAR_NAME).length === 1 : !bundles.includes(SIDEBAR_NAME))
+      && bundles.filter((name) => name === PLUGIN_NAME).length === 1,
+    `bundles=${JSON.stringify(bundles)}`)
 
   // 3. 插件自身清单（node_modules 下）：client / bundle 声明
   const pluginPkgPath = join(PLUGIN_ROOT, 'package.json')
@@ -118,30 +142,31 @@ async function main() {
   ok('插件 package.json：dsh.client.immediately = true', pluginPkg.dsh?.client?.immediately === true, JSON.stringify(pluginPkg.dsh?.client))
   ok('插件 package.json：dsh.client.inject 非空', Array.isArray(pluginPkg.dsh?.client?.inject) && pluginPkg.dsh.client.inject.length > 0, JSON.stringify(pluginPkg.dsh?.client?.inject))
   ok('插件 package.json：dsh.bundle.patch = ./cordis.patch.yml', pluginPkg.dsh?.bundle?.patch === './cordis.patch.yml', String(pluginPkg.dsh?.bundle?.patch))
-  ok('better-sidebar 精确锁定 0.18.0-alpha.0', pluginPkg.dependencies?.['dsh-better-sidebar'] === '0.18.0-alpha.0', JSON.stringify(pluginPkg.dependencies))
-  ok('dsh-shikitor 精确锁定 1.0.2', pluginPkg.dependencies?.['dsh-shikitor'] === '1.0.2', JSON.stringify(pluginPkg.dependencies))
-
-  const pluginRequire = createRequire(pluginPkgPath)
-  for (const [name, expected] of [['dsh-better-sidebar', '0.18.0-alpha.0'], ['dsh-shikitor', '1.0.2']]) {
-    let actual = null
-    try {
-      actual = JSON.parse(readFileSync(pluginRequire.resolve(`${name}/package.json`), 'utf8')).version
-    } catch {}
-    ok(`${name}@${expected} 已作为整合依赖安装`, actual === expected, `actual=${actual}`)
-  }
+  ok('插件不再携带会被 DSH 当作启动项的传递依赖',
+    !pluginPkg.dependencies?.['dsh-better-sidebar'] && !pluginPkg.dependencies?.['dsh-shikitor'],
+    JSON.stringify(pluginPkg.dependencies || {}))
+  const sidebarPkgPath = join(PROFILE_ROOT, 'node_modules', SIDEBAR_NAME, 'package.json')
+  const sidebarVersion = existsSync(sidebarPkgPath)
+    ? JSON.parse(readFileSync(sidebarPkgPath, 'utf8')).version
+    : null
+  ok(WITH_SIDEBAR
+    ? `${SIDEBAR_NAME}@${SIDEBAR_VERSION} 已在 profile 根级安装`
+    : '缺少 sidebar 时不存在意外的嵌套提升副本',
+  WITH_SIDEBAR ? sidebarVersion === SIDEBAR_VERSION : sidebarVersion === null,
+  `actual=${sidebarVersion}`)
 
   // 4. cordis.patch.yml 注册 id=endfield-ui
   const patchPath = join(PLUGIN_ROOT, 'cordis.patch.yml')
   let patchOk = false
   if (existsSync(patchPath)) {
     const txt = readFileSync(patchPath, 'utf8')
-    const betterAt = txt.indexOf('id: better-sidebar')
-    const shikitorAt = txt.indexOf('id: dsh-shikitor')
     const endfieldAt = txt.indexOf('id: endfield-ui')
-    patchOk = betterAt >= 0 && shikitorAt > betterAt && endfieldAt > shikitorAt
+    patchOk = endfieldAt >= 0
+      && !txt.includes('id: better-sidebar')
+      && !txt.includes('id: dsh-shikitor')
       && /name:\s*'@rison\/dsh-endfield-ui'/.test(txt)
   }
-  ok('cordis.patch.yml 按 better-sidebar → Shikitor → Endfield 顺序注册', patchOk, patchOk ? patchPath : 'missing/order mismatch')
+  ok('cordis.patch.yml 只注册 Endfield 自身', patchOk, patchOk ? patchPath : 'missing/unexpected nested mount')
 
   // 5. 启动
   const { url, authenticatedUrl, child, stderr } = await startServer(env)
@@ -275,7 +300,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.0.1-better-sidebar-0.18'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.0.2-better-sidebar-0.18'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
@@ -355,13 +380,15 @@ async function main() {
     if (!child.killed) child.kill('SIGKILL')
   }
 
-  const remove = runDsh(['plugin', '--profile', 'web', 'remove', PLUGIN_NAME], env)
+  const removeTargets = WITH_SIDEBAR ? [PLUGIN_NAME, SIDEBAR_NAME] : [PLUGIN_NAME]
+  const remove = runDsh(['plugin', '--profile', 'web', 'remove', ...removeTargets], env)
   ok('卸载整合插件退出码为 0', remove.status === 0, remove.stderr.trim().split('\n').slice(-3).join(' '))
   const removedPkg = JSON.parse(readFileSync(profilePkgPath, 'utf8'))
   const removedDeps = removedPkg.dependencies || {}
   const removedBundles = removedPkg.dsh?.profile?.bundles || []
-  ok('卸载后不留 Endfield 依赖或组合层',
-    !removedDeps[PLUGIN_NAME] && !removedBundles.includes(PLUGIN_NAME),
+  ok('卸载后不留 Endfield / sidebar 依赖或组合层',
+    !removedDeps[PLUGIN_NAME] && !removedDeps[SIDEBAR_NAME]
+      && !removedBundles.includes(PLUGIN_NAME) && !removedBundles.includes(SIDEBAR_NAME),
     `deps=${JSON.stringify(removedDeps)} bundles=${JSON.stringify(removedBundles)}`)
 
   rmSync(DSH_HOME, { recursive: true, force: true })

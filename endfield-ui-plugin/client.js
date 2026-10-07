@@ -728,7 +728,11 @@ window.__ModuleLoader__.load({
       }
     }
 
-    const inject = ['slots', 'theme', 'sessions', 'betterSidebar', 'remote', 'remote.goals']
+    // betterSidebar is optional at this layer. It is installed as a separate
+    // root profile bundle so DSH can always discover its client module, but a
+    // missing or disabled sidebar must not keep the visual adapter pending and
+    // abort the entire Web boot.
+    const inject = ['slots', 'theme', 'sessions', 'remote', 'remote.goals']
     function apply(ctx) {
       ctx.effect(
         connectComposerReflowSync,
@@ -857,7 +861,7 @@ window.__ModuleLoader__.load({
         // Keep the stylesheet URL release-addressable.  Electron/Chromium can
         // otherwise retain an older theme.css across local same-version
         // rebuilds, making visual hotfixes appear to have no effect.
-        link.href = '/endfield-ui/theme.css?v=1.0.1-better-sidebar-0.18'
+        link.href = '/endfield-ui/theme.css?v=1.0.2-better-sidebar-0.18'
         link.dataset.plugin = '@rison/dsh-endfield-ui'
         document.head.appendChild(link)
         return () => { link.remove() }
@@ -877,28 +881,30 @@ window.__ModuleLoader__.load({
         'endfield-ui: context ring',
       )
 
-      ctx.effect(() => sidebarOf(ctx).registerTab({
-        id: 'endfield:objective',
-        title: 'OBJECTIVE',
-        order: 5,
-        single: true,
-        icon: (size) => React.createElement('span', {
-          className: 'ef-objective-tab-icon',
-          style: { width: size, height: size, fontSize: Math.max(10, size - 2) },
-          'aria-hidden': true,
-        }, '◆'),
-        badge: (_tabCtx, scope) => objectiveBadgeBySession.get(scope.sessionId),
-        component: ({ ctx: tabCtx, scope }) => React.createElement(
-          ObjectiveBoundary,
-          null,
-          React.createElement(ObjectiveWorkbench, { ctx: tabCtx, scope }),
-        ),
-      }), 'endfield-ui: OBJECTIVE workbench tab')
+      ctx.inject(['betterSidebar'], (sidebarCtx) => {
+        sidebarCtx.effect(() => sidebarOf(sidebarCtx).registerTab({
+          id: 'endfield:objective',
+          title: 'OBJECTIVE',
+          order: 5,
+          single: true,
+          icon: (size) => React.createElement('span', {
+            className: 'ef-objective-tab-icon',
+            style: { width: size, height: size, fontSize: Math.max(10, size - 2) },
+            'aria-hidden': true,
+          }, '◆'),
+          badge: (_tabCtx, scope) => objectiveBadgeBySession.get(scope.sessionId),
+          component: ({ ctx: tabCtx, scope }) => React.createElement(
+            ObjectiveBoundary,
+            null,
+            React.createElement(ObjectiveWorkbench, { ctx: tabCtx, scope }),
+          ),
+        }), 'endfield-ui: OBJECTIVE workbench tab')
 
-      ctx.effect(
-        () => connectObjectiveAutoOpen(ctx),
-        'endfield-ui: OBJECTIVE auto-open',
-      )
+        sidebarCtx.effect(
+          () => connectObjectiveAutoOpen(sidebarCtx),
+          'endfield-ui: OBJECTIVE auto-open',
+        )
+      })
 
       ctx.slots.inject('shell.overlay', () => ctx.slots.register(
         { name: 'shell.overlay', id: 'endfield-shell', order: -100, label: 'Endfield shell' },

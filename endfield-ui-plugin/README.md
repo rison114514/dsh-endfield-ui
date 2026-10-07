@@ -4,7 +4,7 @@
 
 `@rison/dsh-endfield-ui` 是一个**不修改 DeepSeek Harness 核心源码**的双端 Cordis 工作台插件：Host 端通过 `/endfield-ui/*` 提供本地视觉素材，Client 端使用官方 Theme Token、会话 projection 和公开插件服务构建终末地工业风外观。
 
-1.0.1 面向 **DSH 0.1.2-alpha.5** 兼容线：精确集成 `dsh-better-sidebar@0.18.0-alpha.0` 和 `dsh-shikitor@1.0.2`。右侧工作台跟随官方 0.18 alpha（去掉已删除的 `settingsNamespace` / `dsh-client-runtime`）。输入框仍走 Shikitor 宿主半；其浏览器半仍声明已删除的 `dsh-client-runtime`，因此终末地 client **不再 inject 等待** Shikitor 页面模块，避免主题与工作台被卡住。提供视觉模型原生图片链路、右栏滚动隔离和完整工作台。输入框只保留 Shikitor 原生的一套投影、光标与选区引擎；对于长段落软换行后使用 Shift+Enter 造成的光标累计上移，终末地层仅在最终行盒发生重排后触发 Shikitor 自身重新测量，不复制字符边界算法，也不竞争写入坐标。同时保留 Windows 异常黄条修复，以及浅色、深色和跟随系统三种主题下的可读性优化。
+1.0.2 面向 **DSH 0.1.2-alpha.5** 兼容线，并精确配套 `dsh-better-sidebar@0.18.0-alpha.0`。better-sidebar 与终末地适配层现在由同一条官方命令安装为两个 Profile 根级 bundle，不再把传递依赖当成启动项，因此同时兼容 pnpm hoisted 与 isolated 布局。终末地客户端对 `betterSidebar` 使用可选服务注入：侧栏缺失时视觉层仍能启动，不会再让整个 Web boot 卡在 pending。`dsh-shikitor@1.0.2` 的浏览器模块仍声明 DSH 0.1.2 已删除的 runtime，因此不再自动安装或挂载；输入补全使用 DSH 原生能力。
 
 0.6.0 起逐步形成当前视觉基线：右侧对话栏使用低透明度 Ardot 工业网格，白色侧栏加入等高线纹理，输入区「命令」按钮改为柠檬黄，右下角改为读取 dsh 原生 projection 的上下文进度环。
 
@@ -15,7 +15,7 @@
 需要用户本机已安装 dsh。从 GitHub Release 下载插件 tarball 后执行：
 
 ```bash
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.1.tgz --allow-build=node-pty
+dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
 dsh web
 ```
 
@@ -24,29 +24,27 @@ dsh web
 ## 升级 / 卸载 / 重装
 
 ```bash
-# 升级
-dsh plugin --profile web update @rison/dsh-endfield-ui
+# 升级 / 修复组合层
+dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
 
 # 卸载（恢复 dsh 原生前端，用户数据不受影响）
-dsh plugin --profile web remove @rison/dsh-endfield-ui
+dsh plugin --profile web remove @rison/dsh-endfield-ui dsh-better-sidebar
 
 # 重新安装（在 tarball 所在目录执行）
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.1.tgz --allow-build=node-pty
+dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
 ```
 
 ## 1.0.x 工作台能力
 
 - 右侧 better-sidebar：文件管理、快速编辑、内嵌浏览器、终端、Git、任务与子代理。新会话默认只打开 Explorer，其余页面从 `+` 菜单打开。
-- Shikitor 输入层：`@` 文件、`#` 会话、`$` Skills、`/` 命令补全，及中央工作区编辑器。
-- 双编辑入口：better-sidebar 用于右栏快速查看/修改；Shikitor 中央页面用于更完整的文件编辑。两者各自使用上游公开接口。
+- DSH 原生输入能力负责文件、会话、Skills 与命令补全；不再挂载与 0.1.2 runtime 不兼容的 Shikitor 浏览器模块。
 - `OBJECTIVE` 页面：直接读取当前会话原生 Goal，提供编辑、暂停、恢复和清除。首次出现活动 Goal 时自动加入并聚焦该标签，但不强制展开已收起的右栏。
 - 原生 `/goal` 和输入框上方 GoalBar 继续保留；`OBJECTIVE` 不创建独立 Store。
 - 对话背景恢复 0.7.x 的低透明度旋转仪表圆环，并根据右栏宽度动态裁切；系统启用“减少动态效果”时停止旋转。
 - 开场动画期间隐藏工作台并保持主对话全宽；动画结束后释放上游原生滑入，不修改用户保存的展开/折叠状态。
 - 右侧工作台内部列表保持独立滚动，滚到边界后不再把滚轮事件传给整页；页面根容器和工作台 portal 固定在视口内，避免整体下移错位。
 - Electron App 的窗口拖拽标题条会自动避让右侧工作台；页面加号、收放、底部面板/终端及宽度拖拽在 App 中保持可交互。
-- Shikitor 接管输入框后隐藏原生 textarea 字形，`/goal`、`/compact` 等斜杠命令只绘制一层高亮文本，不再出现首行重影。
-- 新会话首页和普通会话的可见文字由 Shikitor 统一绘制为深墨色；原生 textarea 字形和 caret 保持透明，普通文字选区与文件/会话 atom 选区分别复用 Shikitor 自带实现。终末地适配层负责深色文字、黑色光标、工业黄选区和引用标签外观，并在软换行/Shift+Enter 改变最终行盒时通知 Shikitor 刷新原生坐标缓存，不自行计算或写入光标坐标。
+- 新会话与普通会话的输入框保留终末地深色文字、黑色光标、工业黄选区和引用标签外观；兼容样式只在用户另行安装且能够正常运行 Shikitor 时生效。
 - “等待审批”浅色卡片使用稳定的 `data-approval-key` 作用域覆盖深色标题、原因、命令与按钮文字，不改写深色对话区的全局颜色 token。
 
 ### 上游限制
@@ -62,14 +60,14 @@ dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.1.tgz --allow-build=nod
 DSH_TEST_HOME="$(mktemp -d)"
 export DSH_HOME="$DSH_TEST_HOME"
 
-dsh plugin --profile web add ./rison-dsh-endfield-ui-1.0.1.tgz --allow-build=node-pty
+dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
 dsh --profile web
 ```
 
 验收要点：
 
-1. `$DSH_HOME/profiles/web/package.json` 中存在插件依赖。
-2. `dsh.profile.bundles` 中自动出现 `@rison/dsh-endfield-ui`。
+1. `$DSH_HOME/profiles/web/package.json` 中同时存在 `dsh-better-sidebar` 与终末地插件两个直接依赖。
+2. `dsh.profile.bundles` 中各出现一次 `dsh-better-sidebar` 与 `@rison/dsh-endfield-ui`；数组顺序不影响运行，OBJECTIVE 会等待公开服务就绪。
 3. 启动命令**没有** `--patch`。
 4. `GET /endfield-ui/theme.css` 返回 200。
 5. 浏览器加载后出现开屏与主题。
@@ -103,4 +101,4 @@ dsh --profile web
 
 ## 兼容性
 
-1.0.1 只对 **DSH 0.1.2-alpha.5 + Node >=22.19.0** 做本地构建验证。`dsh-better-sidebar` 精确锁定 `0.18.0-alpha.0`（官方 alpha 通道，适配 `dsh-settings` 删除 `settingsNamespace`），`dsh-shikitor` 精确锁定 `1.0.2`。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` / `[data-dsh-panel-host]` 根标记和公开尺寸变量 `--dsh-sidebar-width` / `--dsh-sidebar-height`，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。Vision 模型必须在 `llm-deepseek.models` 中声明 `inputModalities: [text, image]`，由新版 DSH 原生附件服务发送图片。
+1.0.2 只对 **DSH 0.1.2-alpha.5 + Node >=22.19.0** 做本地构建验证。`dsh-better-sidebar` 精确锁定 `0.18.0-alpha.0`（官方 alpha 通道，适配 `dsh-settings` 删除 `settingsNamespace`），并必须作为 Web Profile 的直接 bundle 安装。工作台样式仅依赖 better-sidebar 公开的 `[data-dsh-better-sidebar]` / `[data-dsh-panel-host]` 根标记和公开尺寸变量 `--dsh-sidebar-width` / `--dsh-sidebar-height`，不依赖其 CSS Module 哈希类名，也不覆盖上游面板定位。Vision 模型必须在 `llm-deepseek.models` 中声明 `inputModalities: [text, image]`，由新版 DSH 原生附件服务发送图片。

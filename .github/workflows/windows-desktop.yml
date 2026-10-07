@@ -30,9 +30,9 @@ jobs:
       - run: npm run dist:win
       - uses: actions/upload-artifact@v4
         with:
-          name: DSH-Endfield-Workbench-1.0.1-Windows-x64
+          name: DSH-Endfield-Workbench-1.0.2-Windows-x64
           if-no-files-found: error
           retention-days: 14
           path: |
-            desktop-app/release/DSH-Endfield-Workbench-Setup-1.0.1-x64.exe
-            desktop-app/release/DSH-Endfield-Workbench-Portable-1.0.1-x64.zip
+            desktop-app/release/DSH-Endfield-Workbench-Setup-1.0.2-x64.exe
+            desktop-app/release/DSH-Endfield-Workbench-Portable-1.0.2-x64.zip

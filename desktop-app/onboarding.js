@@ -11,7 +11,8 @@ const log = document.getElementById('log')
 let busy = false
 
 const definitions = [
-  ['node', 'Node.js'], ['npm', 'npm'], ['pnpm', 'pnpm'], ['dsh', 'DSH'], ['plugin', '终末地 UI'],
+  ['node', 'Node.js'], ['npm', 'npm'], ['pnpm', 'pnpm'], ['dsh', 'DSH'],
+  ['sidebar', '右侧工作台'], ['plugin', '终末地 UI'],
 ]
 
 function escapeHtml(value) {
@@ -24,6 +25,7 @@ function statusClass(key, item) {
   if (!item.found) return 'bad'
   if (key === 'node' && !item.compatible) return 'warn'
   if (key === 'dsh' && !item.recommended) return 'warn'
+  if (key === 'sidebar' && !item.compatible) return 'warn'
   if (key === 'plugin' && !item.compatible) return 'warn'
   return 'ok'
 }
@@ -48,7 +50,7 @@ function render(data) {
   const mismatch = data.dsh.found && !data.dsh.recommended
   versionNotice.classList.toggle('hidden', !mismatch)
   continueButton.classList.toggle('hidden', !mismatch)
-  continueButton.disabled = busy || (!data.plugin.compatible && !data.pnpm.found)
+  continueButton.disabled = busy || !data.plugin.compatible
   if (mismatch) {
     versionNoticeText.textContent = `当前 ${data.dsh.version || '未知'}，推荐 ${data.recommended.dsh}。继续启动可能遇到插件或侧栏兼容问题。`
   }

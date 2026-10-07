@@ -4,7 +4,7 @@
 
 轻量桌面壳：后台启动本机 DeepSeek Harness，自动装载随 App 携带的终末地 UI 插件（标准 bundle，无需 `--patch`），并在原生 Electron 窗口中打开。Windows 与 macOS 共用首次启动诊断页；用户只需先安装 Node.js，DSH、pnpm 与内置插件可在 App 内确认后自动配置。
 
-从 `0.9.1` 起，桌面 App、终末地插件、仓库 tag 和 GitHub Release 使用同一个 SemVer，不再单独维护 App 的 `0.1.x` 版本线。当前本地构建版为 `1.0.1`，并支持 DSH 0.1.2 的一次性 token 启动地址与 Cookie 交换。
+从 `0.9.1` 起，桌面 App、终末地插件、仓库 tag 和 GitHub Release 使用同一个 SemVer，不再单独维护 App 的 `0.1.x` 版本线。当前本地构建版为 `1.0.2`，并支持 DSH 0.1.2 的一次性 token 启动地址与 Cookie 交换。
 
 ## 运行（开发模式）
 
@@ -16,9 +16,9 @@ npm start
 桌面壳会：
 
 1. 按优先级发现 dsh：`DSH_BIN` 环境变量 → 上次用户选择（存于 `userData/dsh-launch.json`）→ Windows/macOS 常见全局安装目录 → `PATH`。
-2. 引导页分别检测 Node、npm、pnpm、DSH 与终末地插件的路径和版本。缺少 Node 时打开官方下载页；Node `>=22.19.0` 存在时，可在用户二次确认后安装 `@deepseek-ai/dsh@0.1.2-alpha.5` 和 `pnpm@11.7.0`。
+2. 引导页分别检测 Node、npm、pnpm、DSH、根级 better-sidebar 与终末地插件的路径和版本。缺少 Node 时打开官方下载页；Node `>=22.19.0` 存在时，可在用户二次确认后安装 `@deepseek-ai/dsh@0.1.2-alpha.5` 和 `pnpm@11.7.0`。
 3. 安装过程显示阶段与实时日志；不会调用 `sudo`、winget 或 brew。DSH 版本不一致时警告，但允许用户记住当前版本并继续启动。
-4. 自动把 App 内插件以标准 bundle 方式加入 dsh web profile（追加精确的 `--allow-build=node-pty`，只授权 better-sidebar 的终端原生模块构建，幂等）。
+4. 经用户确认后，用同一次官方插件命令把 `dsh-better-sidebar@0.18.0-alpha.0` 与 App 内插件作为两个直接 bundle 加入 dsh web profile（追加精确的 `--allow-build=node-pty`，只授权终端原生模块构建）。普通启动路径绝不静默改写 Profile；安装完成后必须复检版本、根级包和 bundle 顺序。
 5. 启动 `dsh --profile web --host 127.0.0.1 --no-open --port 0`（**不再附加 `--patch`**），只为 Electron 窗口提供随机本地端口，不再额外打开系统浏览器中的 Web UI。
 6. 30 秒未出现本地地址则显示诊断页，提供「复制诊断信息」。
 7. 窗口关闭 / 退出 / 崩溃均回收 App 自己启动的 DSH 子进程，不影响其他终端中由用户主动启动的服务。
@@ -37,7 +37,7 @@ npm run dist:win           # Windows 上生成 NSIS Setup.exe + 便携 ZIP
 
 产物：`release/DSH 终末地工作台-darwin-arm64/DSH 终末地工作台.app`。
 
-Windows 正式包由 `.github/workflows/windows-desktop.yml` 在 `windows-latest` 构建，产出 `DSH-Endfield-Workbench-Setup-1.0.1-x64.exe` 和 `DSH-Endfield-Workbench-Portable-1.0.1-x64.zip`。便携版必须解压完整 ZIP，不能只单独复制 EXE。CI 产物仅作测试附件，不自动发布 Release。
+Windows 正式包由 `.github/workflows/windows-desktop.yml` 在 `windows-latest` 构建，产出 `DSH-Endfield-Workbench-Setup-1.0.2-x64.exe` 和 `DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`。便携版必须解压完整 ZIP，不能只单独复制 EXE。CI 产物仅作测试附件，不自动发布 Release。
 
 ## 单实例
 

@@ -1,12 +1,12 @@
 # DSH 终末地风格插件与桌面 App 交接文档
 
-> 最后更新：2026-09-03
-> 当前统一版本：`1.0.1`（插件与桌面 App；发布前再同步 Git tag、GitHub Release）
+> 最后更新：2026-10-07
+> 当前统一版本：`1.0.2`（插件、桌面 App、Git tag 与 GitHub Release）
 > 当前桌面端：`DSH 终末地工作台`，Electron 43，已生成 Apple Silicon `.app`
 
-## 1.0.1 兼容版交接（当前基线）
+## 1.0.2 兼容版交接（当前基线）
 
-1.0.1 将兼容基线更新为 DSH `0.1.2-alpha.5` 与 `dsh-better-sidebar@0.18.0-alpha.0`。终末地 client 不再 inject 已从 DSH 0.1.2 删除的 `@deepseek-ai/dsh-client-runtime`，也不等待仍声明该 runtime 的 Shikitor 浏览器模块；Shikitor 宿主半继续保留。better-sidebar 必须只由本插件的 Cordis patch 挂载，禁止再单独执行 `dsh plugin add dsh-better-sidebar`，否则会双挂载。桌面 App 必须携带当前版本 `.tgz` 并检查 better-sidebar / Shikitor 依赖完整性；不再使用 `--import` 兼容启动器。
+1.0.2 沿用 DSH `0.1.2-alpha.5` 与 `dsh-better-sidebar@0.18.0-alpha.0` 兼容线，并彻底取消“由终末地 patch 挂载传递依赖”的设计：better-sidebar 与终末地包必须在同一次 `dsh plugin add` 中成为 Web Profile 的两个直接 bundle。这样 DSH 的客户端扫描不再依赖 pnpm `nodeLinker: hoisted`，在 isolated 布局中也能发现 `betterSidebar` 服务。DSH/pnpm 可能重排 bundle 数组，运行时不得依赖二者先后；终末地 client 通过 `ctx.inject(['betterSidebar'], …)` 延迟注册 OBJECTIVE。侧栏缺失时主题仍可启动。Shikitor 1.0.2 因浏览器模块仍引用已删除的 runtime，已退出自动安装与挂载。
 
 ## 0.9.1 单写入桌面端与统一版本交接（历史基线）
 
@@ -17,8 +17,8 @@
 关键兼容规则：
 
 - 目标 DSH 固定为 `0.1.2-alpha.5`；better-sidebar 固定 `0.18.0-alpha.0`，禁止用 `latest`。Vision 模型必须声明 `inputModalities: [text, image]`。
-- Shikitor 固定 `1.0.2`，要求 Node `>=22.19.0`。它负责输入框 `@/#/$//` 补全与中央编辑页。
-- better-sidebar 保留自己的右栏快速编辑器。Shikitor 没有公开可嵌入 better-sidebar 的 React 组件，因此不要用 DOM 搬运或 fork 上游的方式强行合并；当前产品定义是“右栏快速编辑 + 中央深度编辑”。
+- `dsh-shikitor@1.0.2` 不再自动安装或挂载；输入补全使用 DSH 0.1.2 原生能力。未来只有上游发布明确兼容 0.1.2 runtime 的版本后才能重新评估。
+- better-sidebar 作为 Profile 根级直接依赖保留自己的右栏快速编辑器，不要再从 Endfield 的 `cordis.patch.yml` 重复插入。
 - 内嵌浏览器受目标站点 CSP / `X-Frame-Options` 限制，被拒绝时走上游自带的外部打开入口。
 - pnpm 11 安装命令必须显式附带 `--allow-build=node-pty`；DSH 会将该参数原样转发给 pnpm，仍是一条命令。不要改成对所有构建脚本的静默放行。node-pty 加载失败时，better-sidebar 0.18 alpha 会降级挂载并只禁用终端。
 
@@ -30,7 +30,7 @@ Goal 适配规则：
 - 每个 Goal id 首次进入 active/paused/blocked 时自动加入右栏标签，但 type-only open 不强制展开收起的右栏。用户关闭后不在同一 Goal id 上反复弹回。
 - 官方 GoalBar 和 `/goal` 保留；Goal 清除或完成后标签保留布局，页面显示 `/goal <目标>` 提示。
 
-发布前必须运行 `scripts/verify-usage.mjs` 的隔离 Profile 测试，确认两个整合依赖的实际版本、三层 patch 顺序、OBJECTIVE/Goal Remote 代码、资源路由和卸载无残留。
+发布前必须分别用 `DSH_TEST_NODE_LINKER=isolated` 与 `DSH_TEST_NODE_LINKER=hoisted` 运行 `scripts/verify-usage.mjs`，确认两个根级 bundle 唯一存在且版本正确、OBJECTIVE/Goal Remote 代码、资源路由和卸载无残留。
 
 ## 1. 交接目标
 
@@ -38,7 +38,7 @@ Goal 适配规则：
 
 1. **目标 A：把现有视觉层完善为“一条命令安装并自动生效”的标准 dsh Web 插件。**
    - 用户已经安装 dsh。
-   - 用户只执行一次 `dsh plugin --profile web add <包名> --allow-build=node-pty`。
+   - 用户只执行一次 `dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 <包名> --allow-build=node-pty`。
    - 以后正常执行 `dsh web`，终末地风格自动加载。
    - 不要求用户复制 CSS、修改 `~/.dsh` 文件或手动追加 `--patch`。
    - 可以用标准命令升级和卸载，卸载后恢复原生 dsh 前端。

@@ -73,7 +73,9 @@ ok('桌面入口仅启动私有 no-open 服务',
     && /function authenticatedWebUrlFrom\(output\)/.test(mainSource)
     && /mainWindow\.loadURL\(authenticatedUrl\)/.test(mainSource)
     && /bundledPluginInstallTarget\(\)/.test(mainSource)
-    && /\['dsh-better-sidebar', 'dsh-shikitor'\]/.test(mainSource),
+    && /function pluginInstallArguments\(pluginTarget\)/.test(mainSource)
+    && /`\$\{BETTER_SIDEBAR_NAME\}@\$\{BETTER_SIDEBAR_VERSION\}`/.test(mainSource)
+    && /const needsInstaller = !diagnostic\.plugin\.compatible/.test(mainSource),
   mainSyntax.stderr.trim())
 
 // 2. npm pack 资源完整性
@@ -87,8 +89,8 @@ const hasKeyFiles = /cordis\.patch\.yml/.test(packOut)
   && /client\.js/.test(packOut)
 ok('npm pack 资源完整', pack.status === 0 && totalFiles >= 25 && hasKeyFiles, `totalFiles=${totalFiles}`)
 
-// 真实生成当前版本 tarball。桌面 App 必须安装归档而不是 link 源目录，
-// 否则 pnpm 不会在 profile 根目录物化插件的组合依赖。
+// 真实生成当前版本 tarball。桌面 App 必须安装归档而不是开发 link，
+// 并由启动向导将 sidebar 与 Endfield 分别登记为根级 bundle。
 const materialize = run('npm', ['pack'], { cwd: PLUGIN_DIR })
 ok('生成当前版本插件归档',
   materialize.status === 0 && existsSync(join(PLUGIN_DIR, PLUGIN_ARCHIVE)),

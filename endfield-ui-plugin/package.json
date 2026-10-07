@@ -1,7 +1,7 @@
 {
   "name": "@rison/dsh-endfield-ui",
-  "version": "1.0.1",
-  "description": "Endfield-inspired DSH workbench with sidebar, Shikitor input, and native Goal projection",
+  "version": "1.0.2",
+  "description": "Endfield-inspired DSH workbench with sidebar, native input styling, and Goal projection",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -18,17 +18,20 @@
       "immediately": true,
       "inject": [
         "@deepseek-ai/dsh-client-ui-theme",
-        "@deepseek-ai/dsh-client-ui-layout",
-        "dsh-better-sidebar"
+        "@deepseek-ai/dsh-client-ui-layout"
       ]
     }
   },
   "engines": {
     "node": ">=22.19.0"
   },
-  "dependencies": {
-    "dsh-better-sidebar": "0.18.0-alpha.0",
-    "dsh-shikitor": "1.0.2"
+  "peerDependencies": {
+    "dsh-better-sidebar": "0.18.0-alpha.0"
+  },
+  "peerDependenciesMeta": {
+    "dsh-better-sidebar": {
+      "optional": true
+    }
   },
   "files": [
     "README.md",

@@ -8,6 +8,8 @@ const { fileURLToPath } = require('node:url')
 app.setName('DSH 终末地工作台')
 
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
+const BETTER_SIDEBAR_NAME = 'dsh-better-sidebar'
+const BETTER_SIDEBAR_VERSION = '0.18.0-alpha.0'
 const RECOMMENDED_DSH_VERSION = '0.1.2-alpha.5'
 const RECOMMENDED_PNPM_VERSION = '11.7.0'
 const MINIMUM_NODE_VERSION = '22.19.0'
@@ -191,14 +193,6 @@ function isWindowsCommand(executable) {
   return process.platform === 'win32' && /\.(?:cmd|bat)$/i.test(executable)
 }
 
-function spawnDshSync(executable, args, options) {
-  return spawnSync(executable, args, {
-    ...options,
-    shell: isWindowsCommand(executable),
-    windowsHide: true,
-  })
-}
-
 function spawnDsh(executable, args, options) {
   return spawn(executable, args, {
     ...options,
@@ -231,6 +225,17 @@ function installedPluginInfo() {
   }
 }
 
+function installedRootPackageInfo(packageName) {
+  const dshHome = process.env.DSH_HOME || path.join(os.homedir(), '.dsh')
+  const manifest = path.join(dshHome, 'profiles', 'web', 'node_modules', ...packageName.split('/'), 'package.json')
+  try {
+    const pkg = JSON.parse(readFileSync(manifest, 'utf8'))
+    return { found: true, version: pkg.version || null, path: manifest }
+  } catch {
+    return { found: false, version: null, path: null }
+  }
+}
+
 function diagnoseEnvironment() {
   const nodeBin = findNode()
   const npmBin = findNpmCommand()
@@ -240,13 +245,15 @@ function diagnoseEnvironment() {
   const nodeVersion = runVersion(nodeBin)
   const dshVersion = runVersion(dshBin)
   const plugin = installedPluginInfo()
+  const sidebar = installedRootPackageInfo(BETTER_SIDEBAR_NAME)
   return {
     platform: process.platform,
     recommended: {
       node: `>=${MINIMUM_NODE_VERSION}`,
       dsh: RECOMMENDED_DSH_VERSION,
       pnpm: RECOMMENDED_PNPM_VERSION,
-      plugin: bundledPluginVersion() || '1.0.1',
+      plugin: bundledPluginVersion() || '1.0.2',
+      sidebar: BETTER_SIDEBAR_VERSION,
     },
     node: {
       found: Boolean(nodeBin), path: nodeBin, version: nodeVersion,
@@ -265,6 +272,11 @@ function diagnoseEnvironment() {
       ...plugin,
       compatible: pluginIsInstalled(),
       recommended: plugin.version === bundledPluginVersion(),
+    },
+    sidebar: {
+      ...sidebar,
+      compatible: sidebar.version === BETTER_SIDEBAR_VERSION,
+      recommended: sidebar.version === BETTER_SIDEBAR_VERSION,
     },
   }
 }
@@ -315,10 +327,19 @@ function bundledPluginInstallTarget() {
   if (!version) return null
   const archive = path.join(pluginDir, `rison-dsh-endfield-ui-${version}.tgz`)
   // A packaged App must install from an archive. Adding pluginDir directly
-  // creates a pnpm link whose transitive dependencies are not materialized in
-  // the web profile, so DSH later fails to import better-sidebar/Shikitor.
+  // creates a development link and prevents the profile from representing a
+  // reproducible release installation.
   if (existsSync(archive)) return archive
   return app.isPackaged ? null : pluginDir
+}
+
+function pluginInstallArguments(pluginTarget) {
+  return [
+    'plugin', '--profile', 'web', 'add',
+    `${BETTER_SIDEBAR_NAME}@${BETTER_SIDEBAR_VERSION}`,
+    pluginTarget,
+    '--allow-build=node-pty',
+  ]
 }
 
 function versionTuple(version) {
@@ -346,25 +367,35 @@ function pluginIsInstalled() {
   try {
     const profile = JSON.parse(readFileSync(path.join(profileDir, 'package.json'), 'utf8'))
     const dependency = profile.dependencies?.[PLUGIN_NAME]
+    const sidebarDependency = profile.dependencies?.[BETTER_SIDEBAR_NAME]
     if (typeof dependency !== 'string' || dependency.startsWith('link:')) return false
+    // The sidebar must be a direct profile dependency. A nested copy can be
+    // imported by Node but is invisible to DSH's root-entry client scanner.
+    if (typeof sidebarDependency !== 'string') return false
     const manifest = path.join(profileDir, 'node_modules', '@rison', 'dsh-endfield-ui', 'package.json')
     if (!existsSync(manifest)) return false
     const manifestVersion = JSON.parse(readFileSync(manifest, 'utf8')).version
     const bundledVersion = bundledPluginVersion()
     if (typeof manifestVersion !== 'string' || typeof bundledVersion !== 'string') return false
-    // 已安装版本更新时也视为满足，禁止旧 App 将插件降级。
-    if (manifestVersion !== bundledVersion) return versionAtLeast(manifestVersion, bundledVersion)
+    // 已安装版本更新时也视为满足，禁止旧 App 将插件降级；但仍须继续
+    // 验证独立 sidebar bundle，不能提前返回并漏掉组合层损坏。
+    if (manifestVersion !== bundledVersion && !versionAtLeast(manifestVersion, bundledVersion)) return false
 
-    // 主插件存在不代表组合层完整。DSH 从 profile 根目录解析这些包；
-    // 任一依赖缺失都会让整个 plugin tree 在 UI 加载前退出。
-    for (const name of ['dsh-better-sidebar', 'dsh-shikitor']) {
-      const expected = JSON.parse(readFileSync(manifest, 'utf8')).dependencies?.[name]
-      if (typeof expected !== 'string') return false
-      const dependencyManifest = path.join(profileDir, 'node_modules', ...name.split('/'), 'package.json')
-      if (!existsSync(dependencyManifest)) return false
-      const actual = JSON.parse(readFileSync(dependencyManifest, 'utf8')).version
-      if (actual !== expected) return false
-    }
+    const dependencyManifest = path.join(profileDir, 'node_modules', BETTER_SIDEBAR_NAME, 'package.json')
+    if (!existsSync(dependencyManifest)) return false
+    const actual = JSON.parse(readFileSync(dependencyManifest, 'utf8')).version
+    if (actual !== BETTER_SIDEBAR_VERSION) return false
+
+    const bundles = profile.dsh?.profile?.bundles
+    if (!Array.isArray(bundles)) return false
+    const sidebarAt = bundles.indexOf(BETTER_SIDEBAR_NAME)
+    const pluginAt = bundles.indexOf(PLUGIN_NAME)
+    // DSH/pnpm may normalize dependency order alphabetically. Runtime order is
+    // intentionally irrelevant because Endfield waits for the public service
+    // through ctx.inject instead of requiring it during module activation.
+    if (sidebarAt < 0 || pluginAt < 0) return false
+    if (bundles.filter((name) => name === BETTER_SIDEBAR_NAME).length !== 1) return false
+    if (bundles.filter((name) => name === PLUGIN_NAME).length !== 1) return false
     return true
   } catch {
     return false
@@ -465,27 +496,11 @@ function startDsh(executable) {
     : os.homedir()
   const env = childEnv(executable)
 
-  // 标准插件方式：先确保插件以 bundle 形式加入 web profile（幂等）。
+  // Never mutate the profile from the normal launch path. An incomplete
+  // profile must return to the explicit, user-confirmed onboarding flow.
   if (!pluginIsInstalled()) {
-    const pluginTarget = bundledPluginInstallTarget()
-    if (!pluginTarget) {
-      loadDiagnostic('终末地 UI 插件归档缺失',
-        `App 内未找到与版本 ${bundledPluginVersion() || 'unknown'} 匹配的插件安装包。\n\n请重新构建或下载完整 App。`)
-      return
-    }
-    const install = spawnDshSync(executable, [
-      'plugin', '--profile', 'web', 'add', pluginTarget, '--allow-build=node-pty',
-    ], {
-      cwd: workspace,
-      env,
-      encoding: 'utf8',
-      timeout: 120000,
-    })
-    if (install.error || install.status !== 0) {
-      loadDiagnostic('终末地 UI 插件安装失败',
-        `${install.error?.message || install.stderr || install.stdout || '未知错误'}\n\n请确认 dsh 版本与本插件兼容。`)
-      return
-    }
+    loadOnboarding()
+    return
   }
 
   // 不再附加 --patch；bundle 已在安装时自动进入启动层。必须保留
@@ -653,9 +668,7 @@ async function installRecommendedEnvironment() {
       const pluginTarget = bundledPluginInstallTarget()
       if (!pluginTarget) throw new Error('App 内置的终末地插件安装包缺失。')
       sendSetupProgress({ type: 'phase', phase: 'plugin', text: '正在启用终末地工作台插件…' })
-      await runStreaming(dshBin, [
-        'plugin', '--profile', 'web', 'add', pluginTarget, '--allow-build=node-pty',
-      ], {
+      await runStreaming(dshBin, pluginInstallArguments(pluginTarget), {
         cwd: (appConfig.workspace && existsSync(appConfig.workspace)) ? appConfig.workspace : os.homedir(),
         env: childEnv(dshBin),
         shell: isWindowsCommand(dshBin),
@@ -689,7 +702,7 @@ function boot() {
   const acceptedMismatch = userCfg.allowedDshVersion === detectedVersion
   const needsVersionChoice = !diagnostic.dsh.recommended
     && !acceptedMismatch
-  const needsInstaller = !diagnostic.plugin.compatible && !diagnostic.pnpm.found
+  const needsInstaller = !diagnostic.plugin.compatible
   if (needsVersionChoice || needsInstaller) {
     loadOnboarding()
     return
@@ -727,7 +740,7 @@ ipcMain.handle('dsh:get-diagnostics', () => diagnoseEnvironment())
 ipcMain.handle('dsh:install-recommended', () => installRecommendedEnvironment())
 ipcMain.handle('dsh:continue-current', () => {
   const diagnostic = diagnoseEnvironment()
-  if (!diagnostic.dsh.found) return false
+  if (!diagnostic.dsh.found || !diagnostic.plugin.compatible) return false
   saveUserConfig({ allowedDshVersion: diagnostic.dsh.version || 'unknown' })
   startDsh(diagnostic.dsh.path)
   return true
