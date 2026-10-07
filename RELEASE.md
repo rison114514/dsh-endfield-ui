@@ -65,5 +65,5 @@ dsh plugin --profile web remove @rison/dsh-endfield-ui dsh-better-sidebar
 
 - `rison-dsh-endfield-ui-1.0.2.tgz`：`3fdf80e48b0dc7ff98df99088f16c7dff7115785b23172b1880e677bfc980ea9`
 - `DSH-Endfield-Workbench-1.0.2-macOS-arm64.zip`：`ddcf3d97b1679c47015ce46cdd28f0c2b69b373a88f2971e0d859f33af1e6b0e`
-- `DSH-Endfield-Workbench-Setup-1.0.2-x64.exe`：`PENDING`
-- `DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`：`PENDING`
+- `DSH-Endfield-Workbench-Setup-1.0.2-x64.exe`：`dbb67ae30f30ded7ede40ced964a5e0f4678e84d95459d63da00252528940e3d`
+- `DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`：`880d78c68c51b5f7bbd40a144048e24f3210ea554d583b334bcf1d2a117926ee`
