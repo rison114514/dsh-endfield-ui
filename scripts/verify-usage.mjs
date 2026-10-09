@@ -16,7 +16,7 @@
  *
  * 用法：
  *   node scripts/verify-usage.mjs [plugin-tgz-or-dir]
- *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.0.2.tgz
+ *   默认 plugin-tgz-or-dir = endfield-ui-plugin/rison-dsh-endfield-ui-1.1.0.tgz
  */
 
 import { spawn, spawnSync } from 'node:child_process'
@@ -26,12 +26,12 @@ import { join, dirname, isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.0.2.tgz')
+const TARGET_INPUT = process.argv[2] || join(ROOT, 'endfield-ui-plugin', 'rison-dsh-endfield-ui-1.1.0.tgz')
 const TARGET = isAbsolute(TARGET_INPUT) ? TARGET_INPUT : resolve(process.cwd(), TARGET_INPUT)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const PLUGIN_NAME = '@rison/dsh-endfield-ui'
 const SIDEBAR_NAME = 'dsh-better-sidebar'
-const SIDEBAR_VERSION = '0.18.0-alpha.0'
+const SIDEBAR_VERSION = '0.24.1'
 const NODE_LINKER = process.env.DSH_TEST_NODE_LINKER || 'isolated'
 const WITH_SIDEBAR = process.env.DSH_TEST_WITH_SIDEBAR !== '0'
 const PORT_TIMEOUT_MS = 30000
@@ -43,7 +43,7 @@ const ok = (name, cond, detail = '') => {
 }
 
 function runDsh(args, env) {
-  // A clean DSH 0.1.2 profile performs supply-chain checks and may need more
+  // A clean DSH 0.2 profile performs supply-chain checks and may need more
   // than one minute before pnpm materializes native dependencies.
   const r = spawnSync(DSH_BIN, args, { env, encoding: 'utf8', timeout: 180000, killSignal: 'SIGTERM' })
   return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '' }
@@ -109,15 +109,28 @@ async function main() {
   // patch files, while this lets the same test exercise both supported linker
   // layouts without touching the user's real profile.
   mkdirSync(PROFILE_ROOT, { recursive: true })
-  writeFileSync(join(PROFILE_ROOT, 'pnpm-workspace.yaml'), `packages:\n  - .\n\nnodeLinker: ${NODE_LINKER}\nautoInstallPeers: false\nallowBuilds:\n  node-pty: true\n`)
+  writeFileSync(join(PROFILE_ROOT, 'pnpm-workspace.yaml'), `packages:\n  - .\n\nnodeLinker: ${NODE_LINKER}\nautoInstallPeers: false\n`)
 
   // 1. 安装
   const addTargets = WITH_SIDEBAR
     ? [`${SIDEBAR_NAME}@${SIDEBAR_VERSION}`, TARGET]
     : [TARGET]
-  const add = runDsh([
-    'plugin', '--profile', 'web', 'add', ...addTargets, '--allow-build=node-pty',
-  ], env)
+  let add = runDsh(['plugin', '--profile', 'web', 'add', ...addTargets], env)
+  // DSH 0.2 initializes a missing profile on the first plugin invocation and
+  // exits successfully without forwarding the requested add to pnpm. Replay
+  // once only when the freshly-created manifest still has no dependencies.
+  const initializedProfilePath = join(PROFILE_ROOT, 'package.json')
+  if (add.status === 0 && existsSync(initializedProfilePath)) {
+    const initializedProfile = JSON.parse(readFileSync(initializedProfilePath, 'utf8'))
+    const initializedDeps = {
+      ...(initializedProfile.dependencies || {}),
+      ...(initializedProfile.optionalDependencies || {}),
+    }
+    if (!initializedDeps[PLUGIN_NAME]) {
+      console.log('[verify] DSH 0.2 initialized the profile; replaying plugin add')
+      add = runDsh(['plugin', '--profile', 'web', 'add', ...addTargets], env)
+    }
+  }
   ok('plugin add 退出码为 0', add.status === 0, add.stderr.trim().split('\n').slice(-3).join(' '))
 
   // 2. profile 清单：依赖 + bundles
@@ -187,27 +200,51 @@ async function main() {
     ok('theme.css 含右栏 Ardot 工业网格 + 等高线纹理 + 圆形进度环样式',
       css.ok && css.body.includes('ardot/endfield-industrial-grid.webp') && css.body.includes('contour-texture.png') && css.body.includes('.ef-context-ring'),
       `len=${css.body.length}`)
-    ok('Ardot 纹理不再叠加黑色遮罩，开屏期间与右栏一起隐藏',
+    ok('Ardot 纹理覆盖 DSH 0.2 原生右栏，开屏期间与工作台一起隐藏',
       css.ok
         && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*mix-blend-mode:\s*screen/s.test(css.body)
         && /\[data-dsh-better-sidebar\]::before\s*\{[^}]*opacity:\s*\.1/s.test(css.body)
+        && css.body.includes('[data-rightbar-col]')
+        && css.body.includes('[data-sidebar-right-panel]')
+        && css.body.includes('[data-sidebar-right-guide="true"]')
         && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar],')
         && /body\[data-endfield-booting\] \[data-dsh-panel-host\]\s*\{[^}]*visibility:\s*hidden\s*!important/s.test(css.body)
         && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar]::before')
         && !/\[data-dsh-better-sidebar\]::before\s*\{[^}]*linear-gradient/s.test(css.body),
-      '仅保留低透明度提亮网格，开屏期间完整 portal host 不参与绘制')
+      '原生 DockKit 右栏使用暗色工业网格；兼容 portal 仅低透明度提亮')
     ok('Endfield 适配层不覆盖 better-sidebar 原生 fixed 定位',
       css.ok
         && css.body.includes('width: var(--dsh-sidebar-width, 0px)')
         && !/\[data-dsh-better-sidebar\]\s*>\s*\*\s*\{[^}]*position\s*:/s.test(css.body),
-      '右栏几何结构完全交还 better-sidebar 0.18.0-alpha.0')
+      '右栏几何结构完全交还 better-sidebar 0.24.1')
     ok('右栏滚动链隔离，整页不再跟随下滚',
       css.ok
         && /html,\s*\nbody\s*\{[^}]*overflow:\s*hidden\s*!important[^}]*overscroll-behavior:\s*none/s.test(css.body)
         && /#root\s*\{[^}]*overflow:\s*hidden\s*!important/s.test(css.body)
+        && /\[data-sidebar-right-panel\] \[data-dockkit-surface="true"\],[\s\S]*?background-color:\s*rgba\(9, 11, 13, \.94\)/s.test(css.body)
+        && /\[data-sidebar-right-panel\]\s*\{[^}]*background-color:\s*transparent\s*!important/s.test(css.body)
         && /\[data-dsh-better-sidebar\] > \[data-dsh-panel-host\]\s*\{[^}]*position:\s*fixed\s*!important[^}]*overflow:\s*hidden[^}]*overscroll-behavior:\s*none/s.test(css.body)
         && /\[data-dsh-better-sidebar\] \[data-dsh-panel\] \*\s*\{[^}]*overscroll-behavior:\s*contain/s.test(css.body),
-      'portal 固定于视口，内部列表保留独立滚动')
+      'DSH 0.2 原生右栏暗色化；兼容 portal 固定于视口并隔离滚动链')
+    ok('右栏首页使用终末地工业徽记与六类语义图标',
+      css.ok
+        && css.body.includes('/endfield-ui/assets/workbench-icons/home-emblem.png')
+        && css.body.includes('[data-sidebar-right-guide-entry="endfield:objective"]')
+        && css.body.includes('[data-sidebar-right-guide-entry="editor"]')
+        && css.body.includes('[data-sidebar-right-guide-entry="git"]')
+        && css.body.includes('[data-sidebar-right-guide-entry="terminal"]')
+        && css.body.includes('[data-sidebar-right-guide-entry="subagent"]')
+        && css.body.includes('[data-sidebar-right-guide-entry="sidechat"]')
+        && css.body.includes('FIELD ACCESS  /  WORKBENCH'),
+      '只依赖公开 guide-entry kind，不依赖哈希类名')
+    ok('折叠右栏不保留网格轨道或半透明绘制层',
+      css.ok
+        && css.body.includes('[data-sidebar-right-panel][aria-hidden="true"]')
+        && /\[data-sidebar-right-panel\]\[aria-hidden="true"\]\s*\{[^}]*visibility:\s*hidden\s*!important[^}]*clip-path:\s*inset\(0 0 0 100%\)/s.test(css.body)
+        && /\[data-rightbar-col\]:has\(\[data-sidebar-right-panel\]\[aria-hidden="true"\]\)\s*\{[^}]*background:\s*transparent\s*!important/s.test(css.body)
+        && css.body.includes('grid-template-columns: auto minmax(0, 1fr) 0 !important')
+        && /body:has\(\[data-sidebar-right-panel\]\) \[data-dsh-better-sidebar\]::before\s*\{[^}]*display:\s*none\s*!important/s.test(css.body),
+      'aria-hidden 是折叠绘制真值；保留几何探针但彻底去除黑色占位')
     ok('Electron 标题拖拽区避让右侧工作台与折叠按钮',
       css.ok
         && /\.ef-titlebar\s*\{[^}]*right:\s*max\(var\(--dsh-sidebar-width, 0px\), 78px\)/s.test(css.body)
@@ -222,6 +259,11 @@ async function main() {
     ok('theme.css 含命令按钮（aria-label=命令）柠檬黄覆盖',
       css.ok && css.body.includes('aria-label="命令"') && css.body.includes('var(--ef-yellow)'),
       `len=${css.body.length}`)
+    ok('回到底部按钮使用黄黑高对比配色',
+      css.ok
+        && /button\[aria-label="回到底部"\],[\s\S]*?background:\s*var\(--ef-yellow\)\s*!important/s.test(css.body)
+        && /button\[aria-label="Back to bottom"\]:hover\s*\{[^}]*background:\s*#090b0d\s*!important/s.test(css.body),
+      '中英文 aria-label 均覆盖，hover 反转为黑底黄字')
     ok('左侧栏不创建隔离层，原生设置对话框可越过折叠栏完整显示',
       css.ok
         && !/\[data-slot="sidebar"\]\s*>\s*div\s*\{[^}]*isolation:\s*isolate/s.test(css.body)
@@ -229,7 +271,7 @@ async function main() {
       '避免 fixed Settings dialog 被困在 56px sidebarCol 中')
     ok('Shikitor 输入由单一原生投影坐标系绘制文字与黑色合成光标',
       css.ok
-        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*transparent\s*!important/s.test(css.body)
+        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*caret-color:\s*transparent\s*!important/s.test(css.body)
         && /\.shikitor--attached\s*\{[^}]*--shikitor-caret-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
         && /\.shikitor--attached\s+\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*background-color:\s*var\(--ef-composer-ink\)\s*!important/s.test(css.body)
         && !/\.shikitor-cursors > \.shikitor-cursor:first-child::after\s*\{[^}]*display:\s*none\s*!important/s.test(css.body),
@@ -263,9 +305,10 @@ async function main() {
     ok('DSH 浅色、深色与跟随系统模式使用独立可读色板',
       css.ok
         && /body\[data-ds-dark-theme\]\s*\{[^}]*--ef-composer-surface:/s.test(css.body)
-        && /\[data-slot="conversation"\]\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-chat-ink\)/s.test(css.body)
-        && /\[data-slot="conversation"\] \[data-composer-card\]\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-composer-ink\)[^}]*background:\s*var\(--ef-composer-surface\)\s*!important/s.test(css.body)
-        && /\[data-dsh-better-sidebar\]\s*\{[^}]*--dsw-alias-label-primary:\s*#eef0ed/s.test(css.body)
+        && css.body.includes(':nth-child(2):has([data-composer-card])')
+        && /:where\([\s\S]*?\)\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-chat-ink\)/s.test(css.body)
+        && /\) \[data-composer-card\]\s*\{[^}]*--dsw-alias-label-primary:\s*var\(--ef-composer-ink\)[^}]*background:\s*var\(--ef-composer-surface\)\s*!important/s.test(css.body)
+        && /\[data-dsh-better-sidebar\],\s*\n\[data-sidebar-right-panel\]\s*\{[^}]*--dsw-alias-label-primary:\s*#eef0ed/s.test(css.body)
         && /\.dsh-shikitor-editor,[\s\S]*?--dsw-alias-label-primary:\s*#eef0ed/s.test(css.body),
       '官方 data-ds-dark-theme 标记驱动色板，深色对话与浅色输入表面分区隔离')
     ok('设置页根卡片、派生弹窗与菜单共享暗色高对比语义色',
@@ -278,9 +321,9 @@ async function main() {
       '不再用 blanket button 规则破坏反色按钮；portal surface 由运行时标记继承同一色板')
     ok('Shikitor 接管后隐藏原生 textarea 文字，斜杠命令只绘制一层',
       css.ok
-        && /\[data-slot="conversation"\] textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
+        && /textarea\.shikitor-input--attached\s*\{[^}]*color:\s*transparent\s*!important[^}]*-webkit-text-fill-color:\s*transparent\s*!important[^}]*background:\s*transparent\s*!important/s.test(css.body)
         && /body:has\(textarea\[placeholder="描述你想要构建的内容"\]\) textarea\[placeholder="描述你想要构建的内容"\]:not\(\.shikitor-input--attached\)/.test(css.body)
-        && /\[data-slot="conversation"\] textarea:not\(\.shikitor-input--attached\)/.test(css.body),
+        && /textarea:not\(\.shikitor-input--attached\)/.test(css.body),
       '避免 /goal、/compact 双字形，并防止 hero textarea 白色渐变遮住 Shikitor 黑字')
     ok('等待审批浅色卡片使用深色标题、原因、命令与按钮文字',
       css.ok
@@ -300,7 +343,7 @@ async function main() {
     if (existsSync(clientFile)) {
       const c = readFileSync(clientFile, 'utf8')
       // 真实数据源：订阅官方 contextPressure 投影（faceOf），而非 DOM 扒取(JObwrW) 或 sin 模拟。
-      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.0.2-better-sidebar-0.18'")
+      clientOk = c.includes('@rison/dsh-endfield-ui') && c.includes('overrideTokens') && c.includes("'/endfield-ui/theme.css?v=1.1.0-dsh-0.2-sidebar-0.24-r5'")
         && c.includes('ContextRing') && c.includes('ef-context-ring')
         && c.includes('connectRing') && c.includes("faceOf('contextPressure')")
         && c.includes("registerTab({") && c.includes("id: 'endfield:objective'")
@@ -321,19 +364,16 @@ async function main() {
         && css.body.includes('--dsh-sidebar-width: 0px !important')
         && css.body.includes('--dsh-sidebar-height: 0px !important')
         && css.body.includes('body[data-endfield-booting] #root')
-        && css.body.includes('body[data-endfield-booting] [data-dsh-better-sidebar] > div')
+        && css.body.includes(':has(> [data-rightbar-col])')
+        && css.body.includes('body[data-endfield-booting] [data-rightbar-col],')
+        && css.body.includes('body[data-endfield-booting] [data-sidebar-right-panel]')
         && c.includes("setAttribute('data-endfield-booting', '')")
-        && c.includes("style.setProperty('display', 'none', 'important')")
-        && c.includes('div[style*="width"]:has(button[aria-label="新建标签页"])')
-        && c.includes("style.position !== 'fixed'")
-        && c.includes("new MutationObserver")
-        && c.includes("removeProperty('display')")
         && c.includes("dispatchEvent(new Event('resize'))")
         && c.includes('reducedMotion ? 80 : 3650')
-        && css.body.includes('div[style*="width"]:has(> div + div button[aria-label="新建标签页"])')
+        && !c.includes("style.setProperty('display', 'none', 'important')")
     }
     ok('开屏期间隐藏工作台，结束后释放原生展开状态', bootGateOk,
-      '宿主硬隐藏 + 宽高变量归零，不写 better-sidebar Store')
+      'DSH 0.2 grid track 归零；不隐藏几何探针、不写 better-sidebar Store')
     ok('开屏黄色擦除后直接露出主界面，无黑色接力方框',
       css.ok
         && css.body.includes('animation: ef-boot-dismiss 3.22s')
@@ -359,6 +399,13 @@ async function main() {
       '/endfield-ui/assets/contour-texture.png',
       '/endfield-ui/assets/endfield-sidebar-texture.png',
       '/endfield-ui/assets/endfield-stripes-texture.svg',
+      '/endfield-ui/assets/workbench-icons/objective.png',
+      '/endfield-ui/assets/workbench-icons/files.png',
+      '/endfield-ui/assets/workbench-icons/git-diff.png',
+      '/endfield-ui/assets/workbench-icons/terminal.png',
+      '/endfield-ui/assets/workbench-icons/tasks.png',
+      '/endfield-ui/assets/workbench-icons/chat.png',
+      '/endfield-ui/assets/workbench-icons/home-emblem.png',
       '/endfield-ui/assets/harmony-regular.woff2',
       '/endfield-ui/assets/harmony-bold.woff2',
       '/endfield-ui/assets/novecento.woff2',

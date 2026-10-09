@@ -1,69 +1,60 @@
-# DSH 终末地风格工作台 — v1.0.2
+# DSH 终末地风格工作台 — v1.1.0
 
 > **非官方同人主题（Unofficial fan-made theme）**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-`v1.0.2` 是启动链修复版，重点解决部分设备安装后出现 `web boot: 1 entry did not activate` / `pending (waiting for service: betterSidebar)` 的问题，并保留 1.0.x 已有的视觉、Vision、输入框、桌面单写入与环境诊断能力。
+`v1.1.0` 正式迁移到 DeepSeek Harness 官方 Desktop 插件体系，并将兼容基线升级到 DSH `0.2.0-rc.2` 与 `dsh-better-sidebar@0.24.1`。
 
-## 发布内容
+## 重要变化：改用官方 Desktop
 
-- 插件：`rison-dsh-endfield-ui-1.0.2.tgz`
-- macOS Apple Silicon：`DSH-Endfield-Workbench-1.0.2-macOS-arm64.zip`
-- Windows x64 安装版：`DSH-Endfield-Workbench-Setup-1.0.2-x64.exe`
-- Windows x64 便携版：`DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`
-- Git tag / GitHub Release：`v1.0.2`
-- 目标环境：DSH `0.1.2-alpha.5`、Node `>=22.19.0`
-- 精确工作台依赖：`dsh-better-sidebar@0.18.0-alpha.0`
+从本版起，本项目不再维护或发布自建 Electron 桌面 App。Release 只提供终末地插件包：
 
-## 核心修复
+- `rison-dsh-endfield-ui-1.1.0.tgz`
 
-- better-sidebar 与 Endfield 改为 Web Profile 的两个根级直接依赖和唯一 bundle，不再依赖 pnpm 对传递依赖的提升方式。
-- 同时验证 pnpm `isolated` 与 `hoisted` 布局，bundle 数组顺序不再影响 OBJECTIVE 注册。
-- Endfield 通过可选 `betterSidebar` 服务注入启动；侧栏缺失时视觉层降级可用，不再拖垮整个 Web boot。
-- 桌面端检测根级包、精确版本和 bundle 唯一性；组合不完整时进入环境向导，不在普通启动路径静默改写 Profile。
-- 一键配置后执行安装复检，避免界面显示完成但实际仍缺少侧栏 bundle。
-- 不再自动安装或挂载尚未适配 DSH 0.1.2 runtime 的 `dsh-shikitor@1.0.2`；输入补全使用 DSH 原生能力。
+不再提供 macOS `.app` / `.dmg`、Windows `Setup.exe` 或便携 ZIP。macOS 与 Windows 用户请安装 DeepSeek Harness 官方 Desktop，再把插件安装到其 `desktop` Profile。
 
-## 保留能力
+官方 macOS Desktop 已完成实机验证。Windows 官方 Desktop 使用相同的 Profile 与插件机制；本项目不再单独维护 Windows 外壳或安装器。
 
-- 终末地开屏、工业网格、等高线侧栏、旋转仪表圆环和黄灰工业组件。
-- better-sidebar 文件、编辑器、浏览器、终端、Git、任务与子代理页面，以及折叠和宽度拖拽。
-- 与 `/goal`、GoalBar 共用原生 projection 的 `OBJECTIVE` 页面。
-- DSH 官方 Vision 附件链路和深色、浅色、跟随系统三种外观适配。
-- 输入投影、长文本、换行、光标、选区和斜杠命令的既有修复。
-- Windows/macOS 环境诊断、单实例、私有随机端口、`--no-open` 与子进程回收。
+## 核心更新
 
-## 安装插件
+- 兼容 DSH `0.2.0-rc.2` 与 `dsh-better-sidebar@0.24.1`。
+- 支持官方 Desktop 独立的 `desktop` Profile，并保留 Web Profile 安装方式。
+- 新版右侧工作台接入 DSH 原生侧栏，提供文件、编辑器、浏览器、终端、Git、任务、子代理与 `OBJECTIVE`。
+- 加入终末地工业图标与黄黑工业风工作台适配。
+- 修复右栏收起后的半透明黑色遮罩、开屏黑框、滚动串联、按钮失效和宽度拖拽问题。
+- 修复长文本、换行、斜杠命令、鼠标选区重影、输入卡顿与光标偏移。
+- 完善新会话、审批页、设置派生卡片和浅色 / 深色 / 跟随系统模式的文字可读性。
+- 使用 DSH 官方 Vision 附件链路，移除旧视觉理解插件遗留兼容层。
+- `OBJECTIVE` 继续使用原生 Goal projection，与 `/goal` 和 GoalBar 保持同一份状态。
 
-下载 Release 中的 `.tgz` 后执行：
+## 官方 Desktop 安装
+
+先启动一次官方 Desktop，再完全退出（Windows 还需退出系统托盘），并通过 App 的“管理 dsh 命令…”确保终端中的 `dsh` 来自官方 Desktop。随后在插件包所在目录执行：
 
 ```bash
-dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
+dsh plugin --profile desktop add dsh-better-sidebar@0.24.1 ./rison-dsh-endfield-ui-1.1.0.tgz
+```
+
+重新打开官方 Desktop 即可生效。普通 npm 版旧 `dsh` 不能代替官方 Desktop 的内置命令管理 `desktop` Profile。
+
+## Web 安装
+
+```bash
+dsh plugin --profile web add dsh-better-sidebar@0.24.1 ./rison-dsh-endfield-ui-1.1.0.tgz
 dsh web
 ```
 
-卸载只移除 Web Profile 中的插件依赖，不删除 Session、模型或用户设置：
+卸载只移除对应 Profile 的插件，不删除 Session、模型或用户设置：
 
 ```bash
-dsh plugin --profile web remove @rison/dsh-endfield-ui dsh-better-sidebar
+dsh plugin --profile desktop remove @rison/dsh-endfield-ui dsh-better-sidebar
 ```
-
-## 桌面端说明
-
-- macOS 包使用 ad-hoc 签名，首次运行可能需要在 Finder 中右键“打开”或在系统隐私与安全设置中确认。
-- Windows 便携版必须完整解压 ZIP，不能只复制其中的 EXE。
-- 桌面端复用现有 `~/.dsh` 或 `%USERPROFILE%\.dsh`，不会迁移、清空或重建会话数据。
-- App 只回收自己创建的 DSH 子进程，不影响用户在其他终端主动启动的服务。
 
 ## 已知限制
 
 - 内嵌浏览器仍受目标网站 CSP / `X-Frame-Options` 限制。
-- 终端依赖 `node-pty`；构建失败时其他工作台页面仍可使用。
-- 本版只承诺 DSH `0.1.2-alpha.5` 兼容线；升级 DSH 或 better-sidebar 前需重新验证。
-- 桌面测试包尚未进行商业代码签名或 Apple 公证。
+- `dsh-shikitor@1.0.2` 的兼容范围止于 DSH `<0.2.0`，本版使用 DSH 原生输入与补全能力。
+- DSH 或 better-sidebar 升级后应先重新验证，再调整精确版本映射。
 
 ## SHA-256
 
-- `rison-dsh-endfield-ui-1.0.2.tgz`：`3fdf80e48b0dc7ff98df99088f16c7dff7115785b23172b1880e677bfc980ea9`
-- `DSH-Endfield-Workbench-1.0.2-macOS-arm64.zip`：`ddcf3d97b1679c47015ce46cdd28f0c2b69b373a88f2971e0d859f33af1e6b0e`
-- `DSH-Endfield-Workbench-Setup-1.0.2-x64.exe`：`dbb67ae30f30ded7ede40ced964a5e0f4678e84d95459d63da00252528940e3d`
-- `DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`：`880d78c68c51b5f7bbd40a144048e24f3210ea554d583b334bcf1d2a117926ee`
+- `rison-dsh-endfield-ui-1.1.0.tgz`：`4f7a9619e475f70e0a43deb63e3984e8c8c3154d21c4aa548562a65dc66fa70f`

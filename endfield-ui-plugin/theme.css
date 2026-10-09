@@ -246,7 +246,10 @@ code {
 /* Conversation area: the original industrial-grid plate exported from the
    connected Ardot canvas.  A dark wash protects text contrast while preserving
    the terrain relief, radial instrument markings and yellow locator accents. */
-[data-slot="conversation"] {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) {
   --dsw-alias-bg-base: transparent;
   --dsw-alias-label-primary: var(--ef-chat-ink);
   --dsw-alias-label-primary-bluish: var(--ef-yellow);
@@ -266,10 +269,13 @@ code {
   color: var(--ef-chat-ink);
 }
 
-/* The slot host itself is a zero-size Cordis anchor in dsh rc.6. Paint the
-   plate on its first rendered child, which is the actual full-height
-   conversation column. Keep the anchor rule above for token inheritance. */
-[data-slot="conversation"] > :first-child {
+/* In legacy DSH the conversation slot is a zero-size Cordis anchor and its
+   first child is the rendered column. DSH 0.2 removed that slot marker, so the
+   equivalent stable scope is the frame's centre grid item while it contains
+   the public data-composer-card marker. This deliberately excludes Settings
+   and other global main panels. */
+[data-slot="conversation"] > :first-child,
+#root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card]) {
   background:
     linear-gradient(rgba(4,6,7,.48), rgba(4,6,7,.62)),
     url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / 100% 100% no-repeat !important;
@@ -280,7 +286,10 @@ code {
    dark mode. Re-scope every token consumed by the native composer and its
    Shikitor projection so text, controls, placeholders and refs stay readable
    under light, dark and system preferences. */
-[data-slot="conversation"] [data-composer-card] {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) [data-composer-card] {
   --dsw-alias-label-primary: var(--ef-composer-ink);
   --dsw-alias-label-primary-bluish: #302a00;
   --dsw-alias-label-primary-dimmed: #30363a;
@@ -312,12 +321,21 @@ code {
    Windows Chromium/GPU combinations flatten that SVG mask into one solid
    fluorescent horizontal strip. Keep the native clickable state but render
    its mask with neutral ink; the command button remains the yellow affordance. */
-[data-slot="conversation"] [data-composer-card]::after {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) [data-composer-card]::after {
   background: rgba(17, 20, 23, .38) !important;
 }
 
-[data-slot="conversation"] [data-composer-card] button,
-[data-slot="conversation"] [data-composer-card] [role="button"] {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) [data-composer-card] button,
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) [data-composer-card] [role="button"] {
   color: var(--ef-composer-ink) !important;
   -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
@@ -696,15 +714,27 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
    dark caret on every textarea/input inside the conversation slot, and dim the
    placeholder to a readable grey. This outranks the hero-only
    textarea[placeholder="描述你想要构建的内容"] rule above. */
-[data-slot="conversation"] textarea:not(.shikitor-input--attached),
-[data-slot="conversation"] input {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) textarea:not(.shikitor-input--attached),
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) input {
   color: var(--ef-composer-ink) !important;
   caret-color: var(--ef-composer-ink) !important;
   -webkit-text-fill-color: var(--ef-composer-ink) !important;
 }
 
-[data-slot="conversation"] textarea:not(.shikitor-input--attached)::placeholder,
-[data-slot="conversation"] input::placeholder {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) textarea:not(.shikitor-input--attached)::placeholder,
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) input::placeholder {
   color: var(--ef-composer-ink-tertiary) !important;
   opacity: 1;
   -webkit-text-fill-color: var(--ef-composer-ink-tertiary) !important;
@@ -714,7 +744,10 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
    submission. All visible glyphs, selections and the local caret come from the
    same projected coordinate system, so rich tokens cannot drift away from the
    browser-native caret. */
-[data-slot="conversation"] textarea.shikitor-input--attached {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) textarea.shikitor-input--attached {
   color: transparent !important;
   caret-color: transparent !important;
   -webkit-text-fill-color: transparent !important;
@@ -724,7 +757,10 @@ div:has(> div > div > textarea[placeholder="描述你想要构建的内容"]) {
 /* Keep Shikitor's native selection background visible for ordinary text. Its
    foreground remains transparent so only the projected glyphs are painted.
    Shikitor switches to its own projected selection layer for inline atoms. */
-[data-slot="conversation"] textarea.shikitor-input--attached::selection {
+:where(
+  [data-slot="conversation"],
+  #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) > :nth-child(2):has([data-composer-card])
+) textarea.shikitor-input--attached::selection {
   color: transparent !important;
   background: var(--ef-selection-fill) !important;
   -webkit-text-fill-color: transparent !important;
@@ -1592,10 +1628,11 @@ textarea.shikitor-input--attached::placeholder {
 }
 
 /* ======================================================================
-   DSH Better Sidebar 0.18.x — stable public root only.
-   The upstream CSS-module class names are intentionally never referenced.
-   Layout contract (0.15 through 0.18): [data-dsh-better-sidebar],
-   [data-dsh-panel-host], [data-dsh-panel], --dsh-sidebar-width/height.
+   DSH 0.2 native right workbench + Better Sidebar 0.24.x.
+   Better Sidebar now registers tabs in DSH's native DockKit right column.
+   Theme only stable semantic data markers; CSS-module hashes are never used.
+   The legacy data-dsh-* portal remains a compatibility surface, not the
+   visible 0.2 workbench.
    ====================================================================== */
 
 /* Opening choreography: while the Endfield boot overlay is active, keep the
@@ -1620,33 +1657,30 @@ body[data-endfield-booting] #root {
   width: 100% !important;
 }
 
-/* Hide the COMPLETE portal host, not just today's known panel children.
-   better-sidebar owns several fixed surfaces (right panel, bottom panel,
-   toggles and boundary fallbacks); hiding only a direct child can leave one
-   of those surfaces composited as a translucent rectangle over the boot
-   animation. Host-level visibility is inherited by every current/future
-   surface and cannot paint a box. */
+/* DSH 0.2 keeps the right workbench in the root grid. Remove its grid track
+   during the boot wipe so an already-open saved layout cannot leave a dark
+   rectangle at the right edge. The column and its saved width are untouched
+   and return when data-endfield-booting is released. */
+body[data-endfield-booting] #root [style*="grid-template-columns"]:has(> [data-rightbar-col]) {
+  grid-template-columns: auto minmax(0, 1fr) 0 !important;
+}
+
+body[data-endfield-booting] [data-rightbar-col],
+body[data-endfield-booting] [data-sidebar-right-panel] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
+/* Keep the unused compatibility portal paint-free without changing its
+   geometry. Better Sidebar probes this host during mount; display:none would
+   produce a false geometry-mismatch warning and a permanent sync loop. */
 body[data-endfield-booting] [data-dsh-better-sidebar],
 body[data-endfield-booting] [data-dsh-panel-host] {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
-}
-
-/* Directly gate the concrete right-panel node as a second line of defence.
-   The selector deliberately uses public/semantic structure from the rendered
-   DOM (inline width + the localized stable action label) rather than the
-   volatile CSS-module class such as `nArs4W_panel`. */
-body[data-endfield-booting] div[style*="width"]:has(> div + div button[aria-label="新建标签页"]) {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-body[data-endfield-booting] [data-dsh-better-sidebar] > div {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transform: translateX(102%) !important;
 }
 
 /* The texture belongs to the workbench, not to the boot scene.  Hide its
@@ -1656,7 +1690,8 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   opacity: 0 !important;
 }
 
-[data-dsh-better-sidebar] {
+[data-dsh-better-sidebar],
+[data-sidebar-right-panel] {
   --dsw-alias-bg-base: #090b0d;
   --dsw-alias-bg-layer-1: rgba(16, 20, 25, .94);
   --dsw-alias-bg-layer-2: rgba(24, 29, 34, .96);
@@ -1683,6 +1718,293 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
   --dsw-specific-tip: #1b2024;
   color: #eef0ed;
   font-family: "EF Harmony", sans-serif;
+}
+
+/* Native right-column surfaces. Variables above provide the dark palette to
+   built-in Explorer/editor/terminal/Git/task pages and Better Sidebar tabs;
+   these structural rules supply the Endfield industrial frame and texture. */
+[data-rightbar-col] {
+  border-left: 1px solid rgba(255, 244, 79, .24);
+  background:
+    linear-gradient(rgba(9, 11, 13, .9), rgba(9, 11, 13, .96)),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
+  color: #eef0ed;
+  font-family: "EF Harmony", sans-serif;
+}
+
+[data-sidebar-right-panel] [data-dockkit-surface="true"],
+[data-sidebar-right-panel] [data-dockkit-pane] {
+  background-color: rgba(9, 11, 13, .94);
+  color: #eef0ed;
+}
+
+/* Native DockKit chrome: turn the generic rounded utility panel into an
+   Endfield instrument bay.  Only public data markers are used, so upstream
+   class-name hashing cannot detach this skin. */
+[data-sidebar-right-panel] [data-dockkit-host="dock"] {
+  background:
+    linear-gradient(90deg, rgba(255, 244, 79, .035) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+    rgba(7, 9, 11, .96);
+  background-size: 32px 32px;
+}
+
+[data-sidebar-right-panel] [data-dockkit-pane] {
+  border: 1px solid rgba(255, 244, 79, .13);
+  border-top-color: rgba(255, 244, 79, .34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    inset 3px 0 0 rgba(255, 244, 79, .055);
+}
+
+[data-sidebar-right-panel] [data-dockkit-pane-active="true"] {
+  border-top-color: var(--ef-yellow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 79, .12),
+    inset 3px 0 0 rgba(255, 244, 79, .15),
+    0 0 24px rgba(255, 244, 79, .025);
+}
+
+[data-sidebar-right-panel] [data-dockkit-tab] {
+  position: relative;
+  min-height: 34px;
+  border-radius: 0 !important;
+  color: #b9c0bd;
+  letter-spacing: .075em;
+}
+
+[data-sidebar-right-panel] [data-dockkit-tab][aria-selected="true"],
+[data-sidebar-right-panel] [data-dockkit-tab][data-active="true"] {
+  color: #f4f6f1;
+  background:
+    linear-gradient(90deg, rgba(255, 244, 79, .12), transparent 76%);
+  box-shadow: inset 3px 0 0 var(--ef-yellow);
+}
+
+[data-sidebar-right-panel] [data-dockkit-divider] {
+  background: rgba(255, 244, 79, .16);
+}
+
+/* DSH 0.2 keeps the push panel absolutely positioned at its saved width even
+   while the right grid track is collapsed. Upstream hides the DockKit
+   children by translating them off-stage, but the panel element itself stays
+   visible with aria-hidden=true. Painting that container therefore creates
+   an opaque rectangle over the conversation. Keep the geometry-only wrapper
+   transparent; the rightbar track and translated DockKit surfaces above own
+   all visible workbench paint. */
+[data-sidebar-right-panel] {
+  background-color: transparent !important;
+  color: #eef0ed;
+}
+
+/* DSH 0.2 can briefly (and, after restoring some older session layouts,
+   persistently) disagree about the collapsed state: the panel reports
+   aria-hidden=true while AppFrame still reserves the saved right-column
+   width.  That leaves a dark native rightbar track over the conversation,
+   exactly matching the last open panel width.  Treat the panel's public
+   accessibility state as authoritative for paint and track allocation.  The
+   wrapper remains measurable (no display:none), so resize/restore probes and
+   the next expand action continue to work. */
+#root [style*="grid-template-columns"][data-rightbar-collapsed],
+#root [style*="grid-template-columns"]:has(
+  > [data-rightbar-col] [data-sidebar-right-panel][aria-hidden="true"]
+) {
+  grid-template-columns: auto minmax(0, 1fr) 0 !important;
+}
+
+[data-rightbar-col]:has([data-sidebar-right-panel][aria-hidden="true"]) {
+  border-left-color: transparent !important;
+  background: transparent !important;
+}
+
+[data-sidebar-right-panel][aria-hidden="true"] {
+  visibility: hidden !important;
+  clip-path: inset(0 0 0 100%);
+  pointer-events: none !important;
+}
+
+[data-sidebar-right-panel][aria-hidden="true"] :is(
+  [data-dockkit-host],
+  [data-dockkit-surface],
+  [data-dockkit-pane],
+  [data-dockkit-empty],
+  [data-dockkit-divider],
+  [data-sidebar-right-guide]
+) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 0.24 renders the real texture on the native rightbar track.  The legacy
+   compatibility portal's fixed pseudo-layer is redundant there and keeps its
+   saved width after collapse, which can look like a translucent black mask. */
+body:has([data-sidebar-right-panel]) [data-dsh-better-sidebar]::before {
+  display: none !important;
+}
+
+/* Overlay decorations used the same saved width variable as the legacy
+   portal.  Restore their full conversation span while the native panel is
+   hidden, otherwise the atmospheric ring ends at the stale sidebar edge. */
+body:has([data-sidebar-right-panel][aria-hidden="true"]) .ef-atmosphere {
+  clip-path: inset(0 0 0 56px);
+}
+
+body:has([data-sidebar-right-panel][aria-hidden="true"]) .ef-atmosphere-ring {
+  right: -25vw;
+}
+
+body:has([data-sidebar-right-panel][aria-hidden="true"]) .ef-titlebar {
+  right: 78px;
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide="true"] {
+  position: relative;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 44px 18px 24px;
+  overflow: auto;
+  background:
+    linear-gradient(180deg, rgba(8, 10, 12, .3), rgba(8, 10, 12, .92)),
+    repeating-linear-gradient(0deg, transparent 0 4px, rgba(255,255,255,.012) 4px 5px),
+    url("/endfield-ui/assets/ardot/endfield-industrial-grid.webp") center / cover no-repeat;
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide="true"]::before {
+  content: "FIELD ACCESS  /  WORKBENCH";
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  color: rgba(255, 244, 79, .68);
+  font: 600 7px/1 "EF Wide", sans-serif;
+  letter-spacing: .19em;
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide="true"]::after {
+  content: "07-A";
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  padding: 3px 5px 2px;
+  border: 1px solid rgba(255, 244, 79, .25);
+  color: #777f83;
+  font: 600 7px/1 "EF Numeric", monospace;
+  letter-spacing: .12em;
+}
+
+/* Replace the muted stock compass with the generated whale/compass crest. */
+[data-sidebar-right-panel] [data-sidebar-right-guide="true"] > span[aria-hidden="true"] {
+  width: min(230px, 82%);
+  height: 132px;
+  margin: 0 auto 8px;
+  background:
+    radial-gradient(circle, rgba(255, 244, 79, .07), transparent 58%),
+    url("/endfield-ui/assets/workbench-icons/home-emblem.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 12px rgba(255, 244, 79, .09));
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide="true"] > span[aria-hidden="true"] > svg {
+  opacity: 0;
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry] {
+  position: relative;
+  min-height: 64px;
+  gap: 12px;
+  padding: 9px 38px 9px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 244, 79, .22);
+  border-left-width: 3px;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 244, 79, .055), transparent 42%),
+    linear-gradient(135deg, rgba(31, 36, 39, .96), rgba(14, 17, 19, .94));
+  color: #eef0ed;
+  letter-spacing: .035em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    4px 4px 0 rgba(0, 0, 0, .26);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry]::after {
+  content: ">";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  color: rgba(255, 244, 79, .48);
+  font: 700 12px/1 "EF Numeric", monospace;
+  transform: translateY(-50%);
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry] > span:first-child {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-right: 1px solid rgba(255, 244, 79, .18);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 42px 42px;
+  filter: drop-shadow(0 0 6px rgba(255, 244, 79, .08));
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry] > span:first-child > svg {
+  opacity: 0;
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="endfield:objective"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/objective.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="editor"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/files.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="git"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/git-diff.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="terminal"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/terminal.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="subagent"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/tasks.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry="sidechat"] > span:first-child {
+  background-image: url("/endfield-ui/assets/workbench-icons/chat.png");
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry]:hover {
+  border-color: rgba(255, 244, 79, .68);
+  background:
+    linear-gradient(90deg, rgba(255, 244, 79, .17), transparent 58%),
+    linear-gradient(135deg, #2a2f31, #131719);
+  color: #fff;
+  transform: translateX(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 79, .11),
+    6px 5px 0 rgba(0, 0, 0, .38),
+    0 0 20px rgba(255, 244, 79, .055);
+}
+
+[data-sidebar-right-panel] [data-sidebar-right-guide-entry]:hover::after {
+  color: var(--ef-yellow);
+  transform: translate(3px, -50%);
+}
+
+@media (max-width: 1100px) {
+  [data-sidebar-right-panel] [data-sidebar-right-guide="true"] {
+    padding-inline: 12px;
+  }
+  [data-sidebar-right-panel] [data-sidebar-right-guide="true"] > span[aria-hidden="true"] {
+    height: 104px;
+  }
+  [data-sidebar-right-panel] [data-sidebar-right-guide-entry] {
+    min-height: 56px;
+  }
 }
 
 /* 0.15.x marks its portal host as degraded when the optional shell anchor is
@@ -1728,25 +2050,60 @@ body[data-endfield-booting] [data-dsh-better-sidebar]::before {
 [data-dsh-better-sidebar] button,
 [data-dsh-better-sidebar] input,
 [data-dsh-better-sidebar] textarea,
-[data-dsh-better-sidebar] select {
+[data-dsh-better-sidebar] select,
+[data-sidebar-right-panel] button,
+[data-sidebar-right-panel] input,
+[data-sidebar-right-panel] textarea,
+[data-sidebar-right-panel] select {
   font-family: inherit;
 }
 
 [data-dsh-better-sidebar] button:focus-visible,
 [data-dsh-better-sidebar] input:focus-visible,
 [data-dsh-better-sidebar] textarea:focus-visible,
-[data-dsh-better-sidebar] select:focus-visible {
+[data-dsh-better-sidebar] select:focus-visible,
+[data-sidebar-right-panel] button:focus-visible,
+[data-sidebar-right-panel] input:focus-visible,
+[data-sidebar-right-panel] textarea:focus-visible,
+[data-sidebar-right-panel] select:focus-visible {
   outline-color: var(--ef-yellow) !important;
 }
 
 [data-dsh-better-sidebar] [role="tab"],
-[data-dsh-better-sidebar] [role="menuitem"] {
+[data-dsh-better-sidebar] [role="menuitem"],
+[data-sidebar-right-panel] [role="tab"],
+[data-sidebar-right-panel] [role="menuitem"] {
   letter-spacing: .04em;
 }
 
 [data-dsh-better-sidebar] [aria-selected="true"],
-[data-dsh-better-sidebar] [data-selected="true"] {
+[data-dsh-better-sidebar] [data-selected="true"],
+[data-sidebar-right-panel] [aria-selected="true"],
+[data-sidebar-right-panel] [data-selected="true"],
+[data-sidebar-right-panel] [data-dockkit-pane-active="true"] [role="tab"] {
   box-shadow: inset 3px 0 0 var(--ef-yellow);
+}
+
+/* Native chat return-to-tail control.  Its default floating-button token is
+   paper-white, so the yellow Endfield outline almost disappears.  Use the
+   same safety-yellow / black instrument contrast in both locales. */
+button[aria-label="回到底部"],
+button[aria-label="Back to bottom"] {
+  color: #090b0d !important;
+  -webkit-text-fill-color: #090b0d !important;
+  background: var(--ef-yellow) !important;
+  border: 1px solid #090b0d !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 244, 79, .62),
+    3px 3px 0 rgba(9, 11, 13, .78) !important;
+}
+
+button[aria-label="回到底部"]:hover,
+button[aria-label="Back to bottom"]:hover {
+  color: var(--ef-yellow) !important;
+  -webkit-text-fill-color: var(--ef-yellow) !important;
+  background: #090b0d !important;
+  border-color: var(--ef-yellow) !important;
 }
 
 .ef-objective-tab-icon {

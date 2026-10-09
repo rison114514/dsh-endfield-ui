@@ -2,61 +2,74 @@
 
 > **非官方同人主题**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-![DSH 终末地风格工作台 1.0.2](./cover/dsh-endfield-workbench-readme-banner-5x2.png)
+![DSH 终末地风格工作台](./cover/dsh-endfield-workbench-readme-banner-5x2.png)
 
-为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 制作的终末地工业风界面插件，同时提供 Windows 和 macOS 桌面端。插件通过 DSH 标准 Cordis Bundle 加载，不修改 DSH 核心文件。
+为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 制作的终末地工业风工作台插件。它通过 DSH 标准 Cordis Bundle 加载，不修改 DSH 核心文件，可直接用于官方 macOS / Windows Desktop 与 Web。
 
 ## 主要功能
 
-- 终末地风格开屏、工业网格、等高线侧栏与黄灰组件。
+- 终末地风格开屏、工业网格、等高线侧栏与黄黑工业组件。
 - better-sidebar 右侧工作台：文件、编辑器、浏览器、终端、Git、任务和子代理。
-- `OBJECTIVE` 直接使用 DSH 原生 Goal，与 `/goal` 和 GoalBar 同步。
-- 兼容 DSH 官方 Vision 附件链路，适配三种外观模式。
-- 桌面端支持环境诊断、可选一键配置、单实例和私有本地服务。
+- `OBJECTIVE` 直接读取 DSH 原生 Goal，与 `/goal` 和 GoalBar 保持同一份状态。
+- 使用 DSH 官方 Vision 附件链路，兼容浅色、深色与跟随系统三种外观。
+- 修复长文本、换行、斜杠命令、选区、输入光标和右栏遮罩等可用性问题。
 
-## 安装插件
+## 官方 Desktop 安装（推荐）
 
-目标环境：DSH `0.1.2-alpha.5`、Node.js `>=22.19.0`。
+适配基线：DSH `0.2.0-rc.2`、Node.js `>=22.19.0`、`dsh-better-sidebar@0.24.1`。
+
+1. 安装并至少启动一次 DeepSeek Harness 官方 Desktop。
+2. 完全退出 Desktop；Windows 还需从系统托盘退出。
+3. 在官方 Desktop 中使用“管理 dsh 命令…”注册或修复官方 CLI。
+4. 下载 Release 中的 `rison-dsh-endfield-ui-1.1.0.tgz`，在其所在目录执行：
 
 ```bash
-dsh plugin --profile web add dsh-better-sidebar@0.18.0-alpha.0 ./rison-dsh-endfield-ui-1.0.2.tgz --allow-build=node-pty
+dsh plugin --profile desktop add dsh-better-sidebar@0.24.1 ./rison-dsh-endfield-ui-1.1.0.tgz
+```
+
+重新打开官方 Desktop 后，终末地界面会自动生效。
+
+官方 Desktop 使用独立的 `desktop` Profile。普通 npm 全局安装的旧版 `dsh` 可能无法管理它；若命令拒绝访问 Desktop Profile，请先通过官方 App 重新注册其内置命令运行时。安装插件不会删除或迁移 `.dsh` 中的会话、模型与设置。
+
+## Web 安装
+
+```bash
+dsh plugin --profile web add dsh-better-sidebar@0.24.1 ./rison-dsh-endfield-ui-1.1.0.tgz
 dsh web
 ```
 
-这仍是一条插件安装命令，但会把右侧工作台和终末地适配层都登记为 Web Profile 的直接 bundle，因而不依赖 pnpm 的 hoisted 布局。安装后普通启动 `dsh web` 即可自动加载主题，无需手动复制 CSS 或追加 `--patch`。
+`desktop` 与 `web` Profile 相互隔离；需要在哪个入口使用，就给对应 Profile 安装一次。
 
-卸载插件：
+卸载：
 
 ```bash
-dsh plugin --profile web remove @rison/dsh-endfield-ui dsh-better-sidebar
+dsh plugin --profile desktop remove @rison/dsh-endfield-ui dsh-better-sidebar
+# 或将 desktop 换成 web
 ```
 
-卸载只会移除 Web Profile 的插件依赖，不删除 `.dsh` 中的会话、模型或用户设置。
+卸载插件不会删除用户会话或模型配置。
 
-## 桌面端
+## 1.1.0 更新
 
-- **Windows x64**：`DSH-Endfield-Workbench-Setup-1.0.2-x64.exe` 或需完整解压的 `DSH-Endfield-Workbench-Portable-1.0.2-x64.zip`。
-- **macOS Apple Silicon**：`DSH-Endfield-Workbench-1.0.2-macOS-arm64.zip`（ad-hoc 签名）。
+- 正式适配 DSH `0.2.0-rc.2` 与 `dsh-better-sidebar@0.24.1`。
+- 支持 DeepSeek Harness 官方 macOS / Windows Desktop 的 `desktop` Profile。
+- 右侧工作台更新为新版原生侧栏，加入终末地工业图标与完整视觉适配。
+- 修复侧栏折叠时的半透明遮罩、开屏黑框、滚动串联、按钮交互和宽度拖拽问题。
+- 修复长文本、换行、斜杠命令、鼠标选区重影、输入卡顿与光标错位。
+- 修复新会话、审批页、设置派生卡片及三种外观模式下的文字可读性。
+- 使用 DSH 官方 Vision 附件链路，不再依赖旧视觉理解插件。
+- `OBJECTIVE` 继续直接订阅 DSH 原生 Goal projection，不创建第二份状态。
 
-桌面端需要本机已安装 Node.js。首次启动会检测 Node、npm、pnpm、DSH 和终末地插件；检测到 Node 后，可由用户确认自动安装推荐版本的 DSH 与 pnpm。
+## 桌面版维护说明
 
-桌面端会复用现有 `.dsh` 数据，不会迁移或清理会话。启动参数固定包含 `--no-open`，不会额外打开浏览器前端。
+从 `1.1.0` 起，本项目停止维护和发布自建 Electron 桌面 App。GitHub Release **只提供插件 `.tgz`**，不再提供 `.app`、`.dmg`、`.exe` 或便携 ZIP。
 
-## 1.0.2 更新
-
-- 适配 DSH `0.1.2-alpha.5` 和 better-sidebar `0.18.0-alpha.0`，保留 Windows/macOS 首次启动诊断。
-- 新增 Windows Setup.exe 与便携 ZIP，并修复 DSH 0.1.2 桌面鉴权。
-- 修复长文本、换行、斜杠命令和鼠标选区中的重影、卡顿与光标偏移。
-- 修复右栏布局与交互、开屏黑框，并完善输入框、审批页和设置页的可读性。
-- 彻底修复部分设备启动时报 `pending (waiting for service: betterSidebar)`：工作台改为根级直接 bundle，兼容 pnpm hoisted/isolated 两种布局；侧栏缺失时主题也不再拖垮 Web 启动。
-- 桌面端不再静默修补不完整的 Profile；组合缺失时进入环境向导，完成安装后复检根级依赖和唯一 bundle。
-- 移除旧视觉插件残留，恢复 DSH 官方附件链路；桌面包仅携带当前插件归档。
+仓库中的 `desktop-app/` 仅保留为历史实现参考，不再接受功能适配、安装器、签名、公证或更新器相关维护。桌面用户请安装 DeepSeek Harness 官方 macOS / Windows Desktop，再按上文安装插件。
 
 ## 已知限制
 
-- 内嵌浏览器仍受目标网站 CSP 和 `X-Frame-Options` 限制。
-- better-sidebar 终端依赖 `node-pty`；构建失败时，其他工作台页面仍可使用。
-- `dsh-shikitor@1.0.2` 的浏览器模块尚未适配 DSH 0.1.2，因此不再由本插件自动安装或挂载；输入补全使用 DSH 原生能力。
-- 桌面测试包尚未进行正式商业代码签名。
+- 内嵌浏览器仍受目标网站 CSP 与 `X-Frame-Options` 限制，必要时请使用外部浏览器打开。
+- `dsh-shikitor@1.0.2` 不兼容 DSH 0.2，因此 1.1.0 使用 DSH 原生输入与补全能力。
+- Windows 官方 Desktop 使用同一套 `desktop` Profile 插件机制；不同 DSH 版本升级后应先核对兼容说明。
 
-更完整的技术与维护说明见 [`HANDOFF.md`](./HANDOFF.md)，发布清单见 [`RELEASE.md`](./RELEASE.md)。
+维护与兼容说明见 [`HANDOFF.md`](./HANDOFF.md)，本次发布说明见 [`RELEASE.md`](./RELEASE.md)。

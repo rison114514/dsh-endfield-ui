@@ -19,10 +19,10 @@ function check(name, pass, detail = '') {
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  ${detail}` : ''}`)
 }
 
-check('Endfield release is 1.0.2', manifest.version === '1.0.2', manifest.version)
+check('Endfield release is 1.1.0', manifest.version === '1.1.0', manifest.version)
 check('Incompatible Shikitor is no longer an automatic dependency', !manifest.dependencies?.['dsh-shikitor'], manifest.dependencies?.['dsh-shikitor'])
 check('better-sidebar is an optional exact peer, not a transitive startup row',
-  manifest.peerDependencies?.['dsh-better-sidebar'] === '0.18.0-alpha.0'
+  manifest.peerDependencies?.['dsh-better-sidebar'] === '0.24.1'
   && manifest.peerDependenciesMeta?.['dsh-better-sidebar']?.optional === true,
   manifest.peerDependencies?.['dsh-better-sidebar'])
 check('Endfield does not inject or fork the Shikitor geometry service',

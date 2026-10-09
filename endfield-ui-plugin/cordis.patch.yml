@@ -1,4 +1,4 @@
-# Endfield visual adapter for DSH 0.1.2-alpha.5.
+# Endfield visual adapter for DSH 0.2.0-rc.2.
 #
 # dsh-better-sidebar is deliberately NOT mounted from this bundle. DSH scans
 # client modules from root profile entries, so mounting a transitive dependency

@@ -740,63 +740,21 @@ window.__ModuleLoader__.load({
       )
 
       // Keep the native workbench off-stage until the Endfield boot sequence
-      // finishes. This is a visual gate only: better-sidebar retains the
-      // user's open/collapsed state and performs its own slide/layout push
-      // when the attribute is released.
+      // finishes. DSH 0.2 owns the right-hand DockKit column, so the gate is
+      // expressed entirely through the body attribute and stable native data
+      // markers in theme.css. Do not hide better-sidebar's compatibility
+      // portal with inline display:none: its one-shot geometry probe would
+      // interpret the zero-sized host as a transformed page and enter the
+      // degraded viewport-sync loop.
       ctx.effect(() => {
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        const gatedHosts = new Set()
-        const panelSelector = 'div[style*="width"]:has(button[aria-label="新建标签页"]), [data-dsh-panel-host]'
-        const gateHost = (host) => {
-          if (!(host instanceof HTMLElement) || gatedHosts.has(host)) return
-          host.style.setProperty('display', 'none', 'important')
-          host.setAttribute('data-endfield-boot-hidden', '')
-          gatedHosts.add(host)
-        }
-        const gatePanel = (panel) => {
-          if (!(panel instanceof HTMLElement) || gatedHosts.has(panel)) return
-          if (panel.hasAttribute('data-dsh-panel-host')) {
-            gateHost(panel)
-            return
-          }
-          const style = window.getComputedStyle(panel)
-          if (style.position !== 'fixed' || style.right !== '0px' || style.bottom !== '0px') return
-          gateHost(panel)
-        }
-        const scanHosts = (root) => {
-          if (root instanceof Element && root.matches('[data-dsh-better-sidebar]')) gateHost(root)
-          if (root instanceof Element && root.matches('[data-dsh-panel-host]')) gateHost(root)
-          if (root instanceof Element && root.matches(panelSelector)) gatePanel(root)
-          if (root && typeof root.querySelectorAll === 'function') {
-            root.querySelectorAll('[data-dsh-better-sidebar], [data-dsh-panel-host]').forEach(gateHost)
-            root.querySelectorAll(panelSelector).forEach(gatePanel)
-          }
-        }
-        const releaseHosts = () => {
-          for (const host of gatedHosts) {
-            if (host.getAttribute('data-endfield-boot-hidden') !== null) {
-              host.style.removeProperty('display')
-              host.removeAttribute('data-endfield-boot-hidden')
-            }
-          }
-          gatedHosts.clear()
-          window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
-        }
         document.body.setAttribute('data-endfield-booting', '')
-        scanHosts(document.body)
-        const observer = new MutationObserver((records) => {
-          for (const record of records) record.addedNodes.forEach(scanHosts)
-        })
-        observer.observe(document.body, { childList: true, subtree: true })
         const timer = window.setTimeout(() => {
-          observer.disconnect()
-          releaseHosts()
           document.body.removeAttribute('data-endfield-booting')
+          window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
         }, reducedMotion ? 80 : 3650)
         return () => {
           window.clearTimeout(timer)
-          observer.disconnect()
-          releaseHosts()
           document.body.removeAttribute('data-endfield-booting')
         }
       }, 'endfield-ui: boot workbench gate')
@@ -861,7 +819,7 @@ window.__ModuleLoader__.load({
         // Keep the stylesheet URL release-addressable.  Electron/Chromium can
         // otherwise retain an older theme.css across local same-version
         // rebuilds, making visual hotfixes appear to have no effect.
-        link.href = '/endfield-ui/theme.css?v=1.0.2-better-sidebar-0.18'
+        link.href = '/endfield-ui/theme.css?v=1.1.0-dsh-0.2-sidebar-0.24-r5'
         link.dataset.plugin = '@rison/dsh-endfield-ui'
         document.head.appendChild(link)
         return () => { link.remove() }

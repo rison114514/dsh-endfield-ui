@@ -1,6 +1,7 @@
 {
   "name": "@rison/dsh-endfield-ui",
-  "version": "1.0.2",
+  "version": "1.1.0",
+  "endfieldBuild": "1.1.0-r5",
   "description": "Endfield-inspired DSH workbench with sidebar, native input styling, and Goal projection",
   "type": "module",
   "main": "./index.js",
@@ -26,7 +27,7 @@
     "node": ">=22.19.0"
   },
   "peerDependencies": {
-    "dsh-better-sidebar": "0.18.0-alpha.0"
+    "dsh-better-sidebar": "0.24.1"
   },
   "peerDependenciesMeta": {
     "dsh-better-sidebar": {
