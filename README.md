@@ -2,7 +2,7 @@
 
 > **非官方同人主题**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
 
-![DSH 终末地风格工作台](./cover/dsh-endfield-workbench-readme-banner-5x2.png)
+![DSH 终末地风格工作台](https://raw.githubusercontent.com/kingOfSoySauce/dsh-skin-market/main/site/public/skin-screenshots/rison114514__dsh-endfield-ui--endfield-ui-plugin/d9d5c722cdb63e8c78d455af5a4896f7c3817cc8/home.gif)
 
 为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 制作的终末地工业风工作台插件。它通过 DSH 标准 Cordis Bundle 加载，不修改 DSH 核心文件，可直接用于官方 macOS / Windows Desktop 与 Web。
 
