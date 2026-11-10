@@ -1,7 +1,7 @@
 # DSH × 终末地风格工作台
 
 <p align="center">
-  <img src="./cover/dsh-endfield-workbench-readme-banner-5x2.png" alt="DSH 终末地风格工作台" width="100%" />
+  <img src="./assets/readme/workbench-hero.svg" alt="DSH 终末地风格工作台：工业网格与工作台界面示意" width="100%" />
 </p>
 
 <p align="center">
@@ -10,11 +10,18 @@
 </p>
 
 <p align="center">
-  <a href="#快速开始">快速开始</a> ·
+  <a href="https://github.com/rison114514/dsh-endfield-ui/releases"><img src="https://img.shields.io/badge/Release-v1.1.0-795a00?style=flat-square&amp;labelColor=20282b" alt="正式发布版 v1.1.0" /></a>
+  <a href="#快速开始"><img src="https://img.shields.io/badge/Desktop-macOS%20%7C%20Windows-236f70?style=flat-square&amp;labelColor=20282b" alt="支持 macOS 和 Windows Desktop" /></a>
+  <a href="#快速开始"><img src="https://img.shields.io/badge/Web-Profile-236f70?style=flat-square&amp;labelColor=20282b" alt="支持 DSH Web Profile" /></a>
+  <a href="https://github.com/rison114514/dsh-endfield-ui/stargazers"><img src="https://img.shields.io/github/stars/rison114514/dsh-endfield-ui?style=flat-square&amp;labelColor=20282b&amp;color=5b686c" alt="GitHub Stars" /></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/rison114514/dsh-endfield-ui/releases">下载插件</a> ·
+  <a href="#快速开始">安装指南</a> ·
   <a href="#功能一览">功能一览</a> ·
   <a href="#兼容说明">兼容说明</a> ·
-  <a href="#合作推广">合作推广</a> ·
-  <a href="./RELEASE.md">发布说明</a>
+  <a href="#合作推广">合作推广</a>
 </p>
 
 > **非官方同人主题**：本项目与游戏开发商及 DeepSeek 官方均无关联，不暗示合作或授权。
@@ -23,11 +30,9 @@
 
 ## 功能一览
 
-| 界面 | 工作流 |
-| --- | --- |
-| 终末地风格开屏、工业网格背景、等高线侧栏与黄黑组件 | 右侧工作台整合文件、编辑器、浏览器、终端、Git、任务与子代理 |
-| 输入框、审批卡片和设置页适配浅色、深色与跟随系统外观 | `OBJECTIVE` 读取 DSH 原生 Goal，与 `/goal`、GoalBar 共用状态 |
-| 长文本、选区、光标和右栏布局的可读性适配 | 图片附件使用 DSH 官方 Vision 链路 |
+| 01 · 终末地视觉 | 02 · 原生工作台 | 03 · DSH 集成 |
+| :--- | :--- | :--- |
+| 工业网格、等高线侧栏、开屏与黄黑组件；适配浅色、深色和跟随系统外观。 | 右侧整合文件、编辑器、浏览器、终端、Git、任务与子代理。 | `OBJECTIVE` 与原生 Goal 共用状态；图片附件使用官方 Vision 链路。 |
 
 ## 快速开始
 
@@ -52,7 +57,8 @@ dsh web
 | Node.js | `>=22.19.0` |
 | dsh-better-sidebar | `0.24.1` |
 
-**DSH `0.2.1` 用户请勿安装上述 `1.1.0` 组合。**旧版侧栏的 Host 依赖已不兼容，文件区可能出现 HTTP 405。兼容修订尚未正式发布，请以 [Releases](https://github.com/rison114514/dsh-endfield-ui/releases) 的说明为准。
+> [!WARNING]
+> DSH `0.2.1` 用户请勿安装上述 `1.1.0` 组合。旧版侧栏的 Host 依赖已不兼容，文件区可能出现 HTTP 405。兼容修订尚未正式发布，请以 [Releases](https://github.com/rison114514/dsh-endfield-ui/releases) 的说明为准。
 
 官方 Desktop 使用独立的 `desktop` Profile；普通 npm 全局安装的旧版 `dsh` 不一定能管理它。安装或卸载插件不会删除用户的会话、模型与设置。卸载命令：
 
